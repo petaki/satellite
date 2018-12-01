@@ -6,5 +6,17 @@
   "repository": "git@github.com:petaki/carrier.git",
   "author": "Peter Takacs <peter.takacs@koodilab.com>",
   "license": "MIT",
-  "private": true
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "start": "electron .",
+    "watch": "tsc -w"
+  },
+  "devDependencies": {
+    "@types/electron": "^1.6.10",
+    "@types/node": "^10.12.11",
+    "electron": "^3.0.10",
+    "tslint": "^5.11.0",
+    "typescript": "^3.2.1"
+  }
 }
