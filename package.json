@@ -1,0 +1,10 @@
+{
+  "name": "carrier",
+  "version": "1.0.0",
+  "description": "Dashboard for probes.",
+  "main": "build/index.js",
+  "repository": "git@github.com:petaki/carrier.git",
+  "author": "Peter Takacs <peter.takacs@koodilab.com>",
+  "license": "MIT",
+  "private": true
+}
