@@ -23,6 +23,8 @@
     "electron-devtools-installer": "^2.2.4",
     "node-sass": "^4.10.0",
     "parcel-bundler": "^1.10.3",
+    "postcss": "^7.0.6",
+    "tailwindcss": "^0.7.2",
     "tslint": "^5.11.0",
     "typescript": "^3.2.1",
     "vue": "^2.5.17",
