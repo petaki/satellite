@@ -1,4 +1,5 @@
 import { app, BrowserWindow } from "electron";
+import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 import path from "path";
 
 let mainWindow: BrowserWindow | null;
@@ -10,6 +11,11 @@ const createMainWindow = () => {
     });
 
     mainWindow.loadFile(path.join(__dirname, "index.html"));
+
+    if (process.env.NODE_ENV !== "production") {
+        installExtension(VUEJS_DEVTOOLS);
+    }
+
     mainWindow.on("closed", () => mainWindow = null);
 };
 
