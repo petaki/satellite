@@ -10,6 +10,7 @@
 
     @Component({
         name: "App",
+        
         components: {
             Sidebar,
         }
