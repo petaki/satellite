@@ -107,7 +107,7 @@ let colors = {
   'indigo-darkest': '#0d1122',
   'indigo-darker': '#121930',
   'indigo-dark': '#3e4b71',
-  'indigo': '#6574cd',
+  'indigo': '#596b9f',
   'indigo-light': '#7886d7',
   'indigo-lighter': '#b2b7ff',
   'indigo-lightest': '#e6e8ff',
