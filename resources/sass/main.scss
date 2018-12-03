@@ -35,7 +35,10 @@
   * @import "components/buttons";
   * @import "components/forms";
   */
- 
+  @import "components/fontawesome";
+  @import "components/base";
+  @import "components/buttons";
+
  /**
   * This injects all of Tailwind's utility classes, generated based on your
   * config file.
