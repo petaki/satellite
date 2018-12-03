@@ -1,5 +1,5 @@
 .btn-sidebar {
-    @apply flex items-center transition px-6 py-3 no-underline text-indigo-dark border-l-2 border-transparent;
+    @apply flex items-center transition px-6 py-3 no-underline text-indigo border-l-2 border-transparent;
 
     &.active,
     &:hover {
