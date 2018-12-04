@@ -1,0 +1,30 @@
+.sidebar {
+    @apply w-64 bg-indigo-darker min-h-screen py-6;
+
+    .logo {
+        @apply text-blue font-light text-center;
+    
+        small {
+            @apply block text-indigo text-sm mt-2;
+        }
+    }
+
+    .nav {
+        @apply list-reset font-light mt-6;
+    }
+
+    .btn {
+        @apply flex items-center transition px-6 py-3 no-underline text-indigo border-l-2 border-transparent;
+    
+        &.active,
+        &:hover {
+            @apply text-blue border-blue bg-indigo-darkest;
+        }
+        i {
+            @apply text-blue w-8;
+        }
+        small {
+            @apply text-xs truncate ml-2;
+        }
+    }
+}
