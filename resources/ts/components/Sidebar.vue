@@ -1,15 +1,21 @@
 <template>
-    <div class="w-64 bg-indigo-darker min-h-screen py-6">
-        <h1 class="text-blue font-light text-center">
+    <div class="sidebar">
+        <h1 v-if="isConnected" class="logo">
             <i class="fas fa-wifi"></i>
-            <small class="block text-indigo text-sm mt-2">
+            <small>
                 Probe
             </small>
         </h1>
-        <ul class="list-reset font-light mt-6">
+        <h1 v-else class="logo">
+            <i class="fas fa-broadcast-tower"></i>
+            <small>
+                Carrier
+            </small>
+        </h1>
+        <ul v-if="isConnected" class="nav">
             <li>
                 <a href="#"
-                   class="btn-sidebar"
+                   class="btn"
                    :class="{active: isSelected('cpu')}"
                    @click.prevent="select('cpu')">
                     <i class="fas fa-microchip"></i>
@@ -18,7 +24,7 @@
             </li>
             <li>
                 <a href="#"
-                   class="btn-sidebar"
+                   class="btn"
                    :class="{active: isSelected('memory')}"
                    @click.prevent="select('memory')">
                     <i class="fas fa-memory"></i>
@@ -27,7 +33,7 @@
             </li>
             <li>
                 <a href="#"
-                   class="btn-sidebar"
+                   class="btn"
                    :class="{active: isSelected('drive-0')}"
                    @click.prevent="select('drive-0')">
                     <i class="fas fa-hdd"></i>
@@ -39,7 +45,7 @@
             </li>
             <li>
                 <a href="#"
-                   class="btn-sidebar"
+                   class="btn"
                    :class="{active: isSelected('drive-1')}"
                    @click.prevent="select('drive-1')">
                     <i class="fas fa-hdd"></i>
@@ -47,6 +53,26 @@
                     <small>
                         /mnt/hdd1/pictures
                     </small>
+                </a>
+            </li>
+        </ul>
+        <ul v-else class="nav">
+            <li>
+                <a href="#"
+                   class="btn"
+                   :class="{active: isSelected('new')}"
+                   @click.prevent="select('new')">
+                    <i class="fas fa-plus-square"></i>
+                    New
+                </a>
+            </li>
+            <li>
+                <a href="#"
+                   class="btn"
+                   :class="{active: isSelected('probe')}"
+                   @click.prevent="select('probe')">
+                    <i class="fas fa-wifi"></i>
+                    Probe
                 </a>
             </li>
         </ul>
@@ -60,7 +86,8 @@
         name: "Sidebar",
     })
     export default class Sidebar extends Vue {
-        selected = "cpu";
+        isConnected = false;
+        selected = "new";
 
         isSelected(selected: string): boolean {
             return this.selected === selected;

@@ -6,6 +6,7 @@ let mainWindow: BrowserWindow | null;
 
 const createMainWindow = () => {
     mainWindow = new BrowserWindow({
+        backgroundColor: "#0d1122",
         height: 600,
         width: 960,
     });
