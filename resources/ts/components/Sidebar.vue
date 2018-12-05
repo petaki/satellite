@@ -7,7 +7,7 @@
             </small>
         </h1>
         <h1 v-else class="logo">
-            <i class="fas fa-broadcast-tower"></i>
+            <i class="fas fa-rocket"></i>
             <small>
                 Carrier
             </small>

@@ -8,8 +8,8 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "build": "tsc",
-    "build-res": "parcel build -t electron -d build --public-url ./ --no-source-maps resources/index.html",
+    "build": "NODE_ENV=production tsc",
+    "build-res": "NODE_ENV=production parcel build -t electron -d build --public-url ./ --no-source-maps resources/index.html",
     "start": "electron .",
     "watch": "tsc -w",
     "watch-res": "parcel -t electron -d build --public-url ./ resources/index.html"
