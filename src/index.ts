@@ -8,6 +8,7 @@ const createMainWindow = () => {
     mainWindow = new BrowserWindow({
         backgroundColor: '#0d1122',
         height: 600,
+        title: 'Carrier',
         width: 960,
     });
 
