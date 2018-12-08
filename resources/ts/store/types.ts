@@ -3,7 +3,6 @@ export interface IState {
 }
 
 export interface IProbe {
-    isConnected: boolean;
     name: string;
     type: ProbeType;
     sshType: SSHType;

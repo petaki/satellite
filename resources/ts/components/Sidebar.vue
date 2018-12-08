@@ -1,6 +1,6 @@
 <template>
     <div class="sidebar">
-        <h1 v-if="connected" class="logo">
+        <h1 v-if="isConnected" class="logo">
             <i class="fas fa-wifi"></i>
             <small>
                 Probe
@@ -12,7 +12,7 @@
                 Carrier
             </small>
         </h1>
-        <ul v-if="connected" class="nav">
+        <ul v-if="isConnected" class="nav">
             <li>
                 <a href="#"
                    class="btn"
@@ -80,6 +80,7 @@
 </template>
 
 <script lang="ts">
+    import Manager from '../connection';
     import { IProbe } from '../store/types';
     import { Component, Vue } from 'vue-property-decorator';
     import { Getter, State } from 'vuex-class';
@@ -89,9 +90,12 @@
     })
     export default class Sidebar extends Vue {
         @State probes!: IProbe[];
-        @Getter connected!: IProbe | undefined;
 
         selected = 'new';
+
+        get isConnected(): boolean {
+            return Manager.isConnected;
+        }
 
         isSelected(selected: string): boolean {
             return this.selected === selected;
