@@ -131,10 +131,10 @@
 </template>
 
 <script lang="ts">
-    import { Component, Vue } from "vue-property-decorator";
+    import { Component, Vue } from 'vue-property-decorator';
 
     @Component({
-        name: "Probe",
+        name: 'Probe',
     })
     export default class Probe extends Vue {};
 </script>

@@ -6,12 +6,12 @@
 </template>
 
 <script lang="ts">
-    import { Component, Vue } from "vue-property-decorator";
-    import Probe from "./Probe.vue";
-    import Sidebar from "./Sidebar.vue";
+    import { Component, Vue } from 'vue-property-decorator';
+    import Probe from './Probe.vue';
+    import Sidebar from './Sidebar.vue';
 
     @Component({
-        name: "App",
+        name: 'App',
         
         components: {
             Probe,

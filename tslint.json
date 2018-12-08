@@ -4,6 +4,9 @@
         "tslint:recommended"
     ],
     "jsRules": {},
-    "rules": {},
+    "rules": {
+        "quotemark": [true, "single"],
+        "variable-name": [true, "allow-leading-underscore"]
+    },
     "rulesDirectory": []
 }
