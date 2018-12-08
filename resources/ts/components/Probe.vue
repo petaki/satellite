@@ -1,92 +1,129 @@
 <template>
-    <div class="flex-1 px-6 py-6">
-        <div class="bg-indigo-dark px-6 py-6 rounded w-full max-w-sm">
-            <h4 class="text-indigo-lighter mb-6">
-                New
-            </h4>
+    <div class="flex-1 overflow-y-auto max-h-screen px-6 py-6">
+        <div class="bg-indigo-dark px-6 py-6 rounded w-full max-w-md ml-auto mr-auto">
+            <div class="flex items-center mb-6">
+                <h4 class="text-indigo-lighter">
+                    New
+                </h4>
+                <a class="field-tab left active ml-auto" href="#">
+                    Standard
+                </a>
+                <a class="field-tab right" href="#">
+                    SSH
+                </a>
+            </div>
             <form>
-                <div class="mb-4">
-                    <label class="block text-indigo-light text-sm mb-2" for="name">
+                <div class="mb-6">
+                    <label class="field-label required mb-2" for="name">
                         Name
                     </label>
                     <input id="name"
-                           class="appearance-none leading-tight text-indigo bg-indigo-darkest rounded px-4 py-2 w-full focus:outline-none"
-                           type="text">
+                           class="field"
+                           type="text"
+                           placeholder="Probe">
                 </div>
+                <h4 class="text-indigo-lighter mb-6">
+                    Redis
+                </h4>
                 <div class="mb-4">
-                    <label class="block text-indigo-light text-sm mb-2" for="redis_host">
+                    <label class="field-label required mb-2" for="redis_host">
                         Redis Host
                     </label>
                     <input id="redis_host"
-                           class="appearance-none leading-tight text-indigo bg-indigo-darkest rounded px-4 py-2 w-full focus:outline-none"
+                           class="field"
                            type="text"
                            placeholder="localhost">
                 </div>
                 <div class="mb-4">
-                    <label class="block text-indigo-light text-sm mb-2" for="redis_port">
+                    <label class="field-label required mb-2" for="redis_port">
                         Redis Port
                     </label>
                     <input id="redis_port"
-                           class="appearance-none leading-tight text-indigo bg-indigo-darkest rounded px-4 py-2 w-full focus:outline-none"
+                           class="field"
                            type="text"
                            placeholder="6379">
                 </div>
                 <div class="mb-4">
-                    <label class="block text-indigo-light text-sm mb-2" for="redis_password">
+                    <label class="field-label mb-2" for="redis_password">
                         Redis Password
                     </label>
                     <input id="redis_password"
-                           class="appearance-none leading-tight text-indigo bg-indigo-darkest rounded px-4 py-2 w-full focus:outline-none"
+                           class="field"
                            type="password">
                 </div>
+                <div class="mb-6">
+                    <label class="field-label required mb-2" for="redis_key_prefix">
+                        Redis Key Prefix
+                    </label>
+                    <input id="redis_key_prefix"
+                           class="field"
+                           type="text"
+                           placeholder="probe:">
+                </div>
+                <div class="flex items-center mb-6">
+                    <h4 class="text-indigo-lighter">
+                        SSH
+                    </h4>
+                    <a class="field-tab left active ml-auto" href="#">
+                        Password
+                    </a>
+                    <a class="field-tab right" href="#">
+                        Key
+                    </a>
+                </div>
                 <div class="mb-4">
-                    <label class="block text-indigo-light text-sm mb-2" for="ssh_host">
+                    <label class="field-label mb-2" for="ssh_host">
                         SSH Host
                     </label>
                     <input id="ssh_host"
-                           class="appearance-none leading-tight text-indigo bg-indigo-darkest rounded px-4 py-2 w-full focus:outline-none"
+                           class="field"
                            type="text">
                 </div>
                 <div class="mb-4">
-                    <label class="block text-indigo-light text-sm mb-2" for="ssh_port">
+                    <label class="field-label mb-2" for="ssh_port">
                         SSH Port
                     </label>
                     <input id="ssh_port"
-                           class="appearance-none leading-tight text-indigo bg-indigo-darkest rounded px-4 py-2 w-full focus:outline-none"
+                           class="field"
                            type="text"
                            placeholder="22">
                 </div>
                 <div class="mb-4">
-                    <label class="block text-indigo-light text-sm mb-2" for="ssh_user">
+                    <label class="field-label mb-2" for="ssh_user">
                         SSH User
                     </label>
                     <input id="ssh_user"
-                           class="appearance-none leading-tight text-indigo bg-indigo-darkest rounded px-4 py-2 w-full focus:outline-none"
+                           class="field"
                            type="text">
                 </div>
                 <div class="mb-4">
-                    <label class="block text-indigo-light text-sm mb-2" for="ssh_password">
+                    <label class="field-label mb-2" for="ssh_password">
                         SSH Password
                     </label>
                     <input id="ssh_password"
-                           class="appearance-none leading-tight text-indigo bg-indigo-darkest rounded px-4 py-2 w-full focus:outline-none"
+                           class="field"
                            type="password">
                 </div>
                 <div class="mb-4">
-                    <label class="block text-indigo-light text-sm mb-2" for="ssh_key_file">
+                    <label class="field-label mb-2" for="ssh_key_file">
                         SSH Key File
                     </label>
                     <input id="ssh_key_file"
-                           class="appearance-none leading-tight text-indigo bg-indigo-darkest rounded px-4 py-2 w-full focus:outline-none"
+                           class="field"
                            type="text">
                 </div>
-                <div>
-                    <label class="block text-indigo-light text-sm mb-2" for="ssh_key_passphrase">
+                <div class="mb-6">
+                    <label class="field-label mb-2" for="ssh_key_passphrase">
                         SSH Key Passphrase
                     </label>
                     <input id="ssh_key_passphrase"
-                           class="appearance-none leading-tight text-indigo bg-indigo-darkest rounded px-4 py-2 w-full focus:outline-none"
+                           class="field"
                            type="password">
+                </div>
+                <div class="text-center">
+                    <button class="field-btn" type="submit">
+                        Save and Connect
+                    </button>
                 </div>
             </form>
         </div>

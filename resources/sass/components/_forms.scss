@@ -1,0 +1,37 @@
+.field {
+    @apply appearance-none text-indigo bg-indigo-darkest rounded px-4 py-2 w-full;
+
+    &:focus {
+        @apply outline-none;
+    }
+    &-label {
+        @apply block text-indigo-light text-sm;
+
+        &.required:after {
+            @apply text-blue;
+
+            content: ' *';
+        }
+    }
+    &-tab {
+        @apply block border border-blue text-xs text-white no-underline transition px-4 py-2;
+
+        &.left {
+            @apply rounded-l;
+        }
+        &.right {
+            @apply rounded-r;
+        }
+        &.active,
+        &:hover {
+            @apply bg-blue;
+        }
+    }
+    &-btn {
+        @apply bg-blue text-white text-sm rounded transition px-12 py-2;
+
+        &:hover {
+            @apply bg-blue-dark;
+        }
+    }
+}

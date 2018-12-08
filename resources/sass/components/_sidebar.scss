@@ -1,8 +1,8 @@
 .sidebar {
-    @apply w-64 bg-indigo-darker min-h-screen py-6;
+    @apply w-64 bg-indigo-darker overflow-y-auto h-screen py-6;
 
     .logo {
-        @apply text-blue font-light text-center;
+        @apply text-blue text-center;
     
         small {
             @apply block text-indigo-light text-sm mt-2;
@@ -10,7 +10,7 @@
     }
 
     .nav {
-        @apply list-reset font-light mt-6;
+        @apply list-reset mt-6;
     }
 
     .btn {
