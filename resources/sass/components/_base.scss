@@ -1,7 +1,3 @@
-[v-cloak] {
-    display: none;
-}
-
-.transition {
-    transition: ease .2s;
+body {
+    @apply bg-indigo-darkest font-sans;
 }
