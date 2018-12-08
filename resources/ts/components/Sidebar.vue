@@ -1,6 +1,6 @@
 <template>
     <div class="sidebar">
-        <h1 v-if="isConnected" class="logo">
+        <h1 v-if="connected" class="logo">
             <i class="fas fa-wifi"></i>
             <small>
                 Probe
@@ -12,7 +12,7 @@
                 Carrier
             </small>
         </h1>
-        <ul v-if="isConnected" class="nav">
+        <ul v-if="connected" class="nav">
             <li>
                 <a href="#"
                    class="btn"
@@ -66,13 +66,13 @@
                     New
                 </a>
             </li>
-            <li>
+            <li v-for="(probe, index) in probes" :key="index">
                 <a href="#"
                    class="btn"
-                   :class="{active: isSelected('probe')}"
-                   @click.prevent="select('probe')">
+                   :class="{active: isSelected(`probe-${index}`)}"
+                   @click.prevent="select(`probe-${index}`)">
                     <i class="fas fa-wifi"></i>
-                    Probe
+                    {{ probe.name }}
                 </a>
             </li>
         </ul>
@@ -80,14 +80,18 @@
 </template>
 
 <script lang="ts">
-    import { Component, Vue } from "vue-property-decorator";
+    import { IProbe } from '../store/types';
+    import { Component, Vue } from 'vue-property-decorator';
+    import { Getter, State } from 'vuex-class';
 
     @Component({
-        name: "Sidebar",
+        name: 'Sidebar',
     })
     export default class Sidebar extends Vue {
-        isConnected = false;
-        selected = "new";
+        @State probes!: IProbe[];
+        @Getter connected!: IProbe | undefined;
+
+        selected = 'new';
 
         isSelected(selected: string): boolean {
             return this.selected === selected;
