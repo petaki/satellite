@@ -77,7 +77,7 @@
                         </a>
                     </div>
                     <div class="mb-4">
-                        <label class="field-label mb-2" for="ssh_host">
+                        <label class="field-label required mb-2" for="ssh_host">
                             SSH Host
                         </label>
                         <input id="ssh_host"
@@ -85,7 +85,7 @@
                                type="text">
                     </div>
                     <div class="mb-4">
-                        <label class="field-label mb-2" for="ssh_port">
+                        <label class="field-label required mb-2" for="ssh_port">
                             SSH Port
                         </label>
                         <input id="ssh_port"
@@ -94,7 +94,7 @@
                                placeholder="22">
                     </div>
                     <div class="mb-4">
-                        <label class="field-label mb-2" for="ssh_user">
+                        <label class="field-label required mb-2" for="ssh_user">
                             SSH User
                         </label>
                         <input id="ssh_user"
@@ -115,8 +115,11 @@
                                 SSH Key File
                             </label>
                             <input id="ssh_key_file"
-                                   class="field"
-                                   type="text">
+                                   class="hidden"
+                                   type="file">
+                            <label class="block field" for="ssh_key_file">
+                                Choose a file...
+                            </label>
                         </div>
                         <div class="mb-6">
                             <label class="field-label mb-2" for="ssh_key_passphrase">

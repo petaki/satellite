@@ -2,9 +2,10 @@ export interface IState {
     probes: IProbe[];
 }
 
-export enum ProbeType {
-    Standard,
-    SSH,
+export interface IProbe {
+    name: string;
+    type: ProbeType;
+    sshType: SSHType;
 }
 
 export enum SSHType {
@@ -12,9 +13,7 @@ export enum SSHType {
     Key,
 }
 
-export interface IProbe {
-    isConnected: boolean;
-    name: string;
-    type: ProbeType;
-    sshType: SSHType;
+export enum ProbeType {
+    Standard,
+    SSH,
 }
