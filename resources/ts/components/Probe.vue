@@ -39,6 +39,9 @@
                            class="field"
                            type="text"
                            v-model="probe.redisHost">
+                    <p v-if="!isValid('redisHost')" class="field-error mt-2">
+                        {{ errors.redisHost }}
+                    </p>
                 </div>
                 <div class="mb-4">
                     <label class="field-label required mb-2" for="redis_port">
@@ -46,9 +49,12 @@
                     </label>
                     <input id="redis_port"
                            class="field"
-                           type="text"
+                           type="number"
                            placeholder="6379"
                            v-model.number="probe.redisPort">
+                    <p v-if="!isValid('redisPort')" class="field-error mt-2">
+                        {{ errors.redisPort }}
+                    </p>
                 </div>
                 <div class="mb-4">
                     <label class="field-label mb-2" for="redis_password">
@@ -58,6 +64,9 @@
                            class="field"
                            type="password"
                            v-model="probe.redisPassword">
+                    <p v-if="!isValid('redisPassword')" class="field-error mt-2">
+                        {{ errors.redisPassword }}
+                    </p>
                 </div>
                 <div class="mb-6">
                     <label class="field-label required mb-2" for="redis_key_prefix">
@@ -68,6 +77,9 @@
                            type="text"
                            placeholder="probe:"
                            v-model="probe.redisKeyPrefix">
+                    <p v-if="!isValid('redisKeyPrefix')" class="field-error mt-2">
+                        {{ errors.redisKeyPrefix }}
+                    </p>
                 </div>
                 <template v-if="isSSH">
                     <div class="flex items-center mb-6">
@@ -91,6 +103,9 @@
                                class="field"
                                type="text"
                                v-model="probe.sshHost">
+                        <p v-if="!isValid('sshHost')" class="field-error mt-2">
+                            {{ errors.sshHost }}
+                        </p>
                     </div>
                     <div class="mb-4">
                         <label class="field-label required mb-2" for="ssh_port">
@@ -98,9 +113,12 @@
                         </label>
                         <input id="ssh_port"
                                class="field"
-                               type="text"
+                               type="number"
                                placeholder="22"
                                v-model.number="probe.sshPort">
+                        <p v-if="!isValid('sshPort')" class="field-error mt-2">
+                            {{ errors.sshPort }}
+                        </p>
                     </div>
                     <div class="mb-4">
                         <label class="field-label required mb-2" for="ssh_user">
@@ -110,6 +128,9 @@
                                class="field"
                                type="text"
                                v-model="probe.sshUser">
+                        <p v-if="!isValid('sshUser')" class="field-error mt-2">
+                            {{ errors.sshUser }}
+                        </p>
                     </div>
                     <div v-if="isSSHPassword" class="mb-6">
                         <label class="field-label mb-2" for="ssh_password">
@@ -119,6 +140,9 @@
                                class="field"
                                type="password"
                                v-model="probe.sshPassword">
+                        <p v-if="!isValid('sshPassword')" class="field-error mt-2">
+                            {{ errors.sshPassword }}
+                        </p>
                     </div>
                     <template v-else>
                         <div class="mb-4">
@@ -131,6 +155,9 @@
                             <label class="block field" for="ssh_key_file">
                                 {{ probe.sshKeyFile || 'Choose a file...' }}
                             </label>
+                            <p v-if="!isValid('sshKeyFile')" class="field-error mt-2">
+                                {{ errors.sshKeyFile }}
+                            </p>
                         </div>
                         <div class="mb-6">
                             <label class="field-label mb-2" for="ssh_key_passphrase">
@@ -140,6 +167,9 @@
                                    class="field"
                                    type="password"
                                    v-model="probe.sshKeyPassphrase">
+                            <p v-if="!isValid('sshKeyPassphrase')" class="field-error mt-2">
+                                {{ errors.sshKeyPassphrase }}
+                            </p>
                         </div>
                     </template>
                 </template>
@@ -216,7 +246,37 @@
             this.errors = {};
 
             if (_.isEmpty(this.probe.name)) {
-                this.errors.name = 'The name field is required.';
+                this.errors.name = 'The Name field is required.';
+            }
+
+            if (_.isEmpty(this.probe.redisHost)) {
+                this.errors.redisHost = 'The Redis Host field is required.';
+            }
+
+            if (!this.probe.redisPort) {
+                this.errors.redisPort = 'The Redis Port field is required.';
+            } else if (this.probe.redisPort < 1) {
+                this.errors.redisPort = 'The Redis Port must be at least 1.';
+            }
+
+            if (_.isEmpty(this.probe.redisKeyPrefix)) {
+                this.errors.redisKeyPrefix = 'The Redis Key Prefix field is required.';
+            }
+
+            if (this.isSSH) {
+                if (_.isEmpty(this.probe.sshHost)) {
+                    this.errors.sshHost = 'The SSH Host field is required.';
+                }
+
+                if (!this.probe.sshPort) {
+                    this.errors.sshPort = 'The SSH Port field is required.';
+                } else if (this.probe.sshPort < 1) {
+                    this.errors.sshPort = 'The SSH Port must be at least 1.';
+                }
+
+                if (_.isEmpty(this.probe.sshUser)) {
+                    this.errors.sshUser = 'The SSH User field is required.';
+                }
             }
         }
 
