@@ -21,6 +21,9 @@
             @apply bg-blue;
         }
     }
+    &-error {
+        @apply text-red-light text-sm;
+    }
     &-btn {
         @apply bg-blue text-white text-sm rounded transition px-12 py-2;
 
