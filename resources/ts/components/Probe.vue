@@ -8,13 +8,13 @@
                 <a v-for="(value, name, index) in types"
                    :key="value"
                    class="field-tab"
-                   :class="{'ml-auto': index === 0, 'rounded-l': index === 0, 'rounded-r': index === typeSize - 1, active: type === value}"
+                   :class="{'ml-auto rounded-l': index === 0, 'rounded-r': index === typeSize - 1, active: probe.type === value}"
                    href="#"
-                   @click.prevent="type = value">
+                   @click.prevent="probe.type = value">
                     {{ name }}
                 </a>
             </div>
-            <form>
+            <form @submit.prevent="submit()">
                 <div class="mb-6">
                     <label class="field-label required mb-2" for="name">
                         Name
@@ -22,7 +22,11 @@
                     <input id="name"
                            class="field"
                            type="text"
-                           placeholder="Probe">
+                           placeholder="Probe"
+                           v-model="probe.name">
+                    <p v-if="!isValid('name')" class="field-error mt-2">
+                        {{ errors.name }}
+                    </p>
                 </div>
                 <h4 class="text-indigo-lighter mb-6">
                     Redis
@@ -34,7 +38,7 @@
                     <input id="redis_host"
                            class="field"
                            type="text"
-                           placeholder="localhost">
+                           v-model="probe.redisHost">
                 </div>
                 <div class="mb-4">
                     <label class="field-label required mb-2" for="redis_port">
@@ -43,7 +47,8 @@
                     <input id="redis_port"
                            class="field"
                            type="text"
-                           placeholder="6379">
+                           placeholder="6379"
+                           v-model.number="probe.redisPort">
                 </div>
                 <div class="mb-4">
                     <label class="field-label mb-2" for="redis_password">
@@ -51,7 +56,8 @@
                     </label>
                     <input id="redis_password"
                            class="field"
-                           type="password">
+                           type="password"
+                           v-model="probe.redisPassword">
                 </div>
                 <div class="mb-6">
                     <label class="field-label required mb-2" for="redis_key_prefix">
@@ -60,7 +66,8 @@
                     <input id="redis_key_prefix"
                            class="field"
                            type="text"
-                           placeholder="probe:">
+                           placeholder="probe:"
+                           v-model="probe.redisKeyPrefix">
                 </div>
                 <template v-if="isSSH">
                     <div class="flex items-center mb-6">
@@ -70,9 +77,9 @@
                         <a v-for="(value, name, index) in sshTypes"
                            :key="value"
                            class="field-tab"
-                           :class="{'ml-auto': index === 0, 'rounded-l': index === 0, 'rounded-r': index === sshTypeSize - 1, active: sshType === value}"
+                           :class="{'ml-auto rounded-l': index === 0, 'rounded-r': index === sshTypeSize - 1, active: probe.sshType === value}"
                            href="#"
-                           @click.prevent="sshType = value">
+                           @click.prevent="probe.sshType = value">
                             {{ name }}
                         </a>
                     </div>
@@ -82,7 +89,8 @@
                         </label>
                         <input id="ssh_host"
                                class="field"
-                               type="text">
+                               type="text"
+                               v-model="probe.sshHost">
                     </div>
                     <div class="mb-4">
                         <label class="field-label required mb-2" for="ssh_port">
@@ -91,7 +99,8 @@
                         <input id="ssh_port"
                                class="field"
                                type="text"
-                               placeholder="22">
+                               placeholder="22"
+                               v-model.number="probe.sshPort">
                     </div>
                     <div class="mb-4">
                         <label class="field-label required mb-2" for="ssh_user">
@@ -99,7 +108,8 @@
                         </label>
                         <input id="ssh_user"
                                class="field"
-                               type="text">
+                               type="text"
+                               v-model="probe.sshUser">
                     </div>
                     <div v-if="isSSHPassword" class="mb-6">
                         <label class="field-label mb-2" for="ssh_password">
@@ -107,7 +117,8 @@
                         </label>
                         <input id="ssh_password"
                                class="field"
-                               type="password">
+                               type="password"
+                               v-model="probe.sshPassword">
                     </div>
                     <template v-else>
                         <div class="mb-4">
@@ -118,7 +129,7 @@
                                    class="hidden"
                                    type="file">
                             <label class="block field" for="ssh_key_file">
-                                Choose a file...
+                                {{ probe.sshKeyFile || 'Choose a file...' }}
                             </label>
                         </div>
                         <div class="mb-6">
@@ -127,7 +138,8 @@
                             </label>
                             <input id="ssh_key_passphrase"
                                    class="field"
-                                   type="password">
+                                   type="password"
+                                   v-model="probe.sshKeyPassphrase">
                         </div>
                     </template>
                 </template>
@@ -144,21 +156,36 @@
 <script lang="ts">
     import _ from 'lodash';
     import { Component, Vue } from 'vue-property-decorator';
-    import { ProbeType, SSHType } from '../store/types';
+    import { IProbe, ProbeType, SSHType } from '../store/types';
 
     @Component({
         name: 'Probe',
     })
     export default class Probe extends Vue {
-        type: ProbeType = ProbeType.Standard;
-        sshType: SSHType = SSHType.Password;
+        probe: IProbe = {
+            name: 'Probe',
+            type: ProbeType.Standard,
+            redisHost: '',
+            redisPort: 6379,
+            redisPassword: '',
+            redisKeyPrefix: 'probe:',
+            sshType: SSHType.Password,
+            sshHost: '',
+            sshPort: 22,
+            sshUser: '',
+            sshPassword: '',
+            sshKeyFile: '',
+            sshKeyPassphrase: '',
+        };
+
+        errors: { [key: string]: string } = {};
 
         get isSSH(): boolean {
-            return this.type === ProbeType.SSH;
+            return this.probe.type === ProbeType.SSH;
         }
 
         get isSSHPassword(): boolean {
-            return this.sshType === SSHType.Password;
+            return this.probe.sshType === SSHType.Password;
         }
 
         get types() {
@@ -175,6 +202,26 @@
 
         get sshTypeSize(): number {
             return _.size(this.sshTypes);
+        }
+
+        isValid(name?: string): boolean {
+            if (name) {
+                return !_.has(this.errors, name);
+            }
+
+            return _.isEmpty(this.errors);
+        }
+
+        validate() {
+            this.errors = {};
+
+            if (_.isEmpty(this.probe.name)) {
+                this.errors.name = 'The name field is required.';
+            }
+        }
+
+        submit() {
+            this.validate();
         }
     };
 </script>
