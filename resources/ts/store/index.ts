@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import Vue from 'vue';
-import Vuex, { MutationTree } from 'vuex';
-import { IProbe, ISelected, IState } from './types';
+import Vuex, { MutationTree, Store } from 'vuex';
+import { IProbe, ISelected, IState, STORAGE_KEY } from './types';
 
 Vue.use(Vuex);
 
@@ -10,7 +10,7 @@ const state: IState = {
         name: 'new',
     },
 
-    probes: [],
+    probes: JSON.parse(window.localStorage.getItem(STORAGE_KEY) || '[]'),
 };
 
 const mutations: MutationTree<IState> = {
@@ -31,7 +31,18 @@ const mutations: MutationTree<IState> = {
     },
 };
 
+const localStoragePlugin = (store: Store<IState>) => {
+    store.subscribe((mutation, { probes }) => {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(probes));
+    });
+};
+
+const plugins = [
+    localStoragePlugin,
+];
+
 export default new Vuex.Store({
     mutations,
+    plugins,
     state,
 });
