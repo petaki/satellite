@@ -18,7 +18,7 @@ const mutations: MutationTree<IState> = {
         current.selected = selected;
     },
 
-    create(current: IState, probe: IProbe) {
+    add(current: IState, probe: IProbe) {
         current.probes.push(probe);
     },
 
