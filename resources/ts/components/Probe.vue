@@ -3,7 +3,7 @@
         <div class="bg-indigo-dark px-6 py-6 rounded w-full max-w-md ml-auto mr-auto">
             <div class="flex items-center mb-6">
                 <h4 class="text-indigo-lighter">
-                    New
+                    {{ isNew ? 'New' : 'Edit' }}
                 </h4>
                 <a v-for="(value, name, index) in types"
                    :key="value"
@@ -173,9 +173,15 @@
                         </div>
                     </template>
                 </template>
-                <div class="text-center">
+                <div class="flex">
                     <button class="field-btn" type="submit">
-                        Save and Connect
+                        Save
+                    </button>
+                    <button v-if="!isNew"
+                            class="field-remove-btn ml-auto"
+                            type="button"
+                            @click="removeProbe()">
+                        Delete
                     </button>
                 </div>
             </form>
@@ -185,30 +191,23 @@
 
 <script lang="ts">
     import _ from 'lodash';
-    import { Component, Vue } from 'vue-property-decorator';
-    import { IProbe, ProbeType, SSHType } from '../store/types';
+    import { Component, Vue, Watch } from 'vue-property-decorator';
+    import { IProbe, ISelected, ProbeType, SSHType } from '../store/types';
+    import { Mutation, State } from 'vuex-class';
 
     @Component({
         name: 'Probe',
     })
     export default class Probe extends Vue {
-        probe: IProbe = {
-            name: 'Probe',
-            type: ProbeType.Standard,
-            redisHost: '',
-            redisPort: 6379,
-            redisPassword: '',
-            redisKeyPrefix: 'probe:',
-            sshType: SSHType.Password,
-            sshHost: '',
-            sshPort: 22,
-            sshUser: '',
-            sshPassword: '',
-            sshKeyFile: '',
-            sshKeyPassphrase: '',
-        };
-
+        isNew: boolean = true;
+        probe: IProbe = this.defaultProbe();
         errors: { [key: string]: string } = {};
+
+        @State selected!: ISelected;
+        @Mutation select!: Function;
+        @Mutation create!: Function;
+        @Mutation edit!: Function;
+        @Mutation remove!: Function;
 
         get isSSH(): boolean {
             return this.probe.type === ProbeType.SSH;
@@ -232,6 +231,36 @@
 
         get sshTypeSize(): number {
             return _.size(this.sshTypes);
+        }
+
+        @Watch('selected')
+        onSelect(selected: ISelected) {
+            this.isNew = !_.has(selected, 'probe');
+            this.errors = {};
+
+            if (!this.isNew) {
+                this.probe = _.cloneDeep(selected.probe) as IProbe;
+            } else {
+                this.probe = this.defaultProbe();
+            }
+        }
+
+        defaultProbe(): IProbe {
+            return {
+                name: 'Probe',
+                type: ProbeType.Standard,
+                redisHost: '',
+                redisPort: 6379,
+                redisPassword: '',
+                redisKeyPrefix: 'probe:',
+                sshType: SSHType.Password,
+                sshHost: '',
+                sshPort: 22,
+                sshUser: '',
+                sshPassword: '',
+                sshKeyFile: '',
+                sshKeyPassphrase: '',
+            };
         }
 
         isValid(name?: string): boolean {
@@ -282,6 +311,28 @@
 
         submit() {
             this.validate();
+
+            if (this.isValid()) {
+                const probe = _.cloneDeep(this.probe);
+
+                if (this.isNew) {
+                    this.create(probe);
+                } else {
+                    this.edit(probe);
+                }
+
+                this.select({
+                    name: 'probe',
+                    probe,
+                });
+            }
+        }
+
+        removeProbe() {
+            this.remove(this.selected.probe);
+            this.select({
+                name: 'new'
+            });
         }
     };
 </script>

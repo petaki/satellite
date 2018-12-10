@@ -1,5 +1,11 @@
 export interface IState {
+    selected: ISelected;
     probes: IProbe[];
+}
+
+export interface ISelected {
+    name: string;
+    probe?: IProbe;
 }
 
 export interface IProbe {
