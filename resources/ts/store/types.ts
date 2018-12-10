@@ -1,3 +1,5 @@
+export const STORAGE_KEY = '_probes';
+
 export interface IState {
     selected: ISelected;
     probes: IProbe[];
