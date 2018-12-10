@@ -150,9 +150,13 @@
                                 SSH Key File
                             </label>
                             <input id="ssh_key_file"
+                                   ref="ssh_key_file"
                                    class="hidden"
-                                   type="file">
-                            <label class="block field" for="ssh_key_file">
+                                   type="file"
+                                   @change="updateSSHKeyFile()">
+                            <label class="block field"
+                                   for="ssh_key_file"
+                                   @click="selectSSHKeyFile()">
                                 {{ probe.sshKeyFile || 'Choose a file...' }}
                             </label>
                             <p v-if="!isValid('sshKeyFile')" class="field-error mt-2">
@@ -261,6 +265,18 @@
                 sshKeyFile: '',
                 sshKeyPassphrase: '',
             };
+        }
+
+        selectSSHKeyFile() {
+            this.probe.sshKeyFile = '';
+        }
+
+        updateSSHKeyFile() {
+            const files = _.get(this.$refs.ssh_key_file, 'files');
+
+            this.probe.sshKeyFile = _.get(
+                _.first(files), 'path'
+            );
         }
 
         isValid(name?: string): boolean {
