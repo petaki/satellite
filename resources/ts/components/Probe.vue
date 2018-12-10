@@ -205,7 +205,7 @@
 
         @State selected!: ISelected;
         @Mutation select!: Function;
-        @Mutation create!: Function;
+        @Mutation add!: Function;
         @Mutation edit!: Function;
         @Mutation remove!: Function;
 
@@ -316,7 +316,7 @@
                 const probe = _.cloneDeep(this.probe);
 
                 if (this.isNew) {
-                    this.create(probe);
+                    this.add(probe);
                 } else {
                     this.edit(probe);
                 }
