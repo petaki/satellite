@@ -146,7 +146,9 @@
                     </div>
                     <template v-else>
                         <div class="mb-4">
-                            <label class="field-label mb-2" for="ssh_key_file">
+                            <label class="field-label mb-2"
+                                   for="ssh_key_file"
+                                   @click="selectSSHKeyFile()">
                                 SSH Key File
                             </label>
                             <input id="ssh_key_file"
