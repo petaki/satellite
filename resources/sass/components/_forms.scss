@@ -25,10 +25,17 @@
         @apply text-red-light text-sm;
     }
     &-btn {
-        @apply bg-blue text-white text-sm rounded transition px-12 py-2;
+        @apply bg-blue border border-blue text-white text-sm rounded transition px-12 py-2;
 
         &:hover {
-            @apply bg-blue-dark;
+            @apply bg-blue-dark border-blue-dark;
+        }
+    }
+    &-remove-btn {
+        @apply bg-transparent border border-red-light text-white text-sm rounded transition px-12 py-2;
+
+        &:hover {
+            @apply bg-red-light;
         }
     }
 }

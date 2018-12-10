@@ -17,7 +17,7 @@
                 <a href="#"
                    class="btn"
                    :class="{active: isSelected('cpu')}"
-                   @click.prevent="select('cpu')">
+                   @click.prevent="select({name: 'cpu'})">
                     <i class="fas fa-microchip"></i>
                     CPU
                 </a>
@@ -26,7 +26,7 @@
                 <a href="#"
                    class="btn"
                    :class="{active: isSelected('memory')}"
-                   @click.prevent="select('memory')">
+                   @click.prevent="select({name: 'memory'})">
                     <i class="fas fa-memory"></i>
                     Memory
                 </a>
@@ -35,7 +35,7 @@
                 <a href="#"
                    class="btn"
                    :class="{active: isSelected('drive-0')}"
-                   @click.prevent="select('drive-0')">
+                   @click.prevent="select({name: 'drive-0'})">
                     <i class="fas fa-hdd"></i>
                     Drive
                     <small>
@@ -47,7 +47,7 @@
                 <a href="#"
                    class="btn"
                    :class="{active: isSelected('drive-1')}"
-                   @click.prevent="select('drive-1')">
+                   @click.prevent="select({name: 'drive-1'})">
                     <i class="fas fa-hdd"></i>
                     Drive
                     <small>
@@ -61,7 +61,7 @@
                 <a href="#"
                    class="btn"
                    :class="{active: isSelected('new')}"
-                   @click.prevent="select('new')">
+                   @click.prevent="select({name: 'new'})">
                     <i class="fas fa-plus-square"></i>
                     New
                 </a>
@@ -69,8 +69,8 @@
             <li v-for="(probe, index) in probes" :key="index">
                 <a href="#"
                    class="btn"
-                   :class="{active: isSelected(`probe-${index}`)}"
-                   @click.prevent="select(`probe-${index}`)">
+                   :class="{active: isSelected('probe', probe)}"
+                   @click.prevent="select({name: 'probe', probe: probe})">
                     <i class="fas fa-wifi"></i>
                     {{ probe.name }}
                 </a>
@@ -81,28 +81,30 @@
 
 <script lang="ts">
     import Manager from '../connection';
-    import { IProbe } from '../store/types';
+    import { IProbe, ISelected } from '../store/types';
     import { Component, Vue } from 'vue-property-decorator';
-    import { Getter, State } from 'vuex-class';
+    import { Mutation, State } from 'vuex-class';
 
     @Component({
         name: 'Sidebar',
     })
     export default class Sidebar extends Vue {
+        @State selected!: ISelected;
         @State probes!: IProbe[];
-
-        selected = 'new';
+        @Mutation select!: Function;
 
         get isConnected(): boolean {
             return Manager.isConnected;
         }
 
-        isSelected(selected: string): boolean {
-            return this.selected === selected;
-        }
+        isSelected(name: string, probe?: IProbe): boolean {
+            let isSelected = this.selected.name === name;
 
-        select(selected: string): void {
-            this.selected = selected;
+            if (isSelected && probe) {
+                isSelected = isSelected && this.selected.probe === probe; 
+            }
+
+            return isSelected;
         }
     };
 </script>
