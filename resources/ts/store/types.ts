@@ -18,13 +18,17 @@ export interface IFlash {
 }
 
 export interface IProbe {
-    name: string;
     type: ProbeType;
+    name: string;
+    redisType: RedisType;
     redisHost: string;
     redisPort: number;
-    redisPassword: string;
     redisDatabase: number;
+    redisPassword: string;
     redisKeyPrefix: string;
+    redisKeyFile: string;
+    redisCertificate: string;
+    redisCaCert: string;
     sshType: SSHType;
     sshHost: string;
     sshPort: number;
@@ -40,12 +44,17 @@ export enum FlashType {
     Error,
 }
 
-export enum SSHType {
-    Password,
-    Key,
-}
-
 export enum ProbeType {
     Standard,
     SSH,
+}
+
+export enum RedisType {
+    Normal,
+    SSL,
+}
+
+export enum SSHType {
+    Password,
+    Key,
 }

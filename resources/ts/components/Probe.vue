@@ -28,9 +28,19 @@
                         {{ errors.name }}
                     </p>
                 </div>
-                <h4 class="text-indigo-lighter mb-6">
-                    Redis
-                </h4>
+                <div class="flex items-center mb-6">
+                    <h4 class="text-indigo-lighter">
+                        Redis
+                    </h4>
+                    <a v-for="(value, name, index) in redisTypes"
+                       :key="value"
+                       class="field-tab"
+                       :class="{'ml-auto rounded-l': index === 0, 'rounded-r': index === redisTypeSize - 1, active: probe.redisType === value}"
+                       href="#"
+                       @click.prevent="probe.redisType = value">
+                        {{ name }}
+                    </a>
+                </div>
                 <div class="mb-4">
                     <label class="field-label required mb-2" for="redis_host">
                         Redis Host
@@ -57,6 +67,18 @@
                     </p>
                 </div>
                 <div class="mb-4">
+                    <label class="field-label mb-2" for="redis_password">
+                        Redis Password
+                    </label>
+                    <input id="redis_password"
+                           class="field"
+                           type="password"
+                           v-model="probe.redisPassword">
+                    <p v-if="!isValid('redisPassword')" class="field-error mt-2">
+                        {{ errors.redisPassword }}
+                    </p>
+                </div>
+                <div class="mb-4">
                     <label class="field-label required mb-2" for="redis_database">
                         Redis Database
                     </label>
@@ -69,19 +91,7 @@
                         {{ errors.redisDatabase }}
                     </p>
                 </div>
-                <div class="mb-4">
-                    <label class="field-label mb-2" for="redis_password">
-                        Redis Password
-                    </label>
-                    <input id="redis_password"
-                           class="field"
-                           type="password"
-                           v-model="probe.redisPassword">
-                    <p v-if="!isValid('redisPassword')" class="field-error mt-2">
-                        {{ errors.redisPassword }}
-                    </p>
-                </div>
-                <div class="mb-6">
+                <div :class="{'mb-4': isSSL, 'mb-6': !isSSL}">
                     <label class="field-label required mb-2" for="redis_key_prefix">
                         Redis Key Prefix
                     </label>
@@ -94,6 +104,68 @@
                         {{ errors.redisKeyPrefix }}
                     </p>
                 </div>
+                <template v-if="isSSL">
+                    <div class="mb-4">
+                        <label class="field-label mb-2"
+                               for="redis_key_file"
+                               @click="probe.redisKeyFile = ''">
+                            Redis Key File
+                        </label>
+                        <input id="redis_key_file"
+                               ref="redis_key_file"
+                               class="hidden"
+                               type="file"
+                               @change="updateRedisKeyFile()">
+                        <label class="block field"
+                               for="redis_key_file"
+                               @click="probe.redisKeyFile = ''">
+                            {{ probe.redisKeyFile || 'Choose a file...' }}
+                        </label>
+                        <p v-if="!isValid('redisKeyFile')" class="field-error mt-2">
+                            {{ errors.redisKeyFile }}
+                        </p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="field-label mb-2"
+                               for="redis_certificate"
+                               @click="probe.redisCertificate = ''">
+                            Redis Certificate
+                        </label>
+                        <input id="redis_certificate"
+                               ref="redis_certificate"
+                               class="hidden"
+                               type="file"
+                               @change="updateRedisCertificate()">
+                        <label class="block field"
+                               for="redis_certificate"
+                               @click="probe.redisCertificate = ''">
+                            {{ probe.redisCertificate || 'Choose a file...' }}
+                        </label>
+                        <p v-if="!isValid('redisCertificate')" class="field-error mt-2">
+                            {{ errors.redisCertificate }}
+                        </p>
+                    </div>
+                    <div class="mb-6">
+                        <label class="field-label mb-2"
+                               for="redis_ca_cert"
+                               @click="probe.redisCaCert = ''">
+                            Redis CA Cert
+                        </label>
+                        <input id="redis_ca_cert"
+                               ref="redis_ca_cert"
+                               class="hidden"
+                               type="file"
+                               @change="updateRedisCaCert()">
+                        <label class="block field"
+                               for="redis_ca_cert"
+                               @click="probe.redisCaCert = ''">
+                            {{ probe.redisCaCert || 'Choose a file...' }}
+                        </label>
+                        <p v-if="!isValid('redisCaCert')" class="field-error mt-2">
+                            {{ errors.redisCaCert }}
+                        </p>
+                    </div>
+                </template>
                 <template v-if="isSSH">
                     <div class="flex items-center mb-6">
                         <h4 class="text-indigo-lighter">
@@ -161,7 +233,7 @@
                         <div class="mb-4">
                             <label class="field-label mb-2"
                                    for="ssh_key_file"
-                                   @click="selectSSHKeyFile()">
+                                   @click="probe.sshKeyFile = ''">
                                 SSH Key File
                             </label>
                             <input id="ssh_key_file"
@@ -171,7 +243,7 @@
                                    @change="updateSSHKeyFile()">
                             <label class="block field"
                                    for="ssh_key_file"
-                                   @click="selectSSHKeyFile()">
+                                   @click="probe.sshKeyFile = ''">
                                 {{ probe.sshKeyFile || 'Choose a file...' }}
                             </label>
                             <p v-if="!isValid('sshKeyFile')" class="field-error mt-2">
@@ -211,8 +283,8 @@
 <script lang="ts">
     import _ from 'lodash';
     import { Component, Vue, Watch } from 'vue-property-decorator';
-    import { IProbe, ISelected, ProbeType, SSHType } from '../store/types';
-    import { Mutation, State } from 'vuex-class';
+    import { FlashType, IFlash, IProbe, ISelected, ProbeType, RedisType, SSHType } from '../store/types';
+    import { Action, Mutation, State } from 'vuex-class';
 
     @Component({
         name: 'Probe',
@@ -229,8 +301,14 @@
         @Mutation edit!: (probe: IProbe) => void;
         @Mutation remove!: (probe: IProbe) => void;
 
+        @Action flash!: (flash: IFlash) => void;
+
         get isSSH(): boolean {
             return this.probe.type === ProbeType.SSH;
+        }
+
+        get isSSL(): boolean {
+            return this.probe.redisType === RedisType.SSL;
         }
 
         get isSSHPassword(): boolean {
@@ -243,6 +321,14 @@
 
         get typeSize(): number {
             return _.size(this.types);
+        }
+
+        get redisTypes(): object {
+            return _.pickBy(RedisType, (value) => _.isNumber(value));
+        }
+
+        get redisTypeSize(): number {
+            return _.size(this.redisTypes);
         }
 
         get sshTypes(): object {
@@ -267,13 +353,17 @@
 
         defaultProbe(): IProbe {
             return {
-                name: 'Probe',
                 type: ProbeType.Standard,
+                name: 'Probe',
+                redisType: RedisType.Normal,
                 redisHost: '',
                 redisPort: 6379,
-                redisPassword: '',
                 redisDatabase: 0,
+                redisPassword: '',
                 redisKeyPrefix: 'probe:',
+                redisKeyFile: '',
+                redisCertificate: '',
+                redisCaCert: '',
                 sshType: SSHType.Password,
                 sshHost: '',
                 sshPort: 22,
@@ -284,8 +374,28 @@
             };
         }
 
-        selectSSHKeyFile(): void {
-            this.probe.sshKeyFile = '';
+        updateRedisKeyFile(): void {
+            const files = _.get(this.$refs.redis_key_file, 'files');
+
+            this.probe.redisKeyFile = _.get(
+                _.first(files), 'path'
+            );
+        }
+
+        updateRedisCertificate(): void {
+            const files = _.get(this.$refs.redis_certificate, 'files');
+
+            this.probe.redisCertificate = _.get(
+                _.first(files), 'path'
+            );
+        }
+
+        updateRedisCaCert(): void {
+            const files = _.get(this.$refs.redis_ca_cert, 'files');
+
+            this.probe.redisCaCert = _.get(
+                _.first(files), 'path'
+            );
         }
 
         updateSSHKeyFile(): void {
@@ -359,6 +469,12 @@
                 } else {
                     this.edit(probe);
                 }
+
+                this.flash({
+                    type: FlashType.Success,
+                    message: 'Saved',
+                    timeout: 1500,
+                });
 
                 this.select({
                     name: 'probe',
