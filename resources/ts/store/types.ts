@@ -23,6 +23,7 @@ export interface IProbe {
     redisHost: string;
     redisPort: number;
     redisPassword: string;
+    redisDatabase: number;
     redisKeyPrefix: string;
     sshType: SSHType;
     sshHost: string;

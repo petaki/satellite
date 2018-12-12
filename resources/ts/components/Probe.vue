@@ -57,6 +57,19 @@
                     </p>
                 </div>
                 <div class="mb-4">
+                    <label class="field-label required mb-2" for="redis_database">
+                        Redis Database
+                    </label>
+                    <input id="redis_database"
+                           class="field"
+                           type="number"
+                           placeholder="0"
+                           v-model.number="probe.redisDatabase">
+                    <p v-if="!isValid('redisDatabase')" class="field-error mt-2">
+                        {{ errors.redisDatabase }}
+                    </p>
+                </div>
+                <div class="mb-4">
                     <label class="field-label mb-2" for="redis_password">
                         Redis Password
                     </label>
@@ -259,6 +272,7 @@
                 redisHost: '',
                 redisPort: 6379,
                 redisPassword: '',
+                redisDatabase: 0,
                 redisKeyPrefix: 'probe:',
                 sshType: SSHType.Password,
                 sshHost: '',
@@ -301,10 +315,16 @@
                 this.errors.redisHost = 'The Redis Host field is required.';
             }
 
-            if (!this.probe.redisPort) {
+            if (!_.isNumber(this.probe.redisPort)) {
                 this.errors.redisPort = 'The Redis Port field is required.';
             } else if (this.probe.redisPort < 1) {
                 this.errors.redisPort = 'The Redis Port must be at least 1.';
+            }
+
+            if (!_.isNumber(this.probe.redisDatabase)) {
+                this.errors.redisDatabase = 'The Redis Database field is required.';
+            } else if (this.probe.redisDatabase < 0) {
+                this.errors.redisDatabase = 'The Redis Database must be at least 0.';
             }
 
             if (_.isEmpty(this.probe.redisKeyPrefix)) {
@@ -316,7 +336,7 @@
                     this.errors.sshHost = 'The SSH Host field is required.';
                 }
 
-                if (!this.probe.sshPort) {
+                if (!_.isNumber(this.probe.sshPort)) {
                     this.errors.sshPort = 'The SSH Port field is required.';
                 } else if (this.probe.sshPort < 1) {
                     this.errors.sshPort = 'The SSH Port must be at least 1.';
