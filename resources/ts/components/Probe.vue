@@ -224,7 +224,7 @@
             return this.probe.sshType === SSHType.Password;
         }
 
-        get types() {
+        get types(): object {
             return _.pickBy(ProbeType, (value) => _.isNumber(value));
         }
 
@@ -232,7 +232,7 @@
             return _.size(this.types);
         }
 
-        get sshTypes() {
+        get sshTypes(): object {
             return _.pickBy(SSHType, (value) => _.isNumber(value));
         }
 
@@ -241,7 +241,7 @@
         }
 
         @Watch('selected')
-        onSelect(selected: ISelected) {
+        onSelect(selected: ISelected): void {
             this.isNew = !_.has(selected, 'probe');
             this.errors = {};
 
@@ -270,11 +270,11 @@
             };
         }
 
-        selectSSHKeyFile() {
+        selectSSHKeyFile(): void {
             this.probe.sshKeyFile = '';
         }
 
-        updateSSHKeyFile() {
+        updateSSHKeyFile(): void {
             const files = _.get(this.$refs.ssh_key_file, 'files');
 
             this.probe.sshKeyFile = _.get(
@@ -290,7 +290,7 @@
             return _.isEmpty(this.errors);
         }
 
-        validate() {
+        validate(): void {
             this.errors = {};
 
             if (_.isEmpty(this.probe.name)) {
@@ -328,7 +328,7 @@
             }
         }
 
-        submit() {
+        submit(): void {
             this.validate();
 
             if (this.isValid()) {
@@ -347,7 +347,7 @@
             }
         }
 
-        removeProbe() {
+        removeProbe(): void {
             this.remove(this.selected.probe as IProbe);
             this.select({
                 name: 'new'

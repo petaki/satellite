@@ -18,7 +18,7 @@
     export default class Flash extends Vue {
         @State flash?: IFlash;
 
-        get hasFlash() {
+        get hasFlash(): boolean {
             return !_.isUndefined(this.flash);
         }
 

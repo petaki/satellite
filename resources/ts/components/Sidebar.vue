@@ -107,7 +107,7 @@
             return isSelected;
         }
 
-        connect(probe: IProbe) {
+        connect(probe: IProbe): void {
             console.log('Connecting...');
         }
     };
