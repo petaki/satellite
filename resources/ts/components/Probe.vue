@@ -210,10 +210,11 @@
         errors: { [key: string]: string } = {};
 
         @State selected!: ISelected;
-        @Mutation select!: Function;
-        @Mutation add!: Function;
-        @Mutation edit!: Function;
-        @Mutation remove!: Function;
+
+        @Mutation select!: (selected: ISelected) => void;
+        @Mutation add!: (probe: IProbe) => void;
+        @Mutation edit!: (probe: IProbe) => void;
+        @Mutation remove!: (probe: IProbe) => void;
 
         get isSSH(): boolean {
             return this.probe.type === ProbeType.SSH;
@@ -347,7 +348,7 @@
         }
 
         removeProbe() {
-            this.remove(this.selected.probe);
+            this.remove(this.selected.probe as IProbe);
             this.select({
                 name: 'new'
             });

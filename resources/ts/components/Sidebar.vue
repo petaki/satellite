@@ -1,6 +1,6 @@
 <template>
     <div class="sidebar">
-        <h1 v-if="isConnected" class="logo">
+        <h1 v-if="connection" class="logo">
             <i class="fas fa-wifi"></i>
             <small>
                 Probe
@@ -12,7 +12,7 @@
                 Carrier
             </small>
         </h1>
-        <ul v-if="isConnected" class="nav">
+        <ul v-if="connection" class="nav">
             <li>
                 <a href="#"
                    class="btn"
@@ -70,7 +70,8 @@
                 <a href="#"
                    class="btn"
                    :class="{active: isSelected('probe', probe)}"
-                   @click.prevent="select({name: 'probe', probe: probe})">
+                   @click.prevent="select({name: 'probe', probe: probe})"
+                   @dblclick="connect(probe)">
                     <i class="fas fa-wifi"></i>
                     {{ probe.name }}
                 </a>
@@ -80,22 +81,21 @@
 </template>
 
 <script lang="ts">
-    import Manager from '../connection';
-    import { IProbe, ISelected } from '../store/types';
+    import { IFlash, IProbe, ISelected } from '../store/types';
     import { Component, Vue } from 'vue-property-decorator';
-    import { Mutation, State } from 'vuex-class';
+    import { Action, Mutation, State } from 'vuex-class';
 
     @Component({
         name: 'Sidebar',
     })
     export default class Sidebar extends Vue {
-        @State selected!: ISelected;
         @State probes!: IProbe[];
-        @Mutation select!: Function;
+        @State selected!: ISelected;
 
-        get isConnected(): boolean {
-            return Manager.isConnected;
-        }
+        @Mutation select!: (selected: ISelected) => void;
+        @Mutation flash!: (flash?: IFlash) => void;
+
+        @Action delay!: Function;
 
         isSelected(name: string, probe?: IProbe): boolean {
             let isSelected = this.selected.name === name;
@@ -105,6 +105,10 @@
             }
 
             return isSelected;
+        }
+
+        connect(probe: IProbe) {
+            console.log('Connecting...');
         }
     };
 </script>

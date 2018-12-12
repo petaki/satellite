@@ -1,6 +1,7 @@
 export const STORAGE_KEY = '_probes';
 
 export interface IState {
+    flash?: IFlash;
     selected: ISelected;
     probes: IProbe[];
 }
@@ -8,6 +9,12 @@ export interface IState {
 export interface ISelected {
     name: string;
     probe?: IProbe;
+}
+
+export interface IFlash {
+    type: FlashType;
+    timeout?: number;
+    message: string;
 }
 
 export interface IProbe {
@@ -24,6 +31,12 @@ export interface IProbe {
     sshPassword: string;
     sshKeyFile: string;
     sshKeyPassphrase: string;
+}
+
+export enum FlashType {
+    Success,
+    Loading,
+    Error,
 }
 
 export enum SSHType {
