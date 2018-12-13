@@ -106,7 +106,7 @@
                 </div>
                 <template v-if="isSSL">
                     <div class="mb-4">
-                        <label class="field-label mb-2"
+                        <label class="field-label required mb-2"
                                for="redis_key_file"
                                @click="probe.redisKeyFile = ''">
                             Redis Key File
@@ -126,7 +126,7 @@
                         </p>
                     </div>
                     <div class="mb-4">
-                        <label class="field-label mb-2"
+                        <label class="field-label required mb-2"
                                for="redis_certificate"
                                @click="probe.redisCertificate = ''">
                             Redis Certificate
@@ -231,7 +231,7 @@
                     </div>
                     <template v-else>
                         <div class="mb-4">
-                            <label class="field-label mb-2"
+                            <label class="field-label required mb-2"
                                    for="ssh_key_file"
                                    @click="probe.sshKeyFile = ''">
                                 SSH Key File
@@ -441,6 +441,16 @@
                 this.errors.redisKeyPrefix = 'The Redis Key Prefix field is required.';
             }
 
+            if (this.isSSL) {
+                if (_.isEmpty(this.probe.redisKeyFile)) {
+                    this.errors.redisKeyFile = 'The Redis Key File field is required.';
+                }
+
+                if (_.isEmpty(this.probe.redisCertificate)) {
+                    this.errors.redisCertificate = 'The Redis Certificate field is required.';
+                }
+            }
+
             if (this.isSSH) {
                 if (_.isEmpty(this.probe.sshHost)) {
                     this.errors.sshHost = 'The SSH Host field is required.';
@@ -454,6 +464,12 @@
 
                 if (_.isEmpty(this.probe.sshUser)) {
                     this.errors.sshUser = 'The SSH User field is required.';
+                }
+
+                if (!this.isSSHPassword) {
+                    if (_.isEmpty(this.probe.sshKeyFile)) {
+                        this.errors.sshKeyFile = 'The SSH Key File field is required.';
+                    }
                 }
             }
         }
