@@ -1,7 +1,7 @@
 <template>
     <div v-if="hasFlash"
          class="absolute pin-t pin-l px-6 py-3 m-3 text-white"
-         :class="{'bg-green-dark': isSuccess || isLoading, 'bg-red-light': isError}">
+         :class="{'bg-green-dark': isSuccess, 'bg-orange-dark': isLoading, 'bg-red-light': isError}">
         <i v-if="isSuccess" class="fas fa-check mr-1"></i>
         <i v-if="isLoading" class="fas fa-circle-notch fa-spin mr-1"></i>
         <i v-if="isError" class="fas fa-times mr-1"></i>

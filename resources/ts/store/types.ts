@@ -1,9 +1,17 @@
+import { RedisClient } from 'redis';
+
 export const STORAGE_KEY = '_probes';
 
 export interface IState {
+    connection?: IConnection;
     flash?: IFlash;
     selected: ISelected;
     probes: IProbe[];
+}
+
+export interface IConnection {
+    probe: IProbe;
+    client: RedisClient;
 }
 
 export interface ISelected {

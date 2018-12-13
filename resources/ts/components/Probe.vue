@@ -298,7 +298,7 @@
 
         @Mutation select!: (selected: ISelected) => void;
         @Mutation add!: (probe: IProbe) => void;
-        @Mutation edit!: (probe: IProbe) => void;
+        @Mutation edit!: (payload: { newProbe: IProbe, oldProbe: IProbe }) => void;
         @Mutation remove!: (probe: IProbe) => void;
 
         @Action flash!: (flash: IFlash) => void;
@@ -466,8 +466,11 @@
 
                 if (this.isNew) {
                     this.add(probe);
-                } else {
-                    this.edit(probe);
+                } else if (!_.isUndefined(this.selected.probe)) {
+                    this.edit({
+                        newProbe: probe,
+                        oldProbe: this.selected.probe,
+                    });
                 }
 
                 this.flash({
@@ -485,6 +488,13 @@
 
         removeProbe(): void {
             this.remove(this.selected.probe as IProbe);
+
+            this.flash({
+                type: FlashType.Success,
+                message: 'Deleted',
+                timeout: 1500,
+            });
+
             this.select({
                 name: 'new'
             });

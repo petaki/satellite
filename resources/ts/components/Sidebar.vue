@@ -1,9 +1,9 @@
 <template>
     <div class="sidebar">
-        <h1 v-if="connection" class="logo">
+        <h1 v-if="hasConnection" class="logo">
             <i class="fas fa-wifi"></i>
             <small>
-                Probe
+                {{ connection.probe.name }}
             </small>
         </h1>
         <h1 v-else class="logo">
@@ -12,7 +12,7 @@
                 Carrier
             </small>
         </h1>
-        <ul v-if="connection" class="nav">
+        <ul v-if="hasConnection" class="nav">
             <li>
                 <a href="#"
                    class="btn"
@@ -81,7 +81,8 @@
 </template>
 
 <script lang="ts">
-    import { IFlash, IProbe, ISelected } from '../store/types';
+    import _ from 'lodash';
+    import { IConnection, IProbe, ISelected } from '../store/types';
     import { Component, Vue } from 'vue-property-decorator';
     import { Action, Mutation, State } from 'vuex-class';
 
@@ -89,13 +90,16 @@
         name: 'Sidebar',
     })
     export default class Sidebar extends Vue {
-        @State probes!: IProbe[];
+        @State connection?: IConnection;
         @State selected!: ISelected;
+        @State probes!: IProbe[];
 
         @Mutation select!: (selected: ISelected) => void;
-        @Mutation flash!: (flash?: IFlash) => void;
+        @Action connect!: (probe: IProbe) => void;
 
-        @Action delay!: Function;
+        get hasConnection(): boolean {
+            return !_.isUndefined(this.connection);
+        }
 
         isSelected(name: string, probe?: IProbe): boolean {
             let isSelected = this.selected.name === name;
@@ -105,10 +109,6 @@
             }
 
             return isSelected;
-        }
-
-        connect(probe: IProbe): void {
-            console.log('Connecting...');
         }
     };
 </script>
