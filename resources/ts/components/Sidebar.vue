@@ -1,9 +1,9 @@
 <template>
     <div class="sidebar">
-        <h1 v-if="isConnected" class="logo">
+        <h1 v-if="hasConnection" class="logo">
             <i class="fas fa-wifi"></i>
             <small>
-                Probe
+                {{ connection.probe.name }}
             </small>
         </h1>
         <h1 v-else class="logo">
@@ -12,7 +12,7 @@
                 Carrier
             </small>
         </h1>
-        <ul v-if="isConnected" class="nav">
+        <ul v-if="hasConnection" class="nav">
             <li>
                 <a href="#"
                    class="btn"
@@ -70,7 +70,8 @@
                 <a href="#"
                    class="btn"
                    :class="{active: isSelected('probe', probe)}"
-                   @click.prevent="select({name: 'probe', probe: probe})">
+                   @click.prevent="select({name: 'probe', probe: probe})"
+                   @dblclick="connect(probe)">
                     <i class="fas fa-wifi"></i>
                     {{ probe.name }}
                 </a>
@@ -80,21 +81,24 @@
 </template>
 
 <script lang="ts">
-    import Manager from '../connection';
-    import { IProbe, ISelected } from '../store/types';
+    import _ from 'lodash';
+    import { IConnection, IProbe, ISelected } from '../store/types';
     import { Component, Vue } from 'vue-property-decorator';
-    import { Mutation, State } from 'vuex-class';
+    import { Action, Mutation, State } from 'vuex-class';
 
     @Component({
         name: 'Sidebar',
     })
     export default class Sidebar extends Vue {
+        @State connection?: IConnection;
         @State selected!: ISelected;
         @State probes!: IProbe[];
-        @Mutation select!: Function;
 
-        get isConnected(): boolean {
-            return Manager.isConnected;
+        @Mutation select!: (selected: ISelected) => void;
+        @Action connect!: (probe: IProbe) => void;
+
+        get hasConnection(): boolean {
+            return !_.isUndefined(this.connection);
         }
 
         isSelected(name: string, probe?: IProbe): boolean {

@@ -1,8 +1,17 @@
+import { RedisClient } from 'redis';
+
 export const STORAGE_KEY = '_probes';
 
 export interface IState {
+    connection?: IConnection;
+    flash?: IFlash;
     selected: ISelected;
     probes: IProbe[];
+}
+
+export interface IConnection {
+    probe: IProbe;
+    client: RedisClient;
 }
 
 export interface ISelected {
@@ -10,13 +19,24 @@ export interface ISelected {
     probe?: IProbe;
 }
 
+export interface IFlash {
+    type: FlashType;
+    timeout?: number;
+    message: string;
+}
+
 export interface IProbe {
-    name: string;
     type: ProbeType;
+    name: string;
+    redisType: RedisType;
     redisHost: string;
     redisPort: number;
+    redisDatabase: number;
     redisPassword: string;
     redisKeyPrefix: string;
+    redisKeyFile: string;
+    redisCertificate: string;
+    redisCaCert: string;
     sshType: SSHType;
     sshHost: string;
     sshPort: number;
@@ -26,12 +46,23 @@ export interface IProbe {
     sshKeyPassphrase: string;
 }
 
-export enum SSHType {
-    Password,
-    Key,
+export enum FlashType {
+    Success,
+    Loading,
+    Error,
 }
 
 export enum ProbeType {
     Standard,
     SSH,
+}
+
+export enum RedisType {
+    Normal,
+    SSL,
+}
+
+export enum SSHType {
+    Password,
+    Key,
 }
