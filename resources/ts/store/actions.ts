@@ -54,7 +54,7 @@ export const actions: ActionTree<IState, any> = {
             });
 
             context.commit('select', {
-                name: 'cpu',
+                name: 'CPU',
             });
 
             context.dispatch('flash', {

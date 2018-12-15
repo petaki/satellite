@@ -1,13 +1,13 @@
 <template>
-    <div class="flex-1 overflow-y-auto max-h-screen px-6 py-6">
-        <div class="bg-indigo-dark px-6 py-6 rounded w-full max-w-md ml-auto mr-auto">
+    <div class="content">
+        <div class="panel max-w-md ml-auto mr-auto">
             <div class="flex items-center mb-6">
                 <h4 class="text-indigo-lighter">
-                    {{ isNew ? 'New' : 'Edit' }}
+                    {{ selected.name }}
                 </h4>
                 <a v-for="(value, name, index) in types"
                    :key="value"
-                   class="field-tab"
+                   class="tab"
                    :class="{'ml-auto rounded-l': index === 0, 'rounded-r': index === typeSize - 1, active: probe.type === value}"
                    href="#"
                    @click.prevent="probe.type = value">
@@ -34,7 +34,7 @@
                     </h4>
                     <a v-for="(value, name, index) in redisTypes"
                        :key="value"
-                       class="field-tab"
+                       class="tab"
                        :class="{'ml-auto rounded-l': index === 0, 'rounded-r': index === redisTypeSize - 1, active: probe.redisType === value}"
                        href="#"
                        @click.prevent="probe.redisType = value">
@@ -173,7 +173,7 @@
                         </h4>
                         <a v-for="(value, name, index) in sshTypes"
                            :key="value"
-                           class="field-tab"
+                           class="tab"
                            :class="{'ml-auto rounded-l': index === 0, 'rounded-r': index === sshTypeSize - 1, active: probe.sshType === value}"
                            href="#"
                            @click.prevent="probe.sshType = value">
@@ -340,12 +340,12 @@
         }
 
         @Watch('selected')
-        onSelect(selected: ISelected): void {
-            this.isNew = !_.has(selected, 'probe');
+        onUpdateProbe(): void {
+            this.isNew = !_.has(this.selected, 'probe');
             this.errors = {};
 
             if (!this.isNew) {
-                this.probe = _.cloneDeep(selected.probe) as IProbe;
+                this.probe = _.cloneDeep(this.selected.probe) as IProbe;
             } else {
                 this.probe = this.defaultProbe();
             }
@@ -496,7 +496,7 @@
                 });
 
                 this.select({
-                    name: 'probe',
+                    name: 'Edit',
                     probe,
                 });
             }
@@ -512,7 +512,7 @@
             });
 
             this.select({
-                name: 'new'
+                name: 'New'
             });
         }
     };

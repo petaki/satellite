@@ -16,8 +16,8 @@
             <li>
                 <a href="#"
                    class="btn"
-                   :class="{active: isSelected('cpu')}"
-                   @click.prevent="select({name: 'cpu'})">
+                   :class="{active: isSelected('CPU')}"
+                   @click.prevent="select({name: 'CPU'})">
                     <i class="fas fa-microchip"></i>
                     CPU
                 </a>
@@ -25,8 +25,8 @@
             <li>
                 <a href="#"
                    class="btn"
-                   :class="{active: isSelected('memory')}"
-                   @click.prevent="select({name: 'memory'})">
+                   :class="{active: isSelected('Memory')}"
+                   @click.prevent="select({name: 'Memory'})">
                     <i class="fas fa-memory"></i>
                     Memory
                 </a>
@@ -34,8 +34,8 @@
             <li>
                 <a href="#"
                    class="btn"
-                   :class="{active: isSelected('drive-0')}"
-                   @click.prevent="select({name: 'drive-0'})">
+                   :class="{active: isSelected('Drive-0')}"
+                   @click.prevent="select({name: 'Drive-0'})">
                     <i class="fas fa-hdd"></i>
                     Drive
                     <small>
@@ -46,8 +46,8 @@
             <li>
                 <a href="#"
                    class="btn"
-                   :class="{active: isSelected('drive-1')}"
-                   @click.prevent="select({name: 'drive-1'})">
+                   :class="{active: isSelected('Drive-1')}"
+                   @click.prevent="select({name: 'Drive-1'})">
                     <i class="fas fa-hdd"></i>
                     Drive
                     <small>
@@ -60,8 +60,8 @@
             <li>
                 <a href="#"
                    class="btn"
-                   :class="{active: isSelected('new')}"
-                   @click.prevent="select({name: 'new'})">
+                   :class="{active: isSelected('New')}"
+                   @click.prevent="select({name: 'New'})">
                     <i class="fas fa-plus-square"></i>
                     New
                 </a>
@@ -69,8 +69,8 @@
             <li v-for="(probe, index) in probes" :key="index">
                 <a href="#"
                    class="btn"
-                   :class="{active: isSelected('probe', probe)}"
-                   @click.prevent="select({name: 'probe', probe: probe})"
+                   :class="{active: isSelected('Edit', probe)}"
+                   @click.prevent="select({name: 'Edit', probe: probe})"
                    @dblclick="connect(probe)">
                     <i class="fas fa-wifi"></i>
                     {{ probe.name }}

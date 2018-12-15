@@ -3,6 +3,7 @@ import { RedisClient } from 'redis';
 export const STORAGE_KEY = '_probes';
 
 export interface IState {
+    chartType: ChartType;
     connection?: IConnection;
     flash?: IFlash;
     selected: ISelected;
@@ -44,6 +45,12 @@ export interface IProbe {
     sshPassword: string;
     sshKeyFile: string;
     sshKeyPassphrase: string;
+}
+
+export enum ChartType {
+    Day,
+    Week,
+    Month,
 }
 
 export enum FlashType {
