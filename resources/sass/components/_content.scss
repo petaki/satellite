@@ -1,0 +1,15 @@
+.content {
+    @apply flex-1 overflow-y-auto max-h-screen px-6 py-6;
+
+    .panel {
+        @apply bg-indigo-dark rounded w-full px-6 py-6;
+    }
+    .tab {
+        @apply block border border-blue text-xs text-white no-underline transition px-4 py-2;
+
+        &.active,
+        &:hover {
+            @apply bg-blue;
+        }
+    }
+}

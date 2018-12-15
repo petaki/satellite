@@ -13,14 +13,6 @@
             content: ' *';
         }
     }
-    &-tab {
-        @apply block border border-blue text-xs text-white no-underline transition px-4 py-2;
-
-        &.active,
-        &:hover {
-            @apply bg-blue;
-        }
-    }
     &-error {
         @apply text-red-light text-sm;
     }

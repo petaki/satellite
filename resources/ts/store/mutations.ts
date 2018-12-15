@@ -1,5 +1,5 @@
 import { MutationTree } from 'vuex';
-import { IConnection, IFlash, IProbe, ISelected, IState } from './types';
+import { ChartType, IConnection, IFlash, IProbe, ISelected, IState } from './types';
 
 export const mutations: MutationTree<IState> = {
     connection(state: IState, connection?: IConnection) {
@@ -20,6 +20,10 @@ export const mutations: MutationTree<IState> = {
 
     edit(state: IState, { newProbe, oldProbe }) {
         state.probes.splice(state.probes.indexOf(oldProbe), 1, newProbe);
+    },
+
+    editChartType(state: IState, chartType: ChartType) {
+        state.chartType = chartType;
     },
 
     remove(state: IState, probe: IProbe) {
