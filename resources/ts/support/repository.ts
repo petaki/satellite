@@ -56,7 +56,7 @@ export default class Repository implements IRepository {
         let start = moment(end);
 
         if (chartType === ChartType.Week) {
-            start = moment(end).subtract(6, 'days');
+            start = moment(end).subtract(6, 'weeks');
         } else if (chartType === ChartType.Month) {
             start = moment(end).subtract(1, 'months');
         }
