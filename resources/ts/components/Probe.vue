@@ -300,7 +300,6 @@
         @Mutation add!: (probe: IProbe) => void;
         @Mutation edit!: (payload: { newProbe: IProbe, oldProbe: IProbe }) => void;
         @Mutation remove!: (probe: IProbe) => void;
-
         @Action flash!: (flash: IFlash) => void;
 
         get isSSH(): boolean {

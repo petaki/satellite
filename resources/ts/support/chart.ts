@@ -1,8 +1,7 @@
 import BaseChart, { ChartData, ChartOptions } from 'chart.js';
 import _ from 'lodash';
 import moment from 'moment';
-import { ChartType } from '../store/types';
-import { IDataset } from './types';
+import { ChartType, IDataset } from '../store/types';
 
 export default class Chart {
     protected isInitialized = false;

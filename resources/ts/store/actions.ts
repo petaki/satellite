@@ -2,6 +2,7 @@ import fs from 'fs';
 import _ from 'lodash';
 import redis, { ClientOpts } from 'redis';
 import { ActionContext, ActionTree } from 'vuex';
+import Repository from '../support/repository';
 import { FlashType, IFlash, IProbe, IState, RedisType } from './types';
 
 export const actions: ActionTree<IState, any> = {
@@ -48,9 +49,12 @@ export const actions: ActionTree<IState, any> = {
         });
 
         client.once('connect', () => {
+            const repository = new Repository(probe, client);
+
             context.commit('connection', {
                 client,
                 probe,
+                repository,
             });
 
             context.commit('select', {
