@@ -31,27 +31,15 @@
                     Memory
                 </a>
             </li>
-            <li>
+            <li v-for="(path, index) in paths" :key="index">
                 <a href="#"
                    class="btn"
-                   :class="{active: isSelected('Drive-0')}"
-                   @click.prevent="select({name: 'Drive-0'})">
+                   :class="{active: isSelectedDisk(path)}"
+                   @click.prevent="select({name: 'Disk', path})">
                     <i class="fas fa-hdd"></i>
-                    Drive
+                    Disk
                     <small>
-                        /mnt/hdd0/documents
-                    </small>
-                </a>
-            </li>
-            <li>
-                <a href="#"
-                   class="btn"
-                   :class="{active: isSelected('Drive-1')}"
-                   @click.prevent="select({name: 'Drive-1'})">
-                    <i class="fas fa-hdd"></i>
-                    Drive
-                    <small>
-                        /mnt/hdd1/pictures
+                        {{ path }}
                     </small>
                 </a>
             </li>
@@ -69,7 +57,7 @@
             <li v-for="(probe, index) in probes" :key="index">
                 <a href="#"
                    class="btn"
-                   :class="{active: isSelected('Edit', probe)}"
+                   :class="{active: isSelectedProbe(probe)}"
                    @click.prevent="select({name: 'Edit', probe: probe})"
                    @dblclick="connect(probe)">
                     <i class="fas fa-wifi"></i>
@@ -83,13 +71,16 @@
 <script lang="ts">
     import _ from 'lodash';
     import { IConnection, IProbe, ISelected } from '../store/types';
-    import { Component, Vue } from 'vue-property-decorator';
+    import { Component, Vue, Watch } from 'vue-property-decorator';
     import { Action, Mutation, State } from 'vuex-class';
+    import Repository from '../support/repository';
 
     @Component({
         name: 'Sidebar',
     })
     export default class Sidebar extends Vue {
+        paths: string[] = [];
+
         @State connection?: IConnection;
         @State selected!: ISelected;
         @State probes!: IProbe[];
@@ -101,14 +92,27 @@
             return !_.isUndefined(this.connection);
         }
 
-        isSelected(name: string, probe?: IProbe): boolean {
-            let isSelected = this.selected.name === name;
-
-            if (isSelected && probe) {
-                isSelected = isSelected && this.selected.probe === probe; 
+        @Watch('connection')
+        onUpdateDisks(): void {
+            if (!_.isUndefined(this.connection)) {
+                this.connection.repository.findDiskPaths().then(
+                    (paths) => this.paths = paths,
+                );
+            } else {
+                this.paths = [];
             }
+        }
 
-            return isSelected;
+        isSelected(name: string): boolean {
+            return this.selected.name === name;
+        }
+
+        isSelectedProbe(probe: IProbe) {
+            return this.isSelected('Edit') && this.selected.probe === probe;
+        }
+
+        isSelectedDisk(path: string) {
+            return this.isSelected('Disk') && this.selected.path === path;
         }
     };
 </script>

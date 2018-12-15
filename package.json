@@ -8,8 +8,8 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "build": "NODE_ENV=production tsc",
-    "build-res": "NODE_ENV=production parcel build -t electron -d build --public-url ./ --no-source-maps resources/index.html",
+    "build": "cross-env NODE_ENV=production tsc",
+    "build-res": "cross-env NODE_ENV=production parcel build -t electron -d build --public-url ./ --no-source-maps resources/index.html",
     "start": "electron .",
     "watch": "tsc -w",
     "watch-res": "parcel -t electron -d build --public-url ./ resources/index.html"
@@ -25,6 +25,7 @@
     "@types/redis": "^2.8.8",
     "@vue/component-compiler-utils": "^2.3.0",
     "chart.js": "^2.7.3",
+    "cross-env": "^5.2.0",
     "electron": "^3.0.10",
     "electron-devtools-installer": "^2.2.4",
     "lodash": "^4.17.11",

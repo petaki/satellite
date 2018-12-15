@@ -22,8 +22,7 @@
     import _ from 'lodash';
     import BaseChart from '../support/chart';
     import Repository from '../support/repository';
-    import { IDataset } from '../support/types';
-    import { ChartType, IConnection, ISelected, IFlash, FlashType } from '../store/types';
+    import { ChartType, IConnection, IDataset, ISelected, IFlash, FlashType } from '../store/types';
     import { Component, Vue, Watch } from 'vue-property-decorator';
     import { Action, State, Mutation } from 'vuex-class';
 
@@ -39,7 +38,6 @@
         @State selected!: ISelected;
 
         @Mutation editChartType!: (chartType: ChartType) => void;
-
         @Action flash!: (flash?: IFlash) => void;
 
         get types(): object {
@@ -52,15 +50,11 @@
 
         @Watch('chartType')
         @Watch('selected')
-        onUpdateChart() {
+        onUpdateChart(): void {
             this.findDataset().then(dataset => {
                 this.chart.update(this.chartType, dataset);
                 this.flash();
             });
-        }
-
-        created(): void {
-            this.repository = new Repository(this.connection);
         }
 
         mounted(): void {
@@ -73,16 +67,27 @@
         }
 
         findDataset(): Promise<IDataset> {
+            if (_.isUndefined(this.connection)) {
+                throw new Error('Not connected.');
+            }
+
             this.flash({
                 message: 'Loading...',
                 type: FlashType.Loading,
             });
 
             if (this.selected.name === 'Memory') {
-                return this.repository.findMemoryDataset(this.chartType);
+                return this.connection.repository.findMemoryDataset(this.chartType);
             }
 
-            return this.repository.findCpuDataset(this.chartType);
+            if (this.selected.name === 'Disk') {
+                return this.connection.repository.findDiskDataset(
+                    this.chartType,
+                    this.selected.path as string,
+                );
+            }
+
+            return this.connection.repository.findCpuDataset(this.chartType);
         }
     };
 </script>

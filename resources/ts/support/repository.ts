@@ -1,22 +1,20 @@
 import _ from 'lodash';
-import moment from 'moment';
+import moment, { Moment } from 'moment';
+import { RedisClient } from 'redis';
 import { promisify } from 'util';
-import { ChartType, IConnection } from '../store/types';
-import { IDataset, IRepository } from './types';
+import { ChartType, IDataset, IProbe, IRepository } from '../store/types';
 
 export default class Repository implements IRepository {
-    protected connection?: IConnection;
+    protected probe: IProbe;
+    protected client: RedisClient;
 
-    constructor(connection?: IConnection) {
-        this.connection = connection;
+    constructor(probe: IProbe, client: RedisClient) {
+        this.probe = probe;
+        this.client = client;
     }
 
     public async findCpuDataset(chartType: ChartType): Promise<IDataset> {
-        if (_.isUndefined(this.connection)) {
-            return {};
-        }
-
-        const batch = this.connection.client.batch();
+        const batch = this.client.batch();
         const execAsync = promisify(batch.exec).bind(batch);
 
         _.forEach(
@@ -29,11 +27,7 @@ export default class Repository implements IRepository {
     }
 
     public async findMemoryDataset(chartType: ChartType): Promise<IDataset> {
-        if (_.isUndefined(this.connection)) {
-            return {};
-        }
-
-        const batch = this.connection.client.batch();
+        const batch = this.client.batch();
         const execAsync = promisify(batch.exec).bind(batch);
 
         _.forEach(
@@ -45,14 +39,53 @@ export default class Repository implements IRepository {
         return _.assignIn({}, ...data);
     }
 
+    public async findDiskPaths(cursor: string = '0', paths: string[] = []): Promise<string[]> {
+        const prefix = `${this.probe.redisKeyPrefix}disk:${this.today().unix()}:`;
+        const scanAsync = promisify(this.client.scan).bind(this.client);
+
+        const data = await scanAsync(
+            cursor,
+            'MATCH',
+            `${prefix}*`,
+            'COUNT',
+            '10',
+        );
+
+        if (data[0] !== '0') {
+            const newPaths = _.map<string, string>(
+                data[1], (path) => Buffer.from(path.replace(prefix, ''), 'base64').toString(),
+            );
+
+            return await this.findDiskPaths(
+                data[0], [...paths, ...newPaths],
+            );
+        }
+
+        return paths.sort();
+    }
+
     public async findDiskDataset(chartType: ChartType, path: string): Promise<IDataset> {
-        return {};
+        const prefix = Buffer.from(path).toString('base64');
+        const batch = this.client.batch();
+        const execAsync = promisify(batch.exec).bind(batch);
+
+        _.forEach(
+            this.timestamps(chartType), (timestamp) => batch.hgetall(`disk:${timestamp}:${prefix}`),
+        );
+
+        const data = await execAsync();
+
+        return _.assignIn({}, ...data);
+    }
+
+    protected today(): Moment {
+        return moment().startOf('day');
     }
 
     protected timestamps(chartType: ChartType): number[] {
         const timestamps = [];
 
-        const end = moment().startOf('day');
+        const end = this.today();
         let start = moment(end);
 
         if (chartType === ChartType.Week) {

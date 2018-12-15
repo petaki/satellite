@@ -13,10 +13,23 @@ export interface IState {
 export interface IConnection {
     probe: IProbe;
     client: RedisClient;
+    repository: IRepository;
+}
+
+export interface IRepository {
+    findCpuDataset(chartType: ChartType): Promise<IDataset>;
+    findMemoryDataset(chartType: ChartType): Promise<IDataset>;
+    findDiskPaths(cursor?: string, data?: string[]): Promise<string[]>;
+    findDiskDataset(chartType: ChartType, path: string): Promise<IDataset>;
+}
+
+export interface IDataset {
+    [key: string]: string;
 }
 
 export interface ISelected {
     name: string;
+    path?: string;
     probe?: IProbe;
 }
 
