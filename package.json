@@ -41,6 +41,7 @@
     "@vue/component-compiler-utils": "^2.3.0",
     "cross-env": "^5.2.0",
     "electron": "^3.0.10",
+    "electron-mocha": "^6.0.4",
     "electron-packager": "^13.0.1",
     "node-sass": "^4.10.0",
     "parcel-bundler": "^1.10.3",
