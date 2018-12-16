@@ -43,6 +43,14 @@
                     </small>
                 </a>
             </li>
+            <li>
+                <a href="#"
+                   class="btn"
+                   @click.prevent="disconnect()">
+                    <i class="fas fa-power-off"></i>
+                    Disconnect
+                </a>
+            </li>
         </ul>
         <ul v-else class="nav">
             <li>
@@ -87,6 +95,7 @@
 
         @Mutation select!: (selected: ISelected) => void;
         @Action connect!: (probe: IProbe) => void;
+        @Action disconnect!: Function;
 
         get hasConnection(): boolean {
             return !_.isUndefined(this.connection);

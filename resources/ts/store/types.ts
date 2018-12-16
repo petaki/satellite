@@ -1,4 +1,6 @@
+import { Server } from 'net';
 import { RedisClient } from 'redis';
+import { Client } from 'ssh2';
 
 export const STORAGE_KEY = '_probes';
 
@@ -11,9 +13,11 @@ export interface IState {
 }
 
 export interface IConnection {
-    probe: IProbe;
     client: RedisClient;
+    probe: IProbe;
     repository: IRepository;
+    server?: Server;
+    sshClient?: Client;
 }
 
 export interface IRepository {

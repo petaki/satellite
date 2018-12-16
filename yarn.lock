@@ -708,6 +708,21 @@
   resolved "https://registry.yarnpkg.com/@types/semver/-/semver-5.5.0.tgz#146c2a29ee7d3bae4bf2fcb274636e264c813c45"
   integrity sha512-41qEJgBH/TWgo5NFSvBCJ1qkoi3Q6ONSF2avrHq1LVEZfYpdHmj0y9SuTK+u9ZhG1sYQKBL1AWXKyLWP4RaUoQ==
 
+"@types/ssh2-streams@*":
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/@types/ssh2-streams/-/ssh2-streams-0.1.4.tgz#d4ce610c5e03a4710ae90a1dba82f1eea4d386bf"
+  integrity sha512-S4CXFWMnzoEqeX3MSCMAzfYLiMNOyEh0mPXZbaIZWyjFefZAC1mzVj0kIJNMM88LQ3LaVZLbm09GVLJAMpiwbw==
+  dependencies:
+    "@types/node" "*"
+
+"@types/ssh2@^0.5.37":
+  version "0.5.37"
+  resolved "https://registry.yarnpkg.com/@types/ssh2/-/ssh2-0.5.37.tgz#59bdcce094925cf70f505f11c5ba0eb2f34843f7"
+  integrity sha512-f6vjGBEgiH8rqJOVIoKU++Kf1U+BoDkCR6JjYB7MZISTdaK9ZfsF/rgPlLCQjTiKhT7ApUgiLfHYEIitexdIVA==
+  dependencies:
+    "@types/node" "*"
+    "@types/ssh2-streams" "*"
+
 "@vue/component-compiler-utils@^2.3.0":
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/@vue/component-compiler-utils/-/component-compiler-utils-2.3.0.tgz#4f580f1b28fc7685859d87ea0e92a1c0271c93da"
