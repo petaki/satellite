@@ -2,6 +2,7 @@
   "name": "carrier",
   "version": "1.0.0",
   "description": "Dashboard for probes.",
+  "productName": "Carrier",
   "main": "build/index.js",
   "repository": "git@github.com:petaki/carrier.git",
   "author": "Peter Takacs <peter.takacs@koodilab.com>",
@@ -10,6 +11,7 @@
   "scripts": {
     "build": "cross-env NODE_ENV=production tsc",
     "build-res": "cross-env NODE_ENV=production parcel build -t electron -d build --public-url ./ --no-source-maps resources/index.html",
+    "dist": "electron-packager . --asar --out=./dist",
     "start": "electron .",
     "watch": "tsc -w",
     "watch-res": "parcel -t electron -d build --public-url ./ resources/index.html"
@@ -39,6 +41,7 @@
     "@vue/component-compiler-utils": "^2.3.0",
     "cross-env": "^5.2.0",
     "electron": "^3.0.10",
+    "electron-packager": "^13.0.1",
     "node-sass": "^4.10.0",
     "parcel-bundler": "^1.10.3",
     "postcss": "^7.0.6",
