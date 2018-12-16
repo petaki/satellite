@@ -23,6 +23,7 @@
     "@types/moment": "^2.13.0",
     "@types/node": "^10.12.11",
     "@types/redis": "^2.8.8",
+    "@types/ssh2": "^0.5.37",
     "@vue/component-compiler-utils": "^2.3.0",
     "chart.js": "^2.7.3",
     "cross-env": "^5.2.0",
