@@ -1,0 +1,20 @@
+language: node_js
+
+node_js:
+  - 10
+
+cache:
+  yarn: true
+
+install:
+  - travis_retry yarn install
+
+before_script:
+  - yarn build
+  - yarn build-res
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
+  - sleep 3
+
+script:
+  - yarn test
