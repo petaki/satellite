@@ -1,0 +1,25 @@
+language: node_js
+
+node_js:
+  - 10
+
+cache:
+  yarn: true
+
+install:
+  - travis_retry yarn install
+
+before_script:
+  - yarn build
+  - yarn build-res
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
+  - sleep 3
+
+script:
+  - yarn test
+
+notifications:
+  email: false
+  slack:
+    secure: xSy/PiYpd67I+KcdiuMdaI2dfbU1lPpuGGl7Q8QPPDqeImXtf3Mk/zoqYYP1ti8EOod1pawtV3BPdK2ryug/ABG+raROx+JCPjncXRodwKn/1Tn0HsZBWPn0C/vG9wWEYrmxrmjnST4lChGL0IDSuhqdLwUtEA8XCO562AnBl4VKBTKBylfmBtbkgbh5fJIzeOlJ0hEH/uBm2sn1g7U4ec+e9fpaS9IVWN9TdY0pHtZY62nOCK11BYtwbPnpJm6wdlswshglIi7UooUr6bEtSVY29Wn2MrKQqE9fDT1kOCjIF+Xm7gqjpf3ikpTe0lNJGBnxAA83QUhZ/4AIkdmh0up0FbBE9FJ0DJjWkbSF4zC1CUcHnOdCQu6OeAOuVy1vq62G7E1CO0M0c5ETOftV1nHHmTlR3gYT8YB2ZtssZGfvMbyCojNVxKsCL5tlgydY9oPZg/du0GcLmNQgfbwKt8cVUp+04caCclAsffs4PtId62sKLGppBO0lQ3rrdXQetcYNMIKmUvW4Fbjp2zmsXG49qMgTN6CdWlfGP44R0W2Sz36QQ78FeglnPhqHrxbeavXHOaN4CACDVtZj8fmxpdVwTvdH91FMInmqdAxPBd5jWxa09JjWZ5XrMjD6PtWorwP0A+lig9LOmXQJD7x1Nen+TpJ8hUuYDk116tVELoc=
