@@ -20,7 +20,7 @@
   "dependencies": {
     "chart.js": "^2.7.3",
     "electron-devtools-installer": "^2.2.4",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.19",
     "moment": "^2.23.0",
     "redis": "^2.8.0",
     "ssh2": "^0.6.1",
