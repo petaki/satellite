@@ -17,7 +17,41 @@
                     </span>
                 </inertia-link>
             </div>
-            <div class="sidebar__content"></div>
+            <div class="sidebar__content">
+                <h1 class="sidebar__content--title">
+                    Probe
+                </h1>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <inertia-link class="nav-link"
+                                      :class="{active: $page.props.isPerformanceActive}"
+                                      href="/">
+                            <svg class="bi"
+                                 width="1em"
+                                 height="1em"
+                                 fill="currentColor">
+                                <use :xlink:href="icon('cpu')" />
+                            </svg>
+                            <span>
+                                Performance
+                            </span>
+                        </inertia-link>
+                        <inertia-link class="nav-link"
+                                      :class="{active: $page.props.isDisksActive}"
+                                      href="/">
+                            <svg class="bi"
+                                 width="1em"
+                                 height="1em"
+                                 fill="currentColor">
+                                <use :xlink:href="icon('hdd')" />
+                            </svg>
+                            <span>
+                                Disks
+                            </span>
+                        </inertia-link>
+                    </li>
+                </ul>
+            </div>
             <div class="sidebar__footer">
                 <span class="m-auto">
                     &copy; {{ year }}
@@ -39,7 +73,6 @@
                         <use :xlink:href="icon('list')" />
                     </svg>
                 </a>
-                <flash-message />
             </header>
             <main class="content__main">
                 <slot></slot>
@@ -50,13 +83,8 @@
 
 <script>
 import { Inertia } from '@inertiajs/inertia';
-import FlashMessage from './FlashMessage.vue';
 
 export default {
-    components: {
-        FlashMessage
-    },
-
     data() {
         return {
             isSidebarOpen: false,
