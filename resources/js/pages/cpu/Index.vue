@@ -1,5 +1,5 @@
 <template>
-    <div class="performance__index layout__index"></div>
+    <div class="cpu__index layout__index"></div>
 </template>
 
 <script>
@@ -10,7 +10,7 @@ export default {
 
     metaInfo() {
         return {
-            title: 'Performance'
+            title: 'CPU'
         };
     }
 };

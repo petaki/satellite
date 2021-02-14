@@ -42,6 +42,13 @@ func Serve(debug bool, addr, url, redisUrl, redisKeyPrefix string) {
 		},
 	}
 
+	diskPaths, err := app.seriesRepository.FindDiskPaths()
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+
+	app.inertiaManager.Share("diskPaths", diskPaths)
+
 	srv := &http.Server{
 		Addr:         addr,
 		ErrorLog:     errorLog,

@@ -93,6 +93,12 @@
     color: $primary;
 }
 
+.sidebar__muted {
+    color: $text-muted;
+    display: block;
+    font-size: 12px;
+}
+
 @include media-breakpoint-up(md) {
     .sidebar {
         position: static;

@@ -19,12 +19,12 @@
             </div>
             <div class="sidebar__content">
                 <h1 class="sidebar__content--title">
-                    Probe
+                    Performance
                 </h1>
                 <ul class="nav flex-column">
                     <li class="nav-item">
                         <inertia-link class="nav-link"
-                                      :class="{active: $page.props.isPerformanceActive}"
+                                      :class="{active: $page.props.isCpuActive}"
                                       href="/">
                             <svg class="bi"
                                  width="1em"
@@ -33,11 +33,35 @@
                                 <use :xlink:href="icon('cpu')" />
                             </svg>
                             <span>
-                                Performance
+                                CPU
                             </span>
                         </inertia-link>
+                    </li>
+                    <li class="nav-item">
                         <inertia-link class="nav-link"
-                                      :class="{active: $page.props.isDisksActive}"
+                                      :class="{active: $page.props.isMemoryActive}"
+                                      href="/">
+                            <svg class="bi"
+                                 width="1em"
+                                 height="1em"
+                                 fill="currentColor">
+                                <use :xlink:href="icon('grid-3x2')" />
+                            </svg>
+                            <span>
+                                Memory
+                            </span>
+                        </inertia-link>
+                    </li>
+                </ul>
+                <h1 class="sidebar__content--title">
+                    Disks
+                </h1>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <inertia-link v-for="diskPath in $page.props.diskPaths"
+                                      :key="diskPath"
+                                      class="nav-link"
+                                      :class="{active: $page.props.diskPath === diskPath}"
                                       href="/">
                             <svg class="bi"
                                  width="1em"
@@ -46,7 +70,10 @@
                                 <use :xlink:href="icon('hdd')" />
                             </svg>
                             <span>
-                                Disks
+                                Disk
+                                <span class="sidebar__muted">
+                                    {{ diskPath }}
+                                </span>
                             </span>
                         </inertia-link>
                     </li>
