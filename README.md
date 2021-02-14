@@ -1,6 +1,6 @@
 # Satellite
 
-Dashboard for probes.
+Dashboard for probe.
 
 ## Reporting Issues
 
