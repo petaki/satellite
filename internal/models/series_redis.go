@@ -22,15 +22,15 @@ type RedisSeriesRepository struct {
 }
 
 func (rsr *RedisSeriesRepository) FindCpu(seriesType SeriesType) (Series, error) {
-	return nil, nil
+	return rsr.findAllSeries(seriesType, seriesCpuKeyPrefix, "")
 }
 
 func (rsr *RedisSeriesRepository) FindMemory(seriesType SeriesType) (Series, error) {
-	return nil, nil
+	return rsr.findAllSeries(seriesType, seriesMemoryKeyPrefix, "")
 }
 
 func (rsr *RedisSeriesRepository) FindDisk(seriesType SeriesType, path string) (Series, error) {
-	return nil, nil
+	return rsr.findAllSeries(seriesType, seriesDiskKeyPrefix, ":"+base64.StdEncoding.EncodeToString([]byte(path)))
 }
 
 func (rsr *RedisSeriesRepository) FindDiskPaths() ([]string, error) {
@@ -79,6 +79,55 @@ func (rsr *RedisSeriesRepository) FindDiskPaths() ([]string, error) {
 	sort.Strings(paths)
 
 	return paths, nil
+}
+
+func (rsr *RedisSeriesRepository) findAllSeries(seriesType SeriesType, prefix, suffix string) (Series, error) {
+	conn := rsr.RedisPool.Get()
+	defer conn.Close()
+
+	series := make(Series)
+
+	for _, timestamp := range rsr.timestamps(seriesType) {
+		values, err := redis.Strings(
+			conn.Do("HGETALL", rsr.RedisKeyPrefix+prefix+strconv.FormatInt(timestamp, 10)+suffix),
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		for i := 0; i < len(values); i += 2 {
+			value, err := strconv.ParseFloat(values[i+1], 10)
+			if err != nil {
+				return nil, err
+			}
+
+			series[values[i]] = value
+		}
+	}
+
+	return series, nil
+}
+
+func (rsr *RedisSeriesRepository) timestamps(seriesType SeriesType) []int64 {
+	var timestamps []int64
+
+	end := rsr.today()
+	var start time.Time
+
+	switch seriesType {
+	case Week:
+		start = end.AddDate(0, 0, -6)
+	case Month:
+		start = end.AddDate(0, -1, 0)
+	default:
+		start = end
+	}
+
+	for current := start; current.After(end) == false; current = current.AddDate(0, 0, 1) {
+		timestamps = append(timestamps, current.Unix())
+	}
+
+	return timestamps
 }
 
 func (rsr *RedisSeriesRepository) today() time.Time {

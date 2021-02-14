@@ -8,7 +8,7 @@ const (
 	Month SeriesType = "month"
 )
 
-type Series map[string]string
+type Series map[string]float64
 
 type SeriesRepository interface {
 	FindCpu(SeriesType) (Series, error)
