@@ -1,11 +1,11 @@
 package web
 
 import (
-	"github.com/petaki/satellite/internal/models"
 	"log"
 
 	"github.com/gomodule/redigo/redis"
 	"github.com/petaki/inertia-go"
+	"github.com/petaki/satellite/internal/models"
 	"github.com/petaki/support-go/mix"
 )
 

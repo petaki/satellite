@@ -14,5 +14,5 @@ type SeriesRepository interface {
 	FindCpu(SeriesType) (Series, error)
 	FindMemory(SeriesType) (Series, error)
 	FindDisk(SeriesType, string) (Series, error)
-	FindDiskPaths(string, []string) ([]string, error)
+	FindDiskPaths() ([]string, error)
 }

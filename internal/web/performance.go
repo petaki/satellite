@@ -1,6 +1,10 @@
 package web
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/petaki/satellite/internal/models"
+)
 
 func (app *App) performanceIndex(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
@@ -15,8 +19,24 @@ func (app *App) performanceIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := app.inertiaManager.Render(w, r, "performance/Index", map[string]interface{}{
+	cpuSeries, err := app.seriesRepository.FindCpu(models.Day)
+	if err != nil {
+		app.serverError(w, err)
+
+		return
+	}
+
+	memorySeries, err := app.seriesRepository.FindMemory(models.Day)
+	if err != nil {
+		app.serverError(w, err)
+
+		return
+	}
+
+	err = app.inertiaManager.Render(w, r, "performance/Index", map[string]interface{}{
 		"isPerformanceActive": true,
+		"cpuSeries":           cpuSeries,
+		"memorySeries":        memorySeries,
 	})
 	if err != nil {
 		app.serverError(w, err)
