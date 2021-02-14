@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"github.com/petaki/satellite/internal/models"
 	"log"
 	"net/http"
 	"os"
@@ -35,6 +36,10 @@ func Serve(debug bool, addr, url, redisUrl, redisKeyPrefix string) {
 		redisKeyPrefix: redisKeyPrefix,
 		mixManager:     mixManager,
 		inertiaManager: inertiaManager,
+		seriesRepository: &models.RedisSeriesRepository{
+			RedisPool:      redisPool,
+			RedisKeyPrefix: redisKeyPrefix,
+		},
 	}
 
 	srv := &http.Server{

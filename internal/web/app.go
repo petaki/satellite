@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/petaki/satellite/internal/models"
 	"log"
 
 	"github.com/gomodule/redigo/redis"
@@ -9,12 +10,13 @@ import (
 )
 
 type App struct {
-	debug          bool
-	url            string
-	errorLog       *log.Logger
-	infoLog        *log.Logger
-	redisPool      *redis.Pool
-	redisKeyPrefix string
-	mixManager     *mix.Mix
-	inertiaManager *inertia.Inertia
+	debug            bool
+	url              string
+	errorLog         *log.Logger
+	infoLog          *log.Logger
+	redisPool        *redis.Pool
+	redisKeyPrefix   string
+	mixManager       *mix.Mix
+	inertiaManager   *inertia.Inertia
+	seriesRepository models.SeriesRepository
 }
