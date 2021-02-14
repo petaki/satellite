@@ -1,33 +1,18 @@
-.field {
-    @apply appearance-none text-indigo bg-indigo-darkest rounded px-4 py-2 w-full;
+.form-control-label,
+.col-form-label {
+    font-weight: 500;
 
-    &:focus {
-        @apply outline-none;
+    &.required:after {
+        color: $primary;
+        content: ' *';
     }
-    &-label {
-        @apply block text-indigo-light text-sm;
+}
 
-        &.required:after {
-            @apply text-blue;
+.form-text a {
+    text-decoration: none;
+    transition: $base-transition;
+}
 
-            content: ' *';
-        }
-    }
-    &-error {
-        @apply text-red-light text-sm;
-    }
-    &-btn {
-        @apply bg-blue border border-blue text-white text-sm rounded transition px-12 py-2;
-
-        &:hover {
-            @apply bg-blue-dark border-blue-dark;
-        }
-    }
-    &-remove-btn {
-        @apply bg-transparent border border-red-light text-white text-sm rounded transition px-12 py-2;
-
-        &:hover {
-            @apply bg-red-light;
-        }
-    }
+.form__secondary {
+    margin-top: 20px;
 }
