@@ -57,7 +57,14 @@
                     Disks
                 </h1>
                 <ul class="nav flex-column">
-                    <li class="nav-item">
+                    <li v-if="!$page.props.diskPaths" class="nav-item">
+                        <a class="nav-link disabled"
+                           href="#"
+                           tabindex="-1">
+                            No data found.
+                        </a>
+                    </li>
+                    <li v-else class="nav-item">
                         <inertia-link v-for="diskPath in $page.props.diskPaths"
                                       :key="diskPath"
                                       class="nav-link"

@@ -15,6 +15,7 @@
     "@inertiajs/inertia": "^0.8",
     "@inertiajs/inertia-vue": "^0.5",
     "@inertiajs/progress": "^0.2",
+    "apexcharts": "^3.25.0",
     "axios": "^0.19",
     "bootstrap": "^4.5",
     "bootstrap-icons": "^1.2",

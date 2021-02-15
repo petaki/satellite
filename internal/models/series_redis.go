@@ -85,7 +85,7 @@ func (rsr *RedisSeriesRepository) findAllSeries(seriesType SeriesType, prefix, s
 	conn := rsr.RedisPool.Get()
 	defer conn.Close()
 
-	series := make(Series)
+	var series Series
 
 	for _, timestamp := range rsr.timestamps(seriesType) {
 		values, err := redis.Strings(
@@ -96,12 +96,20 @@ func (rsr *RedisSeriesRepository) findAllSeries(seriesType SeriesType, prefix, s
 		}
 
 		for i := 0; i < len(values); i += 2 {
-			value, err := strconv.ParseFloat(values[i+1], 10)
+			x, err := strconv.ParseInt(values[i], 10, 64)
 			if err != nil {
 				return nil, err
 			}
 
-			series[values[i]] = value
+			y, err := strconv.ParseFloat(values[i+1], 64)
+			if err != nil {
+				return nil, err
+			}
+
+			series = append(series, Value{
+				X: x,
+				Y: y,
+			})
 		}
 	}
 
