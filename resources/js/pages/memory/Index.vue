@@ -1,5 +1,5 @@
 <template>
-    <div class="cpu__index layout__index">
+    <div class="memory__index layout__index">
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
                 <inertia-link href="/">
@@ -16,7 +16,7 @@
                      width="1em"
                      height="1em"
                      fill="currentColor">
-                    <use :xlink:href="icon('cpu')" />
+                    <use :xlink:href="icon('grid-3x2')" />
                 </svg>
                 <span>
                     {{ $metaInfo.title }}
@@ -38,7 +38,7 @@ import Layout from '../../common/Layout.vue';
 
 export default {
     props: {
-        cpuSeries: {
+        memorySeries: {
             type: Array,
             default: () => []
         }
@@ -48,7 +48,7 @@ export default {
 
     metaInfo() {
         return {
-            title: 'CPU'
+            title: 'Memory'
         };
     },
 
@@ -63,8 +63,8 @@ export default {
     computed: {
         series() {
             return [{
-                name: 'CPU',
-                data: this.cpuSeries
+                name: 'Memory',
+                data: this.memorySeries
             }];
         }
     },

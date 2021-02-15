@@ -40,7 +40,7 @@
                     <li class="nav-item">
                         <inertia-link class="nav-link"
                                       :class="{active: $page.props.isMemoryActive}"
-                                      href="/">
+                                      href="/memory">
                             <svg class="bi"
                                  width="1em"
                                  height="1em"

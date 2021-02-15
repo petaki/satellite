@@ -14,6 +14,7 @@ func (app *App) routes() http.Handler {
 
 	mux := http.NewServeMux()
 	mux.Handle("/", webMiddleware.ThenFunc(app.cpuIndex))
+	mux.Handle("/memory", webMiddleware.ThenFunc(app.memoryIndex))
 
 	fileServer := http.FileServer(http.Dir("./public/"))
 

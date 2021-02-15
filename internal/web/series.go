@@ -42,3 +42,34 @@ func (app *App) cpuIndex(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 	}
 }
+
+func (app *App) memoryIndex(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		app.methodNotAllowed(w, []string{"GET"})
+
+		return
+	}
+
+	diskPaths, err := app.seriesRepository.FindDiskPaths()
+	if err != nil {
+		app.serverError(w, err)
+
+		return
+	}
+
+	memorySeries, err := app.seriesRepository.FindMemory(models.Day)
+	if err != nil {
+		app.serverError(w, err)
+
+		return
+	}
+
+	err = app.inertiaManager.Render(w, r, "memory/Index", map[string]interface{}{
+		"isMemoryActive": true,
+		"diskPaths":      diskPaths,
+		"memorySeries":   memorySeries,
+	})
+	if err != nil {
+		app.serverError(w, err)
+	}
+}
