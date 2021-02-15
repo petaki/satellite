@@ -73,3 +73,57 @@ func (app *App) memoryIndex(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 	}
 }
+
+func (app *App) diskIndex(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		app.methodNotAllowed(w, []string{"GET"})
+
+		return
+	}
+
+	diskPath := r.URL.Query().Get("path")
+	if diskPath == "" {
+		app.notFound(w)
+
+		return
+	}
+
+	diskPaths, err := app.seriesRepository.FindDiskPaths()
+	if err != nil {
+		app.serverError(w, err)
+
+		return
+	}
+
+	if !app.diskPathExists(diskPaths, diskPath) {
+		app.notFound(w)
+
+		return
+	}
+
+	diskSeries, err := app.seriesRepository.FindDisk(models.Day, diskPath)
+	if err != nil {
+		app.serverError(w, err)
+
+		return
+	}
+
+	err = app.inertiaManager.Render(w, r, "disk/Index", map[string]interface{}{
+		"diskPath":   diskPath,
+		"diskPaths":  diskPaths,
+		"diskSeries": diskSeries,
+	})
+	if err != nil {
+		app.serverError(w, err)
+	}
+}
+
+func (app *App) diskPathExists(diskPaths []string, diskPath string) bool {
+	for _, current := range diskPaths {
+		if current == diskPath {
+			return true
+		}
+	}
+
+	return false
+}
