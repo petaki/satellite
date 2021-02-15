@@ -19,6 +19,13 @@ func (app *App) cpuIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	diskPaths, err := app.seriesRepository.FindDiskPaths()
+	if err != nil {
+		app.serverError(w, err)
+
+		return
+	}
+
 	cpuSeries, err := app.seriesRepository.FindCpu(models.Day)
 	if err != nil {
 		app.serverError(w, err)
@@ -28,6 +35,7 @@ func (app *App) cpuIndex(w http.ResponseWriter, r *http.Request) {
 
 	err = app.inertiaManager.Render(w, r, "cpu/Index", map[string]interface{}{
 		"isCpuActive": true,
+		"diskPaths":   diskPaths,
 		"cpuSeries":   cpuSeries,
 	})
 	if err != nil {

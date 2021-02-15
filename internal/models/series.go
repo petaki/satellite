@@ -8,7 +8,12 @@ const (
 	Month SeriesType = "month"
 )
 
-type Series map[string]float64
+type Value struct {
+	X int64   `json:"x"`
+	Y float64 `json:"y"`
+}
+
+type Series []Value
 
 type SeriesRepository interface {
 	FindCpu(SeriesType) (Series, error)
