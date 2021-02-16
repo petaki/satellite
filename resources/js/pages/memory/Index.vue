@@ -23,7 +23,9 @@
                 </span>
                 <inertia-link v-for="(type, index) in seriesTypes"
                               :key="type.value"
-                              :href="index === 0 ? '/memory' : `/memory?type=${type.value}`"
+                              :href="index === 0
+                                  ? '/memory'
+                                  : `/memory?type=${type.value}`"
                               class="ml-3"
                               :class="{'text-white': seriesType === type.value}">
                     {{ type.name }}
