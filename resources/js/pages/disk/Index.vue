@@ -1,5 +1,5 @@
 <template>
-    <div class="cpu__index layout__index">
+    <div class="disk__index layout__index">
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
                 <inertia-link href="/">
@@ -16,14 +16,14 @@
                      width="1em"
                      height="1em"
                      fill="currentColor">
-                    <use :xlink:href="icon('cpu')" />
+                    <use :xlink:href="icon('hdd')" />
                 </svg>
                 <span class="mr-auto">
                     {{ $metaInfo.title }}
                 </span>
                 <inertia-link v-for="(type, index) in seriesTypes"
                               :key="type.value"
-                              :href="index === 0 ? '/' : `/?type=${type.value}`"
+                              :href="index === 0 ? `/disk?path=${diskPath}` : `/disk?path=${diskPath}&type=${type.value}`"
                               class="ml-3"
                               :class="{'text-white': seriesType === type.value}">
                     {{ type.name }}
@@ -55,7 +55,12 @@ export default {
             default: () => []
         },
 
-        cpuSeries: {
+        diskPath: {
+            type: String,
+            required: true
+        },
+
+        diskSeries: {
             type: Array,
             default: () => []
         }
@@ -65,7 +70,7 @@ export default {
 
     metaInfo() {
         return {
-            title: 'CPU'
+            title: `Disk - ${this.diskPath}`
         };
     },
 
@@ -80,8 +85,8 @@ export default {
     computed: {
         series() {
             return [{
-                name: 'CPU',
-                data: this.cpuSeries
+                name: `Disk - ${this.diskPath}`,
+                data: this.diskSeries
             }];
         }
     },

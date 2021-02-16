@@ -34,6 +34,7 @@
     "sass": "^1.26",
     "sass-loader": "^8.0",
     "vue": "^2.6",
+    "vue-apexcharts": "^1.6.0",
     "vue-loader": "^15.9",
     "vue-meta": "^2.4",
     "vue-template-compiler": "^2.6"
