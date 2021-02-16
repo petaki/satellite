@@ -18,9 +18,16 @@
                      fill="currentColor">
                     <use :xlink:href="icon('grid-3x2')" />
                 </svg>
-                <span>
+                <span class="mr-auto">
                     {{ $metaInfo.title }}
                 </span>
+                <inertia-link v-for="(type, index) in seriesTypes"
+                              :key="type.value"
+                              :href="index === 0 ? '/memory' : `/memory?type=${type.value}`"
+                              class="ml-3"
+                              :class="{'text-white': seriesType === type.value}">
+                    {{ type.name }}
+                </inertia-link>
             </div>
             <div class="chart_body card-body">
                 <apexchart type="line"
@@ -38,6 +45,16 @@ import Layout from '../../common/Layout.vue';
 
 export default {
     props: {
+        seriesType: {
+            type: String,
+            default: ''
+        },
+
+        seriesTypes: {
+            type: Array,
+            default: () => []
+        },
+
         memorySeries: {
             type: Array,
             default: () => []
