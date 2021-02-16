@@ -23,7 +23,9 @@
                 </span>
                 <inertia-link v-for="(type, index) in seriesTypes"
                               :key="type.value"
-                              :href="index === 0 ? `/disk?path=${diskPath}` : `/disk?path=${diskPath}&type=${type.value}`"
+                              :href="index === 0
+                                  ? `/disk?path=${diskPath}`
+                                  : `/disk?path=${diskPath}&type=${type.value}`"
                               class="ml-3"
                               :class="{'text-white': seriesType === type.value}">
                     {{ type.name }}
