@@ -1,6 +1,4 @@
-# Satellite
-
-Dashboard for probe.
+![Satellite](https://user-images.githubusercontent.com/1419087/108126514-391ec080-70aa-11eb-9c6b-9bfd225c8e6d.png)
 
 ## Reporting Issues
 
