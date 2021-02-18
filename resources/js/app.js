@@ -1,11 +1,15 @@
-import { DateTime } from 'luxon';
 import Vue from 'vue';
 import VueMeta from 'vue-meta';
 import VueApexCharts from 'vue-apexcharts';
 import { App, plugin } from '@inertiajs/inertia-vue';
 import { InertiaProgress } from '@inertiajs/progress';
 
-require('./bootstrap');
+try {
+    window.Popper = require('popper.js').default;
+    window.$ = window.jQuery = require('jquery');
+
+    require('bootstrap');
+} catch (e) {}
 
 InertiaProgress.init();
 
@@ -45,16 +49,6 @@ window.Apex = {
         }
     }
 };
-
-Vue.filter('date', value => {
-    const date = DateTime.fromISO(value);
-
-    if (!date.isValid) {
-        return value;
-    }
-
-    return date.toLocaleString(DateTime.DATETIME_MED);
-});
 
 Vue.component('apexchart', VueApexCharts);
 
