@@ -32,7 +32,8 @@
                 </inertia-link>
             </div>
             <div class="chart_body card-body">
-                <apexchart type="line"
+                <apexchart v-if="diskSeries"
+                           type="line"
                            :series="series"
                            height="100%"
                            :options="options" />
