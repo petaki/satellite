@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func (app *App) recoverPanic(next http.Handler) http.Handler {
+func (app *app) recoverPanic(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
