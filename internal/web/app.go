@@ -9,6 +9,7 @@ import (
 	"github.com/petaki/support-go/mix"
 )
 
+// App type.
 type App struct {
 	debug            bool
 	url              string

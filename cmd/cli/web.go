@@ -12,13 +12,13 @@ func webServe(group *cli.Group, command *cli.Command, arguments []string) int {
 	addr := command.FlagSet().String("addr", os.Getenv("APP_ADDR"), "Application Address")
 	url := command.FlagSet().String("url", os.Getenv("APP_URL"), "Application URL")
 
-	redisUrl, redisKeyPrefix := createRedisFlags(command)
+	redisURL, redisKeyPrefix := createRedisFlags(command)
 
 	web.Serve(
 		*debug,
 		*addr,
 		*url,
-		*redisUrl,
+		*redisURL,
 		*redisKeyPrefix,
 	)
 

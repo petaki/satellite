@@ -16,11 +16,12 @@ import (
 	"github.com/petaki/support-go/mix"
 )
 
-func Serve(debug bool, addr, url, redisUrl, redisKeyPrefix string) {
+// Serve function.
+func Serve(debug bool, addr, url, redisURL, redisKeyPrefix string) {
 	infoLog := log.New(os.Stdout, cli.Cyan("INFO\t"), log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, cli.Red("ERROR\t"), log.Ldate|log.Ltime|log.Lshortfile)
 
-	redisPool := newRedisPool(redisUrl)
+	redisPool := newRedisPool(redisURL)
 
 	mixManager, inertiaManager, err := newMixAndInertiaManager(url)
 	if err != nil {
