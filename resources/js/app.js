@@ -44,6 +44,7 @@ window.Apex = {
     },
 
     yaxis: {
+        max: 100,
         labels: {
             formatter(val) {
                 return `${val.toFixed(2)}%`;
