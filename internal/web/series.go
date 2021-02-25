@@ -38,7 +38,7 @@ func (app *App) cpuIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cpuSeries, err := app.seriesRepository.FindCpu(seriesType)
+	cpuSeries, err := app.seriesRepository.FindCPU(seriesType)
 	if err != nil {
 		app.serverError(w, err)
 

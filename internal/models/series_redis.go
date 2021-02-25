@@ -11,28 +11,33 @@ import (
 )
 
 const (
-	seriesCpuKeyPrefix    = "cpu:"
+	seriesCPUKeyPrefix    = "cpu:"
 	seriesMemoryKeyPrefix = "memory:"
 	seriesDiskKeyPrefix   = "disk:"
 )
 
+// RedisSeriesRepository type.
 type RedisSeriesRepository struct {
 	RedisPool      *redis.Pool
 	RedisKeyPrefix string
 }
 
-func (rsr *RedisSeriesRepository) FindCpu(seriesType SeriesType) (Series, error) {
-	return rsr.findAllSeries(seriesType, seriesCpuKeyPrefix, "")
+// FindCPU function.
+func (rsr *RedisSeriesRepository) FindCPU(seriesType SeriesType) (Series, error) {
+	return rsr.findAllSeries(seriesType, seriesCPUKeyPrefix, "")
 }
 
+// FindMemory function.
 func (rsr *RedisSeriesRepository) FindMemory(seriesType SeriesType) (Series, error) {
 	return rsr.findAllSeries(seriesType, seriesMemoryKeyPrefix, "")
 }
 
+// FindDisk function.
 func (rsr *RedisSeriesRepository) FindDisk(seriesType SeriesType, path string) (Series, error) {
 	return rsr.findAllSeries(seriesType, seriesDiskKeyPrefix, ":"+base64.StdEncoding.EncodeToString([]byte(path)))
 }
 
+// FindDiskPaths function.
 func (rsr *RedisSeriesRepository) FindDiskPaths() ([]string, error) {
 	conn := rsr.RedisPool.Get()
 	defer conn.Close()
@@ -150,9 +155,9 @@ func (rsr *RedisSeriesRepository) findAllSeries(seriesType SeriesType, prefix, s
 func (rsr *RedisSeriesRepository) chunkSize(seriesType SeriesType) int {
 	switch seriesType {
 	case Week:
-		return 60 * 3 // 3 hours
+		return 90 // 1 hour 30 minutes
 	case Month:
-		return 60 * 12 // 12 hours
+		return 60 * 8 // 8 hours
 	default:
 		return 15 // 15 minutes
 	}
