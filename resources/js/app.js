@@ -25,7 +25,10 @@ window.Apex = {
 
     chart: {
         background: 'transparent',
-        foreColor: '#b4c9de'
+        foreColor: '#b4c9de',
+        animations: {
+            enabled: false
+        }
     },
 
     colors: [
@@ -41,7 +44,6 @@ window.Apex = {
     },
 
     yaxis: {
-        max: 100,
         labels: {
             formatter(val) {
                 return `${val.toFixed(2)}%`;

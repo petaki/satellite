@@ -85,7 +85,7 @@ func (rsr *RedisSeriesRepository) findAllSeries(seriesType SeriesType, prefix, s
 	conn := rsr.RedisPool.Get()
 	defer conn.Close()
 
-	var series Series
+	var series, rawSeries Series
 
 	for _, timestamp := range rsr.timestamps(seriesType) {
 		values, err := redis.Strings(
@@ -106,14 +106,56 @@ func (rsr *RedisSeriesRepository) findAllSeries(seriesType SeriesType, prefix, s
 				return nil, err
 			}
 
-			series = append(series, Value{
+			rawSeries = append(rawSeries, Value{
 				X: x,
 				Y: y,
 			})
 		}
 	}
 
+	sort.Slice(rawSeries, func(i, j int) bool {
+		return rawSeries[i].X > rawSeries[j].X
+	})
+
+	var chunks []Series
+
+	chunkSize := rsr.chunkSize(seriesType)
+
+	for chunkSize < len(rawSeries) {
+		rawSeries, chunks = rawSeries[chunkSize:], append(chunks, rawSeries[0:chunkSize:chunkSize])
+	}
+
+	chunks = append(chunks, rawSeries)
+
+	for _, chunk := range chunks {
+		avgValue := Value{
+			X: 0,
+			Y: 0,
+		}
+
+		for _, value := range chunk {
+			avgValue.X += value.X
+			avgValue.Y += value.Y
+		}
+
+		avgValue.X = avgValue.X / int64(len(chunk)) * 1000
+		avgValue.Y = avgValue.Y / float64(len(chunk))
+
+		series = append(series, avgValue)
+	}
+
 	return series, nil
+}
+
+func (rsr *RedisSeriesRepository) chunkSize(seriesType SeriesType) int {
+	switch seriesType {
+	case Week:
+		return 60 * 6 // 6 hours
+	case Month:
+		return 60 * 24 // 1 day
+	default:
+		return 60 // 1 hour
+	}
 }
 
 func (rsr *RedisSeriesRepository) timestamps(seriesType SeriesType) []int64 {
