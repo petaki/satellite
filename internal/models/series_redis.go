@@ -128,20 +128,20 @@ func (rsr *RedisSeriesRepository) findAllSeries(seriesType SeriesType, prefix, s
 	chunks = append(chunks, rawSeries)
 
 	for _, chunk := range chunks {
-		avgValue := Value{
+		chunkValue := Value{
 			X: 0,
 			Y: 0,
 		}
 
 		for _, value := range chunk {
-			avgValue.X += value.X
-			avgValue.Y += value.Y
+			chunkValue.X += value.X
+			chunkValue.Y += value.Y
 		}
 
-		avgValue.X = avgValue.X / int64(len(chunk)) * 1000
-		avgValue.Y = avgValue.Y / float64(len(chunk))
+		chunkValue.X = chunkValue.X / int64(len(chunk)) * 1000
+		chunkValue.Y = chunkValue.Y / float64(len(chunk))
 
-		series = append(series, avgValue)
+		series = append(series, chunkValue)
 	}
 
 	return series, nil
