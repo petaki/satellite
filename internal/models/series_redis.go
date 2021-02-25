@@ -150,11 +150,11 @@ func (rsr *RedisSeriesRepository) findAllSeries(seriesType SeriesType, prefix, s
 func (rsr *RedisSeriesRepository) chunkSize(seriesType SeriesType) int {
 	switch seriesType {
 	case Week:
-		return 60 * 6 // 6 hours
+		return 60 * 3 // 3 hours
 	case Month:
-		return 60 * 24 // 1 day
+		return 60 * 12 // 12 hours
 	default:
-		return 60 // 1 hour
+		return 15 // 15 minutes
 	}
 }
 
