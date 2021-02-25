@@ -28,7 +28,7 @@ func Serve(debug bool, addr, url, redisURL, redisKeyPrefix string) {
 		errorLog.Fatal(err)
 	}
 
-	app := &App{
+	webApp := &app{
 		debug:          debug,
 		url:            url,
 		errorLog:       errorLog,
@@ -46,7 +46,7 @@ func Serve(debug bool, addr, url, redisURL, redisKeyPrefix string) {
 	srv := &http.Server{
 		Addr:         addr,
 		ErrorLog:     errorLog,
-		Handler:      app.routes(),
+		Handler:      webApp.routes(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,

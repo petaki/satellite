@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func (app *App) serverError(w http.ResponseWriter, err error) {
+func (app *app) serverError(w http.ResponseWriter, err error) {
 	trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
 	app.errorLog.Output(2, trace)
 
@@ -19,15 +19,15 @@ func (app *App) serverError(w http.ResponseWriter, err error) {
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 }
 
-func (app *App) clientError(w http.ResponseWriter, status int) {
+func (app *app) clientError(w http.ResponseWriter, status int) {
 	http.Error(w, http.StatusText(status), status)
 }
 
-func (app *App) notFound(w http.ResponseWriter) {
+func (app *app) notFound(w http.ResponseWriter) {
 	app.clientError(w, http.StatusNotFound)
 }
 
-func (app *App) methodNotAllowed(w http.ResponseWriter, allow []string) {
+func (app *app) methodNotAllowed(w http.ResponseWriter, allow []string) {
 	w.Header().Set("Allow", strings.Join(allow, ", "))
 	app.clientError(w, http.StatusMethodNotAllowed)
 }

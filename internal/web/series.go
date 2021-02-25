@@ -6,7 +6,7 @@ import (
 	"github.com/petaki/satellite/internal/models"
 )
 
-func (app *App) cpuIndex(w http.ResponseWriter, r *http.Request) {
+func (app *app) cpuIndex(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		app.notFound(w)
 
@@ -57,7 +57,7 @@ func (app *App) cpuIndex(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (app *App) memoryIndex(w http.ResponseWriter, r *http.Request) {
+func (app *app) memoryIndex(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		app.methodNotAllowed(w, []string{"GET"})
 
@@ -102,7 +102,7 @@ func (app *App) memoryIndex(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (app *App) diskIndex(w http.ResponseWriter, r *http.Request) {
+func (app *app) diskIndex(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		app.methodNotAllowed(w, []string{"GET"})
 
@@ -160,7 +160,7 @@ func (app *App) diskIndex(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (app *App) diskPathExists(diskPaths []string, diskPath string) bool {
+func (app *app) diskPathExists(diskPaths []string, diskPath string) bool {
 	for _, current := range diskPaths {
 		if current == diskPath {
 			return true
@@ -170,7 +170,7 @@ func (app *App) diskPathExists(diskPaths []string, diskPath string) bool {
 	return false
 }
 
-func (app *App) seriesTypeExists(seriesTypes []map[string]interface{}, seriesType models.SeriesType) bool {
+func (app *app) seriesTypeExists(seriesTypes []map[string]interface{}, seriesType models.SeriesType) bool {
 	for _, current := range seriesTypes {
 		if current["value"] == seriesType {
 			return true
@@ -180,7 +180,7 @@ func (app *App) seriesTypeExists(seriesTypes []map[string]interface{}, seriesTyp
 	return false
 }
 
-func (app *App) seriesTypes() []map[string]interface{} {
+func (app *app) seriesTypes() []map[string]interface{} {
 	return []map[string]interface{}{
 		{
 			"name":  "Day",
