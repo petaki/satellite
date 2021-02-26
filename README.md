@@ -49,7 +49,7 @@ yarn prod
 5. Build the Satellite:
 
 ```
-go build ./cmd/cli
+go build
 ```
 
 6. Copy the example configuration:

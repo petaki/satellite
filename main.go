@@ -2,6 +2,7 @@ package main
 
 import (
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/petaki/satellite/internal/cmd"
 	"github.com/petaki/support-go/cli"
 )
 
@@ -17,7 +18,7 @@ func main() {
 					&cli.Command{
 						Name:       "serve",
 						Usage:      "Serve the app",
-						HandleFunc: webServe,
+						HandleFunc: cmd.WebServe,
 					},
 				},
 			},
