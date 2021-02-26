@@ -7,25 +7,24 @@ pre_clean:
 
 ui:
 	yarn prod
-	mkdir dist dist/resources
+	mkdir dist
 	cp .env.example dist/.env
 	cp -r public dist
-	cp -r resources/views dist/resources
 
 darwin:
 	GOOS=darwin GOARCH=amd64 go build -o dist/satellite ./cmd/cli
-	cd dist && zip -r satellite_$(VERSION)_darwin_amd64.zip public resources .env satellite
+	cd dist && zip -r satellite_$(VERSION)_darwin_amd64.zip public .env satellite
 	rm -f dist/satellite
 
 linux:
 	GOOS=linux GOARCH=amd64 go build -o dist/satellite ./cmd/cli
-	cd dist && zip -r satellite_$(VERSION)_linux_amd64.zip public resources .env satellite
+	cd dist && zip -r satellite_$(VERSION)_linux_amd64.zip public .env satellite
 	rm -f dist/satellite
 
 windows:
 	GOOS=windows GOARCH=amd64 go build -o dist/satellite.exe ./cmd/cli
-	cd dist && zip -r satellite_$(VERSION)_windows_amd64.zip public resources .env satellite.exe
+	cd dist && zip -r satellite_$(VERSION)_windows_amd64.zip public .env satellite.exe
 	rm -f dist/satellite.exe
 
 post_clean:
-	rm -rf dist/public dist/resources dist/.env
+	rm -rf dist/public dist/.env
