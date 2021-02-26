@@ -86,7 +86,15 @@ REDIS_URL=redis://127.0.0.1:6379/0
 REDIS_KEY_PREFIX=probe:
 ```
 
-## Data collection
+## Usage
+
+Run the app using the following command:
+
+```
+./satellite web serve
+```
+
+## Data Collection
 
 You can gather the necessary data with the [Probe](https://github.com/petaki/probe).
 
