@@ -12,17 +12,17 @@ ui:
 	cp -r public dist
 
 darwin:
-	GOOS=darwin GOARCH=amd64 go build -o dist/satellite ./cmd/cli
+	GOOS=darwin GOARCH=amd64 go build -o dist/satellite
 	cd dist && zip -r satellite_$(VERSION)_darwin_amd64.zip public .env satellite
 	rm -f dist/satellite
 
 linux:
-	GOOS=linux GOARCH=amd64 go build -o dist/satellite ./cmd/cli
+	GOOS=linux GOARCH=amd64 go build -o dist/satellite
 	cd dist && zip -r satellite_$(VERSION)_linux_amd64.zip public .env satellite
 	rm -f dist/satellite
 
 windows:
-	GOOS=windows GOARCH=amd64 go build -o dist/satellite.exe ./cmd/cli
+	GOOS=windows GOARCH=amd64 go build -o dist/satellite.exe
 	cd dist && zip -r satellite_$(VERSION)_windows_amd64.zip public .env satellite.exe
 	rm -f dist/satellite.exe
 
