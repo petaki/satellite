@@ -12,6 +12,7 @@ import (
 	"github.com/gomodule/redigo/redis"
 	"github.com/petaki/inertia-go"
 	"github.com/petaki/satellite/internal/models"
+	"github.com/petaki/satellite/resources/views"
 	"github.com/petaki/support-go/cli"
 	"github.com/petaki/support-go/mix"
 )
@@ -90,7 +91,7 @@ func newMixAndInertiaManager(url string) (*mix.Mix, *inertia.Inertia, error) {
 		return nil, nil, err
 	}
 
-	inertiaManager := inertia.New(url, "./resources/views/app.gohtml", version)
+	inertiaManager := inertia.NewWithFS(url, "app.gohtml", version, views.Templates)
 
 	icons, err := mixManager.Mix("images/bootstrap-icons.svg", "")
 	if err != nil {
