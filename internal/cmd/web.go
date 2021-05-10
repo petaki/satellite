@@ -23,5 +23,5 @@ func WebServe(group *cli.Group, command *cli.Command, arguments []string) int {
 		*redisKeyPrefix,
 	)
 
-	return 0
+	return cli.Success
 }
