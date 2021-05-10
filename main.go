@@ -9,7 +9,7 @@ import (
 func main() {
 	(&cli.App{
 		Name:    "Satellite",
-		Version: "1.0.0",
+		Version: "1.0.1",
 		Groups: []*cli.Group{
 			&cli.Group{
 				Name:  "web",
