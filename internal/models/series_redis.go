@@ -118,6 +118,10 @@ func (rsr *RedisSeriesRepository) findAllSeries(seriesType SeriesType, prefix, s
 		}
 	}
 
+	if len(rawSeries) == 0 {
+		return series, nil
+	}
+
 	sort.Slice(rawSeries, func(i, j int) bool {
 		return rawSeries[i].X > rawSeries[j].X
 	})
