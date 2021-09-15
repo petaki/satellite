@@ -6,7 +6,7 @@ module.exports = {
     },
     extends: [
         'airbnb-base',
-        'plugin:vue/recommended'
+        'plugin:vue/vue3-recommended'
     ],
     env: {
         browser: true,
@@ -16,8 +16,7 @@ module.exports = {
         node: true
     },
     globals: {
-        _: 'readonly',
-        axios: 'readonly'
+        _: 'readonly'
     },
     settings: {
         'import/core-modules': ['webpack']

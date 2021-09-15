@@ -34,7 +34,9 @@ import {
     ChipIcon
 } from '@heroicons/vue/outline';
 
-import { ref, toRefs, computed, onMounted, onUnmounted } from 'vue';
+import {
+    ref, toRefs, computed, onMounted, onUnmounted
+} from 'vue';
 import { Inertia } from '@inertiajs/inertia';
 import Breadcrumb from '../../common/Breadcrumb.vue';
 import CardTitle from '../../common/CardTitle.vue';
@@ -46,6 +48,8 @@ export default {
         Breadcrumb,
         CardTitle
     },
+
+    layout: Layout,
 
     props: {
         seriesType: {
@@ -63,8 +67,6 @@ export default {
             default: () => []
         }
     },
-
-    layout: Layout,
 
     setup(props) {
         const { cpuSeries } = toRefs(props);
