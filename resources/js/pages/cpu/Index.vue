@@ -1,37 +1,24 @@
 <template>
-    <div class="cpu__index layout__index">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">
-                <inertia-link href="/">
-                    Home
-                </inertia-link>
-            </li>
-            <li class="breadcrumb-item active">
-                {{ $metaInfo.title }}
-            </li>
-        </ol>
-        <div class="card">
-            <div class="card-header">
-                <svg class="bi"
-                     width="1em"
-                     height="1em"
-                     fill="currentColor">
-                    <use :xlink:href="icon('cpu')" />
-                </svg>
-                <span class="mr-auto">
-                    {{ $metaInfo.title }}
+    <inertia-head :title="subtitle" />
+    <div class="p-5">
+        <breadcrumb :links="links" />
+        <div class="bg-white p-8">
+            <card-title>
+                <chip-icon class="h-6 w-6 mr-2" />
+                <span class="flex-1 mr-auto">
+                    {{ subtitle }}
                 </span>
                 <inertia-link v-for="(type, index) in seriesTypes"
                               :key="type.value"
                               :href="index === 0
                                   ? '/'
                                   : `/?type=${type.value}`"
-                              class="ml-3"
-                              :class="{'text-white': seriesType === type.value}">
+                              class="hover:text-cyan-500 ml-3"
+                              :class="{'text-cyan-500': seriesType === type.value}">
                     {{ type.name }}
                 </inertia-link>
-            </div>
-            <div class="chart_body card-body">
+            </card-title>
+            <div class="chart">
                 <apexchart v-if="cpuSeries"
                            type="line"
                            :series="series"
@@ -43,10 +30,27 @@
 </template>
 
 <script>
+import {
+    ChipIcon
+} from '@heroicons/vue/outline';
+
+import {
+    ref, toRefs, computed, onMounted, onUnmounted
+} from 'vue';
 import { Inertia } from '@inertiajs/inertia';
+import Breadcrumb from '../../common/Breadcrumb.vue';
+import CardTitle from '../../common/CardTitle.vue';
 import Layout from '../../common/Layout.vue';
 
 export default {
+    components: {
+        ChipIcon,
+        Breadcrumb,
+        CardTitle
+    },
+
+    layout: Layout,
+
     props: {
         seriesType: {
             type: String,
@@ -64,37 +68,38 @@ export default {
         }
     },
 
-    layout: Layout,
+    setup(props) {
+        const { cpuSeries } = toRefs(props);
+        const subtitle = ref('CPU');
+        const reloadInterval = ref();
+        const reloadTimer = ref(60000);
+        const options = ref({});
 
-    metaInfo() {
+        const links = ref([
+            { name: subtitle }
+        ]);
+
+        const series = computed(() => [{
+            name: 'CPU',
+            data: cpuSeries.value
+        }]);
+
+        onMounted(() => {
+            reloadInterval.value = setInterval(() => Inertia.reload(), reloadTimer.value);
+        });
+
+        onUnmounted(() => {
+            clearInterval(reloadInterval.value);
+        });
+
         return {
-            title: 'CPU'
+            subtitle,
+            reloadInterval,
+            reloadTimer,
+            options,
+            links,
+            series
         };
-    },
-
-    data() {
-        return {
-            reloadInterval: undefined,
-            reloadTimer: 60000,
-            options: {}
-        };
-    },
-
-    computed: {
-        series() {
-            return [{
-                name: 'CPU',
-                data: this.cpuSeries
-            }];
-        }
-    },
-
-    mounted() {
-        this.reloadInterval = setInterval(() => Inertia.reload(), this.reloadTimer);
-    },
-
-    beforeDestroy() {
-        clearInterval(this.reloadInterval);
     }
 };
 </script>
