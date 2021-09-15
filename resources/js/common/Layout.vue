@@ -1,136 +1,121 @@
 <template>
-    <section class="d-flex">
+    <section class="flex">
         <div v-show="isSidebarOpen"
-             class="sidebar__backdrop"
+             class="bg-black bg-opacity-50 fixed inset-0 z-10 md:hidden"
              @click.prevent="isSidebarOpen = false"></div>
-        <div class="sidebar" :class="{'sidebar--open': isSidebarOpen}">
-            <div class="sidebar__header">
-                <inertia-link class="sidebar__logo" href="/">
-                    <svg class="bi"
-                         width="1em"
-                         height="1em"
-                         fill="currentColor">
-                        <use :xlink:href="icon('broadcast')" />
-                    </svg>
+        <!-- eslint-disable max-len -->
+        <div class="fixed inset-y-0 left-0 bg-gray-800 w-60 z-20 transform transition-transform md:static md:translate-x-0"
+             :class="{'translate-x-0': isSidebarOpen, '-translate-x-full': !isSidebarOpen}">
+            <div class="flex h-20 bg-gray-900">
+                <inertia-link class="flex items-center m-auto text-white text-xl"
+                              href="/">
+                    <paper-airplane-icon class="h-7 w-7 mr-2" />
                     <span>
                         {{ $page.props.title }}
                     </span>
                 </inertia-link>
             </div>
-            <div class="sidebar__content">
-                <h1 class="sidebar__content--title">
+            <div class="sidebar overflow-y-auto">
+                <sidebar-title>
                     Performance
-                </h1>
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <inertia-link class="nav-link"
-                                      :class="{active: $page.props.isCpuActive}"
-                                      href="/">
-                            <svg class="bi"
-                                 width="1em"
-                                 height="1em"
-                                 fill="currentColor">
-                                <use :xlink:href="icon('cpu')" />
-                            </svg>
-                            <span>
-                                CPU
-                            </span>
-                        </inertia-link>
-                    </li>
-                    <li class="nav-item">
-                        <inertia-link class="nav-link"
-                                      :class="{active: $page.props.isMemoryActive}"
-                                      href="/memory">
-                            <svg class="bi"
-                                 width="1em"
-                                 height="1em"
-                                 fill="currentColor">
-                                <use :xlink:href="icon('grid-3x2')" />
-                            </svg>
-                            <span>
-                                Memory
-                            </span>
-                        </inertia-link>
-                    </li>
-                </ul>
-                <h1 class="sidebar__content--title">
+                </sidebar-title>
+                <sidebar-link :is-active="!!$page.props.isCpuActive"
+                              href="/">
+                    <chip-icon class="h-5 w-5 mr-2" />
+                    <span>
+                        CPU
+                    </span>
+                </sidebar-link>
+                <sidebar-link :is-active="!!$page.props.isMemoryActive"
+                              href="/memory">
+                    <duplicate-icon class="h-5 w-5 mr-2" />
+                    <span>
+                        Memory
+                    </span>
+                </sidebar-link>
+                <sidebar-title>
                     Disks
-                </h1>
-                <ul class="nav flex-column">
-                    <li v-if="!$page.props.diskPaths" class="nav-item">
-                        <a class="nav-link disabled"
-                           href="#"
-                           tabindex="-1">
-                            No data found.
-                        </a>
-                    </li>
-                    <li v-else class="nav-item">
-                        <inertia-link v-for="diskPath in $page.props.diskPaths"
-                                      :key="diskPath"
-                                      class="nav-link"
-                                      :class="{active: $page.props.diskPath === diskPath}"
-                                      :href="`/disk?path=${diskPath}`">
-                            <svg class="bi"
-                                 width="1em"
-                                 height="1em"
-                                 fill="currentColor">
-                                <use :xlink:href="icon('hdd')" />
-                            </svg>
-                            <span>
-                                Disk
-                                <span class="sidebar__muted">
-                                    {{ diskPath }}
-                                </span>
-                            </span>
-                        </inertia-link>
-                    </li>
-                </ul>
+                </sidebar-title>
+                <div v-if="!$page.props.diskPaths" class="px-5 py-3.5 text-blueGray-500">
+                    No data found.
+                </div>
+                <sidebar-link v-for="diskPath in $page.props.diskPaths"
+                              :key="diskPath"
+                              :is-active="$page.props.diskPath === diskPath"
+                              :href="`/disk?path=${diskPath}`">
+                    <database-icon class="h-5 w-5 mr-2" />
+                    <div>
+                        Disk
+                        <div class="text-xs">
+                            {{ diskPath }}
+                        </div>
+                    </div>
+                </sidebar-link>
             </div>
-            <div class="sidebar__footer">
+            <div class="flex h-20 bg-blueGray-700 bg-opacity-40 text-sm text-blueGray-300">
                 <span class="m-auto">
                     &copy; {{ year }}
-                    <span class="sidebar__highlight">
+                    <span class="text-cyan-500">
                         {{ $page.props.title }}
                     </span>
                 </span>
             </div>
         </div>
-        <div class="content">
-            <header class="content__header">
-                <a class="content__header--toggler"
+        <div class="flex-1">
+            <header class="flex items-center bg-white h-20 shadow-sm px-5">
+                <a class="md:hidden"
                    href="#"
                    @click.prevent="isSidebarOpen = true">
-                    <svg class="bi"
-                         width="1em"
-                         height="1em"
-                         fill="currentColor">
-                        <use :xlink:href="icon('list')" />
-                    </svg>
+                    <menu-icon class="h-6 w-6" />
                 </a>
             </header>
-            <main class="content__main">
+            <main class="content overflow-y-auto">
                 <slot></slot>
             </main>
         </div>
+        <!-- eslint-enable max-len -->
     </section>
 </template>
 
 <script>
+import {
+    MenuIcon,
+    ChipIcon,
+    DatabaseIcon,
+    DuplicateIcon,
+    PaperAirplaneIcon
+} from '@heroicons/vue/outline';
+
+import { ref, onUnmounted } from 'vue';
 import { Inertia } from '@inertiajs/inertia';
+import SidebarTitle from './SidebarTitle.vue';
+import SidebarLink from './SidebarLink.vue';
 
 export default {
-    data() {
-        return {
-            isSidebarOpen: false,
-            year: new Date().getFullYear()
-        };
+    components: {
+        MenuIcon,
+        ChipIcon,
+        DatabaseIcon,
+        DuplicateIcon,
+        PaperAirplaneIcon,
+        SidebarTitle,
+        SidebarLink
     },
 
-    mounted() {
-        this.$once(
-            'hook:destroyed',
-            Inertia.on('navigate', () => { this.isSidebarOpen = false; })
+    setup() {
+        const isSidebarOpen = ref(false);
+        const year = ref(new Date().getFullYear());
+
+        onUnmounted(
+            Inertia.on('navigate', () => {
+                isSidebarOpen.value = false;
+            })
         );
+
+        return {
+            isSidebarOpen,
+            year
+        };
     }
 };
 </script>
