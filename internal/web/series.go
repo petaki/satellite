@@ -6,15 +6,15 @@ import (
 	"github.com/petaki/satellite/internal/models"
 )
 
-func (app *app) cpuIndex(w http.ResponseWriter, r *http.Request) {
+func (a *app) cpuIndex(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
-		app.notFound(w)
+		a.notFound(w)
 
 		return
 	}
 
 	if r.Method != "GET" {
-		app.methodNotAllowed(w, []string{"GET"})
+		a.methodNotAllowed(w, []string{"GET"})
 
 		return
 	}
@@ -24,28 +24,28 @@ func (app *app) cpuIndex(w http.ResponseWriter, r *http.Request) {
 		seriesType = models.Day
 	}
 
-	seriesTypes := app.seriesTypes()
-	if !app.seriesTypeExists(seriesTypes, seriesType) {
-		app.notFound(w)
+	seriesTypes := a.seriesTypes()
+	if !a.seriesTypeExists(seriesTypes, seriesType) {
+		a.notFound(w)
 
 		return
 	}
 
-	diskPaths, err := app.seriesRepository.FindDiskPaths()
+	diskPaths, err := a.seriesRepository.FindDiskPaths()
 	if err != nil {
-		app.serverError(w, err)
+		a.serverError(w, err)
 
 		return
 	}
 
-	cpuSeries, err := app.seriesRepository.FindCPU(seriesType)
+	cpuSeries, err := a.seriesRepository.FindCPU(seriesType)
 	if err != nil {
-		app.serverError(w, err)
+		a.serverError(w, err)
 
 		return
 	}
 
-	err = app.inertiaManager.Render(w, r, "cpu/Index", map[string]interface{}{
+	err = a.inertiaManager.Render(w, r, "cpu/Index", map[string]interface{}{
 		"isCpuActive": true,
 		"seriesType":  seriesType,
 		"seriesTypes": seriesTypes,
@@ -53,13 +53,13 @@ func (app *app) cpuIndex(w http.ResponseWriter, r *http.Request) {
 		"cpuSeries":   cpuSeries,
 	})
 	if err != nil {
-		app.serverError(w, err)
+		a.serverError(w, err)
 	}
 }
 
-func (app *app) memoryIndex(w http.ResponseWriter, r *http.Request) {
+func (a *app) memoryIndex(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
-		app.methodNotAllowed(w, []string{"GET"})
+		a.methodNotAllowed(w, []string{"GET"})
 
 		return
 	}
@@ -69,28 +69,28 @@ func (app *app) memoryIndex(w http.ResponseWriter, r *http.Request) {
 		seriesType = models.Day
 	}
 
-	seriesTypes := app.seriesTypes()
-	if !app.seriesTypeExists(seriesTypes, seriesType) {
-		app.notFound(w)
+	seriesTypes := a.seriesTypes()
+	if !a.seriesTypeExists(seriesTypes, seriesType) {
+		a.notFound(w)
 
 		return
 	}
 
-	diskPaths, err := app.seriesRepository.FindDiskPaths()
+	diskPaths, err := a.seriesRepository.FindDiskPaths()
 	if err != nil {
-		app.serverError(w, err)
+		a.serverError(w, err)
 
 		return
 	}
 
-	memorySeries, err := app.seriesRepository.FindMemory(seriesType)
+	memorySeries, err := a.seriesRepository.FindMemory(seriesType)
 	if err != nil {
-		app.serverError(w, err)
+		a.serverError(w, err)
 
 		return
 	}
 
-	err = app.inertiaManager.Render(w, r, "memory/Index", map[string]interface{}{
+	err = a.inertiaManager.Render(w, r, "memory/Index", map[string]interface{}{
 		"isMemoryActive": true,
 		"seriesType":     seriesType,
 		"seriesTypes":    seriesTypes,
@@ -98,13 +98,13 @@ func (app *app) memoryIndex(w http.ResponseWriter, r *http.Request) {
 		"memorySeries":   memorySeries,
 	})
 	if err != nil {
-		app.serverError(w, err)
+		a.serverError(w, err)
 	}
 }
 
-func (app *app) diskIndex(w http.ResponseWriter, r *http.Request) {
+func (a *app) diskIndex(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
-		app.methodNotAllowed(w, []string{"GET"})
+		a.methodNotAllowed(w, []string{"GET"})
 
 		return
 	}
@@ -114,41 +114,41 @@ func (app *app) diskIndex(w http.ResponseWriter, r *http.Request) {
 		seriesType = models.Day
 	}
 
-	seriesTypes := app.seriesTypes()
-	if !app.seriesTypeExists(seriesTypes, seriesType) {
-		app.notFound(w)
+	seriesTypes := a.seriesTypes()
+	if !a.seriesTypeExists(seriesTypes, seriesType) {
+		a.notFound(w)
 
 		return
 	}
 
 	diskPath := r.URL.Query().Get("path")
 	if diskPath == "" {
-		app.notFound(w)
+		a.notFound(w)
 
 		return
 	}
 
-	diskPaths, err := app.seriesRepository.FindDiskPaths()
+	diskPaths, err := a.seriesRepository.FindDiskPaths()
 	if err != nil {
-		app.serverError(w, err)
+		a.serverError(w, err)
 
 		return
 	}
 
-	if !app.diskPathExists(diskPaths, diskPath) {
-		app.notFound(w)
+	if !a.diskPathExists(diskPaths, diskPath) {
+		a.notFound(w)
 
 		return
 	}
 
-	diskSeries, err := app.seriesRepository.FindDisk(seriesType, diskPath)
+	diskSeries, err := a.seriesRepository.FindDisk(seriesType, diskPath)
 	if err != nil {
-		app.serverError(w, err)
+		a.serverError(w, err)
 
 		return
 	}
 
-	err = app.inertiaManager.Render(w, r, "disk/Index", map[string]interface{}{
+	err = a.inertiaManager.Render(w, r, "disk/Index", map[string]interface{}{
 		"seriesType":  seriesType,
 		"seriesTypes": seriesTypes,
 		"diskPath":    diskPath,
@@ -156,11 +156,11 @@ func (app *app) diskIndex(w http.ResponseWriter, r *http.Request) {
 		"diskSeries":  diskSeries,
 	})
 	if err != nil {
-		app.serverError(w, err)
+		a.serverError(w, err)
 	}
 }
 
-func (app *app) diskPathExists(diskPaths []string, diskPath string) bool {
+func (a *app) diskPathExists(diskPaths []string, diskPath string) bool {
 	for _, current := range diskPaths {
 		if current == diskPath {
 			return true
@@ -170,7 +170,7 @@ func (app *app) diskPathExists(diskPaths []string, diskPath string) bool {
 	return false
 }
 
-func (app *app) seriesTypeExists(seriesTypes []map[string]interface{}, seriesType models.SeriesType) bool {
+func (a *app) seriesTypeExists(seriesTypes []map[string]interface{}, seriesType models.SeriesType) bool {
 	for _, current := range seriesTypes {
 		if current["value"] == seriesType {
 			return true
@@ -180,7 +180,7 @@ func (app *app) seriesTypeExists(seriesTypes []map[string]interface{}, seriesTyp
 	return false
 }
 
-func (app *app) seriesTypes() []map[string]interface{} {
+func (a *app) seriesTypes() []map[string]interface{} {
 	return []map[string]interface{}{
 		{
 			"name":  "Day",

@@ -1,23 +1,31 @@
 package web
 
 import (
+	"github.com/petaki/satellite/static"
 	"net/http"
 
 	"github.com/justinas/alice"
 )
 
-func (app *app) routes() http.Handler {
-	baseMiddleware := alice.New(app.recoverPanic)
+func (a *app) routes() http.Handler {
+	baseMiddleware := alice.New(a.recoverPanic)
 	webMiddleware := alice.New(
-		app.inertiaManager.Middleware,
+		a.inertiaManager.Middleware,
 	)
 
 	mux := http.NewServeMux()
-	mux.Handle("/", webMiddleware.ThenFunc(app.cpuIndex))
-	mux.Handle("/memory", webMiddleware.ThenFunc(app.memoryIndex))
-	mux.Handle("/disk", webMiddleware.ThenFunc(app.diskIndex))
+	mux.Handle("/", webMiddleware.ThenFunc(a.cpuIndex))
+	mux.Handle("/memory", webMiddleware.ThenFunc(a.memoryIndex))
+	mux.Handle("/disk", webMiddleware.ThenFunc(a.diskIndex))
 
-	fileServer := http.FileServer(http.Dir("./public/"))
+	var fileServer http.Handler
+
+	if a.debug {
+		fileServer = http.FileServer(http.Dir("./static/"))
+	} else {
+		staticFS := http.FS(static.Files)
+		fileServer = http.FileServer(staticFS)
+	}
 
 	mux.Handle("/css/", fileServer)
 	mux.Handle("/images/", fileServer)
