@@ -1,10 +1,10 @@
 package web
 
 import (
-	"github.com/petaki/satellite/static"
 	"net/http"
 
 	"github.com/justinas/alice"
+	"github.com/petaki/satellite/static"
 )
 
 func (a *app) routes() http.Handler {
