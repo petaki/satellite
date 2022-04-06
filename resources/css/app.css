@@ -4,7 +4,7 @@
 
 @layer base {
     body {
-        @apply bg-blueGray-100 text-blueGray-600;
+        @apply bg-slate-100 text-slate-600;
     }
 
     .sidebar {

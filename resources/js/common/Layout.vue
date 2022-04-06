@@ -36,7 +36,7 @@
                 <sidebar-title>
                     Disks
                 </sidebar-title>
-                <div v-if="!$page.props.diskPaths" class="px-5 py-3.5 text-blueGray-500">
+                <div v-if="!$page.props.diskPaths" class="px-5 py-3.5 text-slate-500">
                     No data found.
                 </div>
                 <sidebar-link v-for="diskPath in $page.props.diskPaths"
@@ -52,7 +52,7 @@
                     </div>
                 </sidebar-link>
             </div>
-            <div class="flex h-20 bg-blueGray-700 bg-opacity-40 text-sm text-blueGray-300">
+            <div class="flex h-20 bg-slate-700 bg-opacity-40 text-sm text-slate-300">
                 <span class="m-auto">
                     &copy; {{ year }}
                     <span class="text-cyan-500">
