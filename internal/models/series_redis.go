@@ -182,7 +182,7 @@ func (rsr *RedisSeriesRepository) timestamps(seriesType SeriesType) []int64 {
 		start = end
 	}
 
-	for current := start; current.After(end) == false; current = current.AddDate(0, 0, 1) {
+	for current := start; !current.After(end); current = current.AddDate(0, 0, 1) {
 		timestamps = append(timestamps, current.Unix())
 	}
 
