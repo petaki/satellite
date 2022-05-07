@@ -12,7 +12,7 @@ Before you start, you need to install the prerequisites.
 ### Prerequisites
 
 - Redis: `Version >= 5.0` for data reading
-- GO: `Version >= 1.17` for building
+- GO: `Version >= 1.18` for building
 - Node.js: `Version >= 14.0` for building
 - Yarn or NPM: for building
 
