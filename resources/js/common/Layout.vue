@@ -68,7 +68,7 @@
                 <menu-icon class="h-6 w-6" />
             </a>
         </header>
-        <main class="content overflow-y-auto">
+        <main class="content overflow-y-auto" scroll-region>
             <slot></slot>
         </main>
     </div>
