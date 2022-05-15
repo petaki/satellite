@@ -4,8 +4,8 @@
         <breadcrumb :links="links" />
         <div class="bg-white p-8">
             <card-title>
-                <duplicate-icon class="h-6 w-6 mr-2" />
-                <span class="flex-1 mr-auto">
+                <duplicate-icon class="h-6 w-6 sm:mr-2" />
+                <span class="flex-1 sm:mr-auto">
                     {{ subtitle }}
                 </span>
                 <inertia-link v-for="(type, index) in seriesTypes"
@@ -13,7 +13,7 @@
                               :href="index === 0
                                   ? '/memory'
                                   : `/memory?type=${type.value}`"
-                              class="hover:text-cyan-500 ml-3"
+                              class="hover:text-cyan-500 sm:ml-3"
                               :class="{'text-cyan-500': seriesType === type.value}">
                     {{ type.name }}
                 </inertia-link>
