@@ -4,7 +4,7 @@
         <breadcrumb :links="links" />
         <div class="bg-white p-8">
             <card-title>
-                <duplicate-icon class="h-6 w-6 sm:mr-2" />
+                <document-duplicate-icon class="h-6 w-6 sm:mr-2" />
                 <span class="flex-1 sm:mr-auto">
                     {{ subtitle }}
                 </span>
@@ -31,12 +31,17 @@
 
 <script>
 import {
-    DuplicateIcon
-} from '@heroicons/vue/outline';
+    DocumentDuplicateIcon
+} from '@heroicons/vue/24/outline';
 
 import {
-    ref, toRefs, computed, onMounted, onUnmounted
+    ref,
+    toRefs,
+    computed,
+    onMounted,
+    onUnmounted
 } from 'vue';
+
 import { Inertia } from '@inertiajs/inertia';
 import Breadcrumb from '../../common/Breadcrumb.vue';
 import CardTitle from '../../common/CardTitle.vue';
@@ -44,7 +49,7 @@ import Layout from '../../common/Layout.vue';
 
 export default {
     components: {
-        DuplicateIcon,
+        DocumentDuplicateIcon,
         Breadcrumb,
         CardTitle
     },
