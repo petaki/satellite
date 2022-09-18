@@ -4,7 +4,7 @@
         <breadcrumb :links="links" />
         <div class="bg-white p-8">
             <card-title>
-                <chip-icon class="h-6 w-6 sm:mr-2" />
+                <cpu-chip-icon class="h-6 w-6 sm:mr-2" />
                 <span class="flex-1 sm:mr-auto">
                     {{ subtitle }}
                 </span>
@@ -31,8 +31,8 @@
 
 <script>
 import {
-    ChipIcon
-} from '@heroicons/vue/outline';
+    CpuChipIcon
+} from '@heroicons/vue/24/outline';
 
 import {
     ref, toRefs, computed, onMounted, onUnmounted
@@ -44,7 +44,7 @@ import Layout from '../../common/Layout.vue';
 
 export default {
     components: {
-        ChipIcon,
+        CpuChipIcon,
         Breadcrumb,
         CardTitle
     },

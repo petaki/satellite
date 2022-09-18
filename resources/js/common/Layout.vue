@@ -1,9 +1,9 @@
 <template>
     <div v-show="isSidebarOpen"
-         class="bg-black bg-opacity-50 fixed inset-0 z-10 md:hidden"
+         class="bg-black bg-opacity-50 fixed inset-0 z-20 md:hidden"
          @click.prevent="isSidebarOpen = false"></div>
     <!-- eslint-disable max-len -->
-    <div class="fixed inset-y-0 left-0 bg-gray-800 w-60 z-20 transform transition-transform md:translate-x-0"
+    <div class="fixed inset-y-0 left-0 bg-gray-800 w-60 z-30 transform transition-transform md:translate-x-0"
          :class="{'translate-x-0': isSidebarOpen, '-translate-x-full': !isSidebarOpen}">
         <div class="flex h-20 bg-gray-900">
             <inertia-link class="flex items-center m-auto text-white text-xl"
@@ -20,14 +20,14 @@
             </sidebar-title>
             <sidebar-link :is-active="!!$page.props.isCpuActive"
                           href="/">
-                <chip-icon class="h-5 w-5 mr-2" />
+                <cpu-chip-icon class="h-5 w-5 mr-2" />
                 <span>
                     CPU
                 </span>
             </sidebar-link>
             <sidebar-link :is-active="!!$page.props.isMemoryActive"
                           href="/memory">
-                <duplicate-icon class="h-5 w-5 mr-2" />
+                <document-duplicate-icon class="h-5 w-5 mr-2" />
                 <span>
                     Memory
                 </span>
@@ -42,7 +42,7 @@
                           :key="diskPath"
                           :is-active="$page.props.diskPath === diskPath"
                           :href="`/disk?path=${diskPath}`">
-                <database-icon class="h-5 w-5 mr-2" />
+                <circle-stack-icon class="h-5 w-5 mr-2" />
                 <div>
                     Disk
                     <div class="text-xs">
@@ -65,7 +65,7 @@
             <a class="md:hidden"
                href="#"
                @click.prevent="isSidebarOpen = true">
-                <menu-icon class="h-6 w-6" />
+                <bars3-icon class="h-6 w-6" />
             </a>
         </header>
         <main class="content overflow-y-auto" scroll-region>
@@ -77,12 +77,12 @@
 
 <script>
 import {
-    MenuIcon,
-    ChipIcon,
-    DatabaseIcon,
-    DuplicateIcon,
+    Bars3Icon,
+    CpuChipIcon,
+    CircleStackIcon,
+    DocumentDuplicateIcon,
     PaperAirplaneIcon
-} from '@heroicons/vue/outline';
+} from '@heroicons/vue/24/outline';
 
 import { ref, onUnmounted } from 'vue';
 import { Inertia } from '@inertiajs/inertia';
@@ -91,10 +91,10 @@ import SidebarLink from './SidebarLink.vue';
 
 export default {
     components: {
-        MenuIcon,
-        ChipIcon,
-        DatabaseIcon,
-        DuplicateIcon,
+        Bars3Icon,
+        CpuChipIcon,
+        CircleStackIcon,
+        DocumentDuplicateIcon,
         PaperAirplaneIcon,
         SidebarTitle,
         SidebarLink
