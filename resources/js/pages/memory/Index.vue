@@ -70,15 +70,39 @@ export default {
         memorySeries: {
             type: Array,
             default: () => []
+        },
+
+        memoryAlarm: {
+            type: Number,
+            default: 0
         }
     },
 
     setup(props) {
-        const { memorySeries } = toRefs(props);
+        const { memorySeries, memoryAlarm } = toRefs(props);
         const subtitle = ref('Memory');
         const reloadInterval = ref();
         const reloadTimer = ref(60000);
-        const options = ref({});
+        const options = ref(memoryAlarm.value
+            ? {
+                annotations: {
+                    yaxis: [
+                        {
+                            y: memoryAlarm.value,
+                            borderColor: '#ef4444',
+                            label: {
+                                borderColor: '#ef4444',
+                                style: {
+                                    color: '#fff',
+                                    background: '#ef4444'
+                                },
+                                text: `Alarm: ${memoryAlarm.value}%`
+                            }
+                        }
+                    ]
+                }
+            }
+            : {});
 
         const links = ref([
             { name: subtitle }

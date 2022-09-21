@@ -65,15 +65,39 @@ export default {
         cpuSeries: {
             type: Array,
             default: () => []
+        },
+
+        cpuAlarm: {
+            type: Number,
+            default: 0
         }
     },
 
     setup(props) {
-        const { cpuSeries } = toRefs(props);
+        const { cpuSeries, cpuAlarm } = toRefs(props);
         const subtitle = ref('CPU');
         const reloadInterval = ref();
         const reloadTimer = ref(60000);
-        const options = ref({});
+        const options = ref(cpuAlarm.value
+            ? {
+                annotations: {
+                    yaxis: [
+                        {
+                            y: cpuAlarm.value,
+                            borderColor: '#ef4444',
+                            label: {
+                                borderColor: '#ef4444',
+                                style: {
+                                    color: '#fff',
+                                    background: '#ef4444'
+                                },
+                                text: `Alarm: ${cpuAlarm.value}%`
+                            }
+                        }
+                    ]
+                }
+            }
+        : {});
 
         const links = ref([
             { name: subtitle }
