@@ -97,7 +97,7 @@ export default {
                     ]
                 }
             }
-        : {});
+            : {});
 
         const links = ref([
             { name: subtitle }
