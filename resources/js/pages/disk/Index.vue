@@ -70,15 +70,39 @@ export default {
         diskSeries: {
             type: Array,
             default: () => []
+        },
+
+        diskAlarm: {
+            type: Number,
+            default: 0
         }
     },
 
     setup(props) {
-        const { diskPath, diskSeries } = toRefs(props);
+        const { diskPath, diskSeries, diskAlarm } = toRefs(props);
         const subtitle = ref(`Disk - ${diskPath.value}`);
         const reloadInterval = ref();
         const reloadTimer = ref(60000);
-        const options = ref({});
+        const options = ref(diskAlarm.value
+            ? {
+                annotations: {
+                    yaxis: [
+                        {
+                            y: diskAlarm.value,
+                            borderColor: '#ef4444',
+                            label: {
+                                borderColor: '#ef4444',
+                                style: {
+                                    color: '#fff',
+                                    background: '#ef4444'
+                                },
+                                text: `Alarm: ${diskAlarm.value}%`
+                            }
+                        }
+                    ]
+                }
+            }
+            : {});
 
         const links = ref([
             { name: subtitle }

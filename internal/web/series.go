@@ -1,6 +1,7 @@
 package web
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/petaki/satellite/internal/models"
@@ -45,12 +46,26 @@ func (a *app) cpuIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var cpuAlarm float64 = 0
+
+	alarm, err := a.alarmRepository.Find()
+	if err != nil && !errors.Is(err, models.ErrNoRecord) {
+		a.serverError(w, err)
+
+		return
+	}
+
+	if alarm != nil {
+		cpuAlarm = alarm.CPU
+	}
+
 	err = a.inertiaManager.Render(w, r, "cpu/Index", map[string]interface{}{
 		"isCpuActive": true,
 		"seriesType":  seriesType,
 		"seriesTypes": seriesTypes,
 		"diskPaths":   diskPaths,
 		"cpuSeries":   cpuSeries,
+		"cpuAlarm":    cpuAlarm,
 	})
 	if err != nil {
 		a.serverError(w, err)
@@ -90,12 +105,26 @@ func (a *app) memoryIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var memoryAlarm float64 = 0
+
+	alarm, err := a.alarmRepository.Find()
+	if err != nil && !errors.Is(err, models.ErrNoRecord) {
+		a.serverError(w, err)
+
+		return
+	}
+
+	if alarm != nil {
+		memoryAlarm = alarm.Memory
+	}
+
 	err = a.inertiaManager.Render(w, r, "memory/Index", map[string]interface{}{
 		"isMemoryActive": true,
 		"seriesType":     seriesType,
 		"seriesTypes":    seriesTypes,
 		"diskPaths":      diskPaths,
 		"memorySeries":   memorySeries,
+		"memoryAlarm":    memoryAlarm,
 	})
 	if err != nil {
 		a.serverError(w, err)
@@ -148,12 +177,26 @@ func (a *app) diskIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var diskAlarm float64 = 0
+
+	alarm, err := a.alarmRepository.Find()
+	if err != nil && !errors.Is(err, models.ErrNoRecord) {
+		a.serverError(w, err)
+
+		return
+	}
+
+	if alarm != nil {
+		diskAlarm = alarm.Disk
+	}
+
 	err = a.inertiaManager.Render(w, r, "disk/Index", map[string]interface{}{
 		"seriesType":  seriesType,
 		"seriesTypes": seriesTypes,
 		"diskPath":    diskPath,
 		"diskPaths":   diskPaths,
 		"diskSeries":  diskSeries,
+		"diskAlarm":   diskAlarm,
 	})
 	if err != nil {
 		a.serverError(w, err)
