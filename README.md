@@ -16,6 +16,10 @@ Before you start, you need to install the prerequisites.
 - Node.js: `Version >= 14.0` for building
 - Yarn or NPM: for building
 
+### Install with Docker
+
+Image can be found at package page on [GitHub](https://github.com/petaki/satellite/pkgs/container/satellite).
+
 ### Install from binary
 
 Downloads can be found at releases page on [GitHub](https://github.com/petaki/satellite/releases).
