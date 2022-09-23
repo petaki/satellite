@@ -8,16 +8,15 @@ const (
 
 // RedisAlarmRepository type.
 type RedisAlarmRepository struct {
-	RedisPool      *redis.Pool
-	RedisKeyPrefix string
+	RedisPool *redis.Pool
 }
 
 // Find function.
-func (rar *RedisAlarmRepository) Find() (*Alarm, error) {
+func (rar *RedisAlarmRepository) Find(probe Probe) (*Alarm, error) {
 	conn := rar.RedisPool.Get()
 	defer conn.Close()
 
-	values, err := redis.Values(conn.Do("HGETALL", rar.RedisKeyPrefix+alarmKeyPrefix))
+	values, err := redis.Values(conn.Do("HGETALL", string(probe)+":"+alarmKeyPrefix))
 	if err != nil {
 		return nil, err
 	}

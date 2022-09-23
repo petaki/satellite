@@ -25,8 +25,8 @@ type Series []Value
 
 // SeriesRepository type.
 type SeriesRepository interface {
-	FindCPU(SeriesType) (Series, error)
-	FindMemory(SeriesType) (Series, error)
-	FindDisk(SeriesType, string) (Series, error)
-	FindDiskPaths() ([]string, error)
+	FindCPU(Probe, SeriesType) (Series, error)
+	FindMemory(Probe, SeriesType) (Series, error)
+	FindDisk(Probe, SeriesType, string) (Series, error)
+	FindDiskPaths(Probe) ([]string, error)
 }
