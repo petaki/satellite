@@ -9,7 +9,7 @@
             <inertia-link class="flex items-center m-auto text-white text-xl"
                           href="/">
                 <paper-airplane-icon class="h-7 w-7 mr-2" />
-                <span>
+                <span class="break-all">
                     {{ $page.props.title }}
                 </span>
             </inertia-link>

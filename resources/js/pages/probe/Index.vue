@@ -13,9 +13,10 @@
                :href="`/cpu?probe=${probe}`"
                class="bg-white p-8 flex flex-col sm:flex-row items-center text-base text-gray-800 text-lg hover:text-cyan-500">
                 <cube-icon class="h-6 w-6 sm:mr-2" />
-                <span class="flex-1 sm:mr-auto">
+                <span class="break-all flex-1 sm:mr-auto">
                     {{ probe }}
                 </span>
+                <chevron-right-icon class="h-6 w-6 sm:ml-2" />
             </a>
         </div>
         <!-- eslint-enable max-len -->
@@ -24,7 +25,8 @@
 
 <script>
 import {
-    CubeIcon
+    CubeIcon,
+    ChevronRightIcon
 } from '@heroicons/vue/24/outline';
 
 import {
@@ -40,6 +42,7 @@ import Layout from '../../common/Layout.vue';
 export default {
     components: {
         CubeIcon,
+        ChevronRightIcon,
         Breadcrumb
     },
 
