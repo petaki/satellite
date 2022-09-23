@@ -86,8 +86,10 @@ export default {
     setup(props) {
         const { cpuSeries, cpuAlarm } = toRefs(props);
         const subtitle = ref('CPU');
-        const reloadInterval = ref();
-        const reloadTimer = ref(60000);
+        const reloadTimer = 60000;
+
+        let reloadInterval;
+
         const options = ref(cpuAlarm.value
             ? {
                 annotations: {
@@ -119,17 +121,15 @@ export default {
         }]);
 
         onMounted(() => {
-            reloadInterval.value = setInterval(() => Inertia.reload(), reloadTimer.value);
+            reloadInterval = setInterval(() => Inertia.reload(), reloadTimer);
         });
 
         onUnmounted(() => {
-            clearInterval(reloadInterval.value);
+            clearInterval(reloadInterval);
         });
 
         return {
             subtitle,
-            reloadInterval,
-            reloadTimer,
             options,
             links,
             series
