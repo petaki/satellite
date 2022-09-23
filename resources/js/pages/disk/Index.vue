@@ -11,8 +11,8 @@
                 <inertia-link v-for="(type, index) in seriesTypes"
                               :key="type.value"
                               :href="index === 0
-                                  ? `/disk?path=${diskPath}`
-                                  : `/disk?path=${diskPath}&type=${type.value}`"
+                                  ? `/disk?probe=${probe}&path=${diskPath}`
+                                  : `/disk?probe=${probe}&path=${diskPath}&type=${type.value}`"
                               class="hover:text-cyan-500 sm:ml-3"
                               :class="{'text-cyan-500': seriesType === type.value}">
                     {{ type.name }}
@@ -57,6 +57,11 @@ export default {
     layout: Layout,
 
     props: {
+        probe: {
+            type: String,
+            required: true
+        },
+
         seriesType: {
             type: String,
             default: ''
