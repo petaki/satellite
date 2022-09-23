@@ -12,8 +12,7 @@ func WebServe(group *cli.Group, command *cli.Command, arguments []string) int {
 	debug := command.FlagSet().Bool("debug", false, "Application Debug Mode")
 	addr := command.FlagSet().String("addr", os.Getenv("APP_ADDR"), "Application Address")
 	url := command.FlagSet().String("url", os.Getenv("APP_URL"), "Application URL")
-
-	redisURL, redisKeyPrefix := createRedisFlags(command)
+	redisURL := command.FlagSet().String("redis-url", os.Getenv("REDIS_URL"), "Redis URL")
 
 	_, err := command.Parse(arguments)
 	if err != nil {
@@ -27,7 +26,6 @@ func WebServe(group *cli.Group, command *cli.Command, arguments []string) int {
 		*debug,
 		*addr,
 		*url,
-		*redisKeyPrefix,
 		redisPool,
 	)
 

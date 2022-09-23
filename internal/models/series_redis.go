@@ -18,32 +18,31 @@ const (
 
 // RedisSeriesRepository type.
 type RedisSeriesRepository struct {
-	RedisPool      *redis.Pool
-	RedisKeyPrefix string
+	RedisPool *redis.Pool
 }
 
 // FindCPU function.
-func (rsr *RedisSeriesRepository) FindCPU(seriesType SeriesType) (Series, error) {
-	return rsr.findAllSeries(seriesType, seriesCPUKeyPrefix, "")
+func (rsr *RedisSeriesRepository) FindCPU(probe Probe, seriesType SeriesType) (Series, error) {
+	return rsr.findAllSeries(probe, seriesType, seriesCPUKeyPrefix, "")
 }
 
 // FindMemory function.
-func (rsr *RedisSeriesRepository) FindMemory(seriesType SeriesType) (Series, error) {
-	return rsr.findAllSeries(seriesType, seriesMemoryKeyPrefix, "")
+func (rsr *RedisSeriesRepository) FindMemory(probe Probe, seriesType SeriesType) (Series, error) {
+	return rsr.findAllSeries(probe, seriesType, seriesMemoryKeyPrefix, "")
 }
 
 // FindDisk function.
-func (rsr *RedisSeriesRepository) FindDisk(seriesType SeriesType, path string) (Series, error) {
-	return rsr.findAllSeries(seriesType, seriesDiskKeyPrefix, ":"+base64.StdEncoding.EncodeToString([]byte(path)))
+func (rsr *RedisSeriesRepository) FindDisk(probe Probe, seriesType SeriesType, path string) (Series, error) {
+	return rsr.findAllSeries(probe, seriesType, seriesDiskKeyPrefix, ":"+base64.StdEncoding.EncodeToString([]byte(path)))
 }
 
 // FindDiskPaths function.
-func (rsr *RedisSeriesRepository) FindDiskPaths() ([]string, error) {
+func (rsr *RedisSeriesRepository) FindDiskPaths(probe Probe) ([]string, error) {
 	conn := rsr.RedisPool.Get()
 	defer conn.Close()
 
 	cursor := 0
-	prefix := rsr.RedisKeyPrefix + seriesDiskKeyPrefix + strconv.FormatInt(rsr.today().Unix(), 10) + ":"
+	prefix := string(probe) + ":" + seriesDiskKeyPrefix + strconv.FormatInt(today().Unix(), 10) + ":"
 
 	var paths []string
 
@@ -86,7 +85,7 @@ func (rsr *RedisSeriesRepository) FindDiskPaths() ([]string, error) {
 	return paths, nil
 }
 
-func (rsr *RedisSeriesRepository) findAllSeries(seriesType SeriesType, prefix, suffix string) (Series, error) {
+func (rsr *RedisSeriesRepository) findAllSeries(probe Probe, seriesType SeriesType, prefix, suffix string) (Series, error) {
 	conn := rsr.RedisPool.Get()
 	defer conn.Close()
 
@@ -94,7 +93,7 @@ func (rsr *RedisSeriesRepository) findAllSeries(seriesType SeriesType, prefix, s
 
 	for _, timestamp := range rsr.timestamps(seriesType) {
 		values, err := redis.Strings(
-			conn.Do("HGETALL", rsr.RedisKeyPrefix+prefix+strconv.FormatInt(timestamp, 10)+suffix),
+			conn.Do("HGETALL", string(probe)+":"+prefix+strconv.FormatInt(timestamp, 10)+suffix),
 		)
 		if err != nil {
 			return nil, err
@@ -170,7 +169,7 @@ func (rsr *RedisSeriesRepository) chunkSize(seriesType SeriesType) int {
 func (rsr *RedisSeriesRepository) timestamps(seriesType SeriesType) []int64 {
 	var timestamps []int64
 
-	end := rsr.today()
+	end := today()
 	var start time.Time
 
 	switch seriesType {
@@ -187,12 +186,4 @@ func (rsr *RedisSeriesRepository) timestamps(seriesType SeriesType) []int64 {
 	}
 
 	return timestamps
-}
-
-func (rsr *RedisSeriesRepository) today() time.Time {
-	now := time.Now()
-
-	return time.Date(
-		now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location(),
-	)
 }

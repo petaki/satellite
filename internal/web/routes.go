@@ -10,13 +10,15 @@ import (
 func (a *app) routes() http.Handler {
 	baseMiddleware := alice.New(a.recoverPanic)
 	webMiddleware := alice.New(
+		a.probes,
 		a.inertiaManager.Middleware,
 	)
 
 	mux := http.NewServeMux()
-	mux.Handle("/", webMiddleware.ThenFunc(a.cpuIndex))
-	mux.Handle("/memory", webMiddleware.ThenFunc(a.memoryIndex))
-	mux.Handle("/disk", webMiddleware.ThenFunc(a.diskIndex))
+	mux.Handle("/", webMiddleware.ThenFunc(a.probeIndex))
+	mux.Handle("/cpu", webMiddleware.Append(a.probe).ThenFunc(a.cpuIndex))
+	mux.Handle("/memory", webMiddleware.Append(a.probe).ThenFunc(a.memoryIndex))
+	mux.Handle("/disk", webMiddleware.Append(a.probe).ThenFunc(a.diskIndex))
 
 	var fileServer http.Handler
 

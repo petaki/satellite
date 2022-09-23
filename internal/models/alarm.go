@@ -1,6 +1,6 @@
 package models
 
-// Alarm model.
+// Alarm type.
 type Alarm struct {
 	CPU    float64 `redis:"cpu"`
 	Memory float64 `redis:"memory"`
@@ -9,5 +9,5 @@ type Alarm struct {
 
 // AlarmRepository type.
 type AlarmRepository interface {
-	Find() (*Alarm, error)
+	Find(Probe) (*Alarm, error)
 }

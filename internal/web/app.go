@@ -15,6 +15,7 @@ type app struct {
 	infoLog          *log.Logger
 	mixManager       *mix.Mix
 	inertiaManager   *inertia.Inertia
+	probeRepository  models.ProbeRepository
 	alarmRepository  models.AlarmRepository
 	seriesRepository models.SeriesRepository
 }

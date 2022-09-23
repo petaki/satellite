@@ -8,12 +8,6 @@ import (
 )
 
 func (a *app) cpuIndex(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		a.notFound(w)
-
-		return
-	}
-
 	if r.Method != "GET" {
 		a.methodNotAllowed(w, []string{"GET"})
 
@@ -32,14 +26,14 @@ func (a *app) cpuIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	diskPaths, err := a.seriesRepository.FindDiskPaths()
+	diskPaths, err := a.seriesRepository.FindDiskPaths("probe")
 	if err != nil {
 		a.serverError(w, err)
 
 		return
 	}
 
-	cpuSeries, err := a.seriesRepository.FindCPU(seriesType)
+	cpuSeries, err := a.seriesRepository.FindCPU("probe", seriesType)
 	if err != nil {
 		a.serverError(w, err)
 
@@ -48,7 +42,7 @@ func (a *app) cpuIndex(w http.ResponseWriter, r *http.Request) {
 
 	var cpuAlarm float64 = 0
 
-	alarm, err := a.alarmRepository.Find()
+	alarm, err := a.alarmRepository.Find("probe")
 	if err != nil && !errors.Is(err, models.ErrNoRecord) {
 		a.serverError(w, err)
 
@@ -91,14 +85,14 @@ func (a *app) memoryIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	diskPaths, err := a.seriesRepository.FindDiskPaths()
+	diskPaths, err := a.seriesRepository.FindDiskPaths("probe")
 	if err != nil {
 		a.serverError(w, err)
 
 		return
 	}
 
-	memorySeries, err := a.seriesRepository.FindMemory(seriesType)
+	memorySeries, err := a.seriesRepository.FindMemory("probe", seriesType)
 	if err != nil {
 		a.serverError(w, err)
 
@@ -107,7 +101,7 @@ func (a *app) memoryIndex(w http.ResponseWriter, r *http.Request) {
 
 	var memoryAlarm float64 = 0
 
-	alarm, err := a.alarmRepository.Find()
+	alarm, err := a.alarmRepository.Find("probe")
 	if err != nil && !errors.Is(err, models.ErrNoRecord) {
 		a.serverError(w, err)
 
@@ -157,7 +151,7 @@ func (a *app) diskIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	diskPaths, err := a.seriesRepository.FindDiskPaths()
+	diskPaths, err := a.seriesRepository.FindDiskPaths("probe")
 	if err != nil {
 		a.serverError(w, err)
 
@@ -170,7 +164,7 @@ func (a *app) diskIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	diskSeries, err := a.seriesRepository.FindDisk(seriesType, diskPath)
+	diskSeries, err := a.seriesRepository.FindDisk("probe", seriesType, diskPath)
 	if err != nil {
 		a.serverError(w, err)
 
@@ -179,7 +173,7 @@ func (a *app) diskIndex(w http.ResponseWriter, r *http.Request) {
 
 	var diskAlarm float64 = 0
 
-	alarm, err := a.alarmRepository.Find()
+	alarm, err := a.alarmRepository.Find("probe")
 	if err != nil && !errors.Is(err, models.ErrNoRecord) {
 		a.serverError(w, err)
 

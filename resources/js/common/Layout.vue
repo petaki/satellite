@@ -15,41 +15,60 @@
             </inertia-link>
         </div>
         <div class="sidebar overflow-y-auto">
-            <sidebar-title>
-                Performance
-            </sidebar-title>
-            <sidebar-link :is-active="!!$page.props.isCpuActive"
-                          href="/">
-                <cpu-chip-icon class="h-5 w-5 mr-2" />
-                <span>
-                    CPU
-                </span>
-            </sidebar-link>
-            <sidebar-link :is-active="!!$page.props.isMemoryActive"
-                          href="/memory">
-                <document-duplicate-icon class="h-5 w-5 mr-2" />
-                <span>
-                    Memory
-                </span>
-            </sidebar-link>
-            <sidebar-title>
-                Disks
-            </sidebar-title>
-            <div v-if="!$page.props.diskPaths" class="px-5 py-3.5 text-slate-500">
-                No data found.
+            <div class="pb-7">
+                <sidebar-title>
+                    Probe
+                </sidebar-title>
+                <sidebar-link :is-active="!!$page.props.isProbeActive"
+                              href="/">
+                    <cube-icon v-if="!!$page.props.probe" class="h-5 w-5 mr-2" />
+                    <cube-transparent-icon v-else class="h-5 w-5 mr-2" />
+                    <span v-if="!!$page.props.probe">
+                        {{ $page.props.probe }}
+                    </span>
+                    <span v-else>
+                        Not selected.
+                    </span>
+                    <chevron-right-icon class="h-5 w-5 ml-auto" />
+                </sidebar-link>
             </div>
-            <sidebar-link v-for="diskPath in $page.props.diskPaths"
-                          :key="diskPath"
-                          :is-active="$page.props.diskPath === diskPath"
-                          :href="`/disk?path=${diskPath}`">
-                <circle-stack-icon class="h-5 w-5 mr-2" />
-                <div>
-                    Disk
-                    <div class="text-xs">
-                        {{ diskPath }}
-                    </div>
+            <div v-if="!!$page.props.probe" class="bg-black/20 pb-7">
+                <sidebar-title>
+                    Performance
+                </sidebar-title>
+                <sidebar-link :is-active="!!$page.props.isCpuActive"
+                              :href="`/cpu?probe=${$page.props.probe}`">
+                    <cpu-chip-icon class="h-5 w-5 mr-2" />
+                    <span>
+                        CPU
+                    </span>
+                </sidebar-link>
+                <sidebar-link :is-active="!!$page.props.isMemoryActive"
+                              :href="`/memory?probe=${$page.props.probe}`">
+                    <document-duplicate-icon class="h-5 w-5 mr-2" />
+                    <span>
+                        Memory
+                    </span>
+                </sidebar-link>
+                <sidebar-title>
+                    Disks
+                </sidebar-title>
+                <div v-if="!$page.props.diskPaths" class="px-5 py-3.5 text-slate-500">
+                    No data found.
                 </div>
-            </sidebar-link>
+                <sidebar-link v-for="diskPath in $page.props.diskPaths"
+                              :key="diskPath"
+                              :is-active="$page.props.diskPath === diskPath"
+                              :href="`/disk?probe=${$page.props.probe}&path=${diskPath}`">
+                    <circle-stack-icon class="h-5 w-5 mr-2" />
+                    <div>
+                        Disk
+                        <div class="text-xs break-all">
+                            {{ diskPath }}
+                        </div>
+                    </div>
+                </sidebar-link>
+            </div>
         </div>
         <div class="flex h-20 bg-slate-700 bg-opacity-40 text-sm text-slate-300">
             <span class="m-auto">
@@ -80,9 +99,15 @@ import {
     Bars3Icon,
     CpuChipIcon,
     CircleStackIcon,
+    CubeIcon,
+    CubeTransparentIcon,
     DocumentDuplicateIcon,
     PaperAirplaneIcon
 } from '@heroicons/vue/24/outline';
+
+import {
+    ChevronRightIcon
+} from '@heroicons/vue/20/solid';
 
 import { ref, onUnmounted } from 'vue';
 import { Inertia } from '@inertiajs/inertia';
@@ -94,8 +119,11 @@ export default {
         Bars3Icon,
         CpuChipIcon,
         CircleStackIcon,
+        CubeIcon,
+        CubeTransparentIcon,
         DocumentDuplicateIcon,
         PaperAirplaneIcon,
+        ChevronRightIcon,
         SidebarTitle,
         SidebarLink
     },

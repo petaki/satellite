@@ -18,7 +18,7 @@ import (
 )
 
 // Serve function.
-func Serve(debug bool, addr, url, redisKeyPrefix string, redisPool *redis.Pool) {
+func Serve(debug bool, addr, url string, redisPool *redis.Pool) {
 	mixManager, inertiaManager, err := newMixAndInertiaManager(debug, url)
 	if err != nil {
 		cli.ErrorLog.Fatal(err)
@@ -31,13 +31,14 @@ func Serve(debug bool, addr, url, redisKeyPrefix string, redisPool *redis.Pool) 
 		errorLog:       cli.ErrorLog,
 		mixManager:     mixManager,
 		inertiaManager: inertiaManager,
+		probeRepository: &models.RedisProbeRepository{
+			RedisPool: redisPool,
+		},
 		alarmRepository: &models.RedisAlarmRepository{
-			RedisPool:      redisPool,
-			RedisKeyPrefix: redisKeyPrefix,
+			RedisPool: redisPool,
 		},
 		seriesRepository: &models.RedisSeriesRepository{
-			RedisPool:      redisPool,
-			RedisKeyPrefix: redisKeyPrefix,
+			RedisPool: redisPool,
 		},
 	}
 
