@@ -57,25 +57,24 @@ export default {
 
     setup() {
         const subtitle = ref('Probes');
-        const reloadInterval = ref();
-        const reloadTimer = ref(60000);
+        const reloadTimer = 60000;
+
+        let reloadInterval;
 
         const links = ref([
             { name: subtitle }
         ]);
 
         onMounted(() => {
-            reloadInterval.value = setInterval(() => Inertia.reload(), reloadTimer.value);
+            reloadInterval = setInterval(() => Inertia.reload(), reloadTimer);
         });
 
         onUnmounted(() => {
-            clearInterval(reloadInterval.value);
+            clearInterval(reloadInterval);
         });
 
         return {
             subtitle,
-            reloadInterval,
-            reloadTimer,
             links
         };
     }
