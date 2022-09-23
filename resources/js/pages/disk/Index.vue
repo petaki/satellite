@@ -35,8 +35,13 @@ import {
 } from '@heroicons/vue/24/outline';
 
 import {
-    ref, toRefs, computed, onMounted, onUnmounted
+    ref,
+    toRefs,
+    computed,
+    onMounted,
+    onUnmounted
 } from 'vue';
+
 import { Inertia } from '@inertiajs/inertia';
 import Breadcrumb from '../../common/Breadcrumb.vue';
 import CardTitle from '../../common/CardTitle.vue';
