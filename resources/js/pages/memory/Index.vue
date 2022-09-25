@@ -131,16 +131,16 @@ export default {
 
         const series = computed(() => [
             {
-                name: 'Memory Min',
-                data: memoryMinSeries.value
-            },
-            {
                 name: 'Memory Max',
                 data: memoryMaxSeries.value
             },
             {
                 name: 'Memory Avg',
                 data: memoryAvgSeries.value
+            },
+            {
+                name: 'Memory Min',
+                data: memoryMinSeries.value
             }
         ]);
 

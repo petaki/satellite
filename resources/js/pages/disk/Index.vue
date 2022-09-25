@@ -137,16 +137,16 @@ export default {
 
         const series = computed(() => [
             {
-                name: `Disk Min - ${diskPath.value}`,
-                data: diskMinSeries.value
-            },
-            {
                 name: `Disk Max - ${diskPath.value}`,
                 data: diskMaxSeries.value
             },
             {
                 name: `Disk Avg - ${diskPath.value}`,
                 data: diskAvgSeries.value
+            },
+            {
+                name: `Disk Min - ${diskPath.value}`,
+                data: diskMinSeries.value
             }
         ]);
 

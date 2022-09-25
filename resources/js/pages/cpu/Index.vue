@@ -131,16 +131,16 @@ export default {
 
         const series = computed(() => [
             {
-                name: 'CPU Min',
-                data: cpuMinSeries.value
-            },
-            {
                 name: 'CPU Max',
                 data: cpuMaxSeries.value
             },
             {
                 name: 'CPU Avg',
                 data: cpuAvgSeries.value
+            },
+            {
+                name: 'CPU Min',
+                data: cpuMinSeries.value
             }
         ]);
 

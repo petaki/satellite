@@ -13,9 +13,9 @@ window.Apex = {
     },
 
     colors: [
-        '#86EFAC',
         '#f6d757',
-        '#2563EB'
+        '#2563EB',
+        '#86EFAC'
     ],
 
     xaxis: {
