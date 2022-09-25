@@ -29,4 +29,5 @@ type SeriesRepository interface {
 	FindMemory(Probe, SeriesType) (Series, Series, Series, error)
 	FindDisk(Probe, SeriesType, string) (Series, Series, Series, error)
 	FindDiskPaths(Probe) ([]string, error)
+	ChunkSize(seriesType SeriesType) int
 }

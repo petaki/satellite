@@ -59,6 +59,7 @@ func (a *app) cpuIndex(w http.ResponseWriter, r *http.Request) {
 		"isCpuActive":  true,
 		"seriesType":   seriesType,
 		"seriesTypes":  seriesTypes,
+		"chunkSize":    a.seriesRepository.ChunkSize(seriesType),
 		"diskPaths":    diskPaths,
 		"cpuMinSeries": cpuMinSeries,
 		"cpuMaxSeries": cpuMaxSeries,
@@ -122,6 +123,7 @@ func (a *app) memoryIndex(w http.ResponseWriter, r *http.Request) {
 		"isMemoryActive":  true,
 		"seriesType":      seriesType,
 		"seriesTypes":     seriesTypes,
+		"chunkSize":       a.seriesRepository.ChunkSize(seriesType),
 		"diskPaths":       diskPaths,
 		"memoryMinSeries": memoryMinSeries,
 		"memoryMaxSeries": memoryMaxSeries,
@@ -197,6 +199,7 @@ func (a *app) diskIndex(w http.ResponseWriter, r *http.Request) {
 	err = a.inertiaManager.Render(w, r, "disk/Index", map[string]interface{}{
 		"seriesType":    seriesType,
 		"seriesTypes":   seriesTypes,
+		"chunkSize":     a.seriesRepository.ChunkSize(seriesType),
 		"diskPath":      diskPath,
 		"diskPaths":     diskPaths,
 		"diskMinSeries": diskMinSeries,
