@@ -130,7 +130,9 @@ export default {
                     label: {
                         borderColor: '#f6d757',
                         style: {
-                            color: '#fff',
+                            color: '#1f2937',
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
                             background: '#f6d757'
                         },
                         text: `Max: ${max.toFixed(2)}%`
@@ -147,6 +149,8 @@ export default {
                     borderColor: '#ef4444',
                     style: {
                         color: '#fff',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
                         background: '#ef4444'
                     },
                     text: `Alarm: ${cpuAlarm.value}%`
