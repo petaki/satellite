@@ -61,7 +61,7 @@
                               :is-active="$page.props.diskPath === diskPath"
                               :href="`/disk?probe=${$page.props.probe}&path=${diskPath}`">
                     <circle-stack-icon class="h-5 w-5 mr-2" />
-                    <div>
+                    <div class="flex-1">
                         Disk
                         <div class="text-xs break-all">
                             {{ diskPath }}
