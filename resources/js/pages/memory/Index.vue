@@ -19,7 +19,7 @@
                 </inertia-link>
             </card-title>
             <div class="chart">
-                <apexchart v-if="memorySeries"
+                <apexchart v-if="memoryMinSeries"
                            type="line"
                            :series="series"
                            height="100%"
@@ -72,7 +72,17 @@ export default {
             default: () => []
         },
 
-        memorySeries: {
+        memoryMinSeries: {
+            type: Array,
+            default: () => []
+        },
+
+        memoryMaxSeries: {
+            type: Array,
+            default: () => []
+        },
+
+        memoryAvgSeries: {
             type: Array,
             default: () => []
         },
@@ -84,18 +94,17 @@ export default {
     },
 
     setup(props) {
-        const { memorySeries, memoryAlarm } = toRefs(props);
+        const {
+            memoryMinSeries,
+            memoryMaxSeries,
+            memoryAvgSeries,
+            memoryAlarm
+        } = toRefs(props);
+
         const subtitle = ref('Memory');
+        const options = ref({});
         const reloadTimer = 60000;
-
         let reloadInterval;
-
-        const options = ref({
-            yaxis: {
-                min: 0,
-                max: 100
-            }
-        });
 
         if (memoryAlarm.value) {
             options.value.annotations = {
@@ -120,10 +129,20 @@ export default {
             { name: subtitle }
         ]);
 
-        const series = computed(() => [{
-            name: 'Memory',
-            data: memorySeries.value
-        }]);
+        const series = computed(() => [
+            {
+                name: 'Memory Min',
+                data: memoryMinSeries.value
+            },
+            {
+                name: 'Memory Max',
+                data: memoryMaxSeries.value
+            },
+            {
+                name: 'Memory Avg',
+                data: memoryAvgSeries.value
+            }
+        ]);
 
         onMounted(() => {
             reloadInterval = setInterval(() => Inertia.reload(), reloadTimer);

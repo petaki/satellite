@@ -13,7 +13,9 @@ window.Apex = {
     },
 
     colors: [
-        'rgb(6, 182, 212)'
+        '#86EFAC',
+        '#f6d757',
+        '#2563EB'
     ],
 
     xaxis: {
@@ -21,6 +23,7 @@ window.Apex = {
     },
 
     yaxis: {
+        min: 0,
         max: 100,
         labels: {
             formatter(val) {

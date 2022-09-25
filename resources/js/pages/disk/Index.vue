@@ -19,7 +19,7 @@
                 </inertia-link>
             </card-title>
             <div class="chart">
-                <apexchart v-if="diskSeries"
+                <apexchart v-if="diskMinSeries"
                            type="line"
                            :series="series"
                            height="100%"
@@ -77,7 +77,17 @@ export default {
             required: true
         },
 
-        diskSeries: {
+        diskMinSeries: {
+            type: Array,
+            default: () => []
+        },
+
+        diskMaxSeries: {
+            type: Array,
+            default: () => []
+        },
+
+        diskAvgSeries: {
             type: Array,
             default: () => []
         },
@@ -89,18 +99,18 @@ export default {
     },
 
     setup(props) {
-        const { diskPath, diskSeries, diskAlarm } = toRefs(props);
+        const {
+            diskPath,
+            diskMinSeries,
+            diskMaxSeries,
+            diskAvgSeries,
+            diskAlarm
+        } = toRefs(props);
+
         const subtitle = ref(`Disk - ${diskPath.value}`);
+        const options = ref({});
         const reloadTimer = 60000;
-
         let reloadInterval;
-
-        const options = ref({
-            yaxis: {
-                min: 0,
-                max: 100
-            }
-        });
 
         if (diskAlarm.value) {
             options.value.annotations = {
@@ -125,10 +135,20 @@ export default {
             { name: subtitle }
         ]);
 
-        const series = computed(() => [{
-            name: `Disk - ${diskPath.value}`,
-            data: diskSeries.value
-        }]);
+        const series = computed(() => [
+            {
+                name: `Disk Min - ${diskPath.value}`,
+                data: diskMinSeries.value
+            },
+            {
+                name: `Disk Max - ${diskPath.value}`,
+                data: diskMaxSeries.value
+            },
+            {
+                name: `Disk Avg - ${diskPath.value}`,
+                data: diskAvgSeries.value
+            }
+        ]);
 
         onMounted(() => {
             reloadInterval = setInterval(() => Inertia.reload(), reloadTimer);
