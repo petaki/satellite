@@ -1,4 +1,4 @@
-import { DateTime } from 'luxon';
+import { DateTime, Duration } from 'luxon';
 import { createApp, h } from 'vue';
 import { createInertiaApp, InertiaLink } from '@inertiajs/inertia-vue3';
 import { InertiaProgress } from '@inertiajs/progress';
@@ -56,6 +56,10 @@ createInertiaApp({
                         }
 
                         return date.toLocaleString(DateTime.DATETIME_MED);
+                    },
+
+                    duration(minutes) {
+                        return Duration.fromObject({ minutes }).toFormat('hh:mm:ss');
                     }
                 }
             })

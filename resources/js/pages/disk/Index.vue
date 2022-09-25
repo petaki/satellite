@@ -5,8 +5,14 @@
         <div class="bg-white p-8">
             <card-title>
                 <circle-stack-icon class="h-6 w-6 sm:mr-2" />
-                <span class="flex-1 sm:mr-auto">
+                <span>
                     {{ subtitle }}
+                </span>
+                <span class="text-slate-600 sm:mx-auto">
+                    Point Interval:
+                    <span class="text-cyan-500">
+                        {{ duration(chunkSize) }}
+                    </span>
                 </span>
                 <inertia-link v-for="(type, index) in seriesTypes"
                               :key="type.value"
@@ -59,6 +65,11 @@ export default {
     props: {
         probe: {
             type: String,
+            required: true
+        },
+
+        chunkSize: {
+            type: Number,
             required: true
         },
 

@@ -85,6 +85,18 @@ func (rsr *RedisSeriesRepository) FindDiskPaths(probe Probe) ([]string, error) {
 	return paths, nil
 }
 
+// ChunkSize function.
+func (rsr *RedisSeriesRepository) ChunkSize(seriesType SeriesType) int {
+	switch seriesType {
+	case Week:
+		return 90 // 1 hour 30 minutes
+	case Month:
+		return 60 * 8 // 8 hours
+	default:
+		return 15 // 15 minutes
+	}
+}
+
 func (rsr *RedisSeriesRepository) findAllSeries(probe Probe, seriesType SeriesType, prefix, suffix string) (Series, Series, Series, error) {
 	conn := rsr.RedisPool.Get()
 	defer conn.Close()
@@ -127,7 +139,7 @@ func (rsr *RedisSeriesRepository) findAllSeries(probe Probe, seriesType SeriesTy
 
 	var chunks []Series
 
-	chunkSize := rsr.chunkSize(seriesType)
+	chunkSize := rsr.ChunkSize(seriesType)
 
 	for chunkSize < len(rawSeries) {
 		rawSeries, chunks = rawSeries[chunkSize:], append(chunks, rawSeries[0:chunkSize:chunkSize])
@@ -186,17 +198,6 @@ func (rsr *RedisSeriesRepository) findAllSeries(probe Probe, seriesType SeriesTy
 	}
 
 	return minSeries, maxSeries, avgSeries, nil
-}
-
-func (rsr *RedisSeriesRepository) chunkSize(seriesType SeriesType) int {
-	switch seriesType {
-	case Week:
-		return 90 // 1 hour 30 minutes
-	case Month:
-		return 60 * 8 // 8 hours
-	default:
-		return 15 // 15 minutes
-	}
 }
 
 func (rsr *RedisSeriesRepository) timestamps(seriesType SeriesType) []int64 {
