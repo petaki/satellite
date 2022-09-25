@@ -120,23 +120,38 @@ export default {
         const reloadTimer = 60000;
         let reloadInterval;
 
-        if (cpuAlarm.value) {
-            options.value.annotations = {
-                yaxis: [
-                    {
-                        y: cpuAlarm.value,
-                        borderColor: '#ef4444',
-                        label: {
-                            borderColor: '#ef4444',
-                            style: {
-                                color: '#fff',
-                                background: '#ef4444'
-                            },
-                            text: `Alarm: ${cpuAlarm.value}%`
-                        }
+        const max = Math.max(...cpuMaxSeries.value.map(value => value.y));
+
+        options.value.annotations = {
+            yaxis: [
+                {
+                    y: max,
+                    borderColor: '#f6d757',
+                    label: {
+                        borderColor: '#f6d757',
+                        style: {
+                            color: '#fff',
+                            background: '#f6d757'
+                        },
+                        text: `Max: ${max.toFixed(2)}%`
                     }
-                ]
-            };
+                }
+            ]
+        };
+
+        if (cpuAlarm.value) {
+            options.value.annotations.yaxis.push({
+                y: cpuAlarm.value,
+                borderColor: '#ef4444',
+                label: {
+                    borderColor: '#ef4444',
+                    style: {
+                        color: '#fff',
+                        background: '#ef4444'
+                    },
+                    text: `Alarm: ${cpuAlarm.value}%`
+                }
+            });
         }
 
         const links = ref([
