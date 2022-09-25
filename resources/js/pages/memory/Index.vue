@@ -90,26 +90,31 @@ export default {
 
         let reloadInterval;
 
-        const options = ref(memoryAlarm.value
-            ? {
-                annotations: {
-                    yaxis: [
-                        {
-                            y: memoryAlarm.value,
-                            borderColor: '#ef4444',
-                            label: {
-                                borderColor: '#ef4444',
-                                style: {
-                                    color: '#fff',
-                                    background: '#ef4444'
-                                },
-                                text: `Alarm: ${memoryAlarm.value}%`
-                            }
-                        }
-                    ]
-                }
+        const options = ref({
+            yaxis: {
+                min: 0,
+                max: 100
             }
-            : {});
+        });
+
+        if (memoryAlarm.value) {
+            options.value.annotations = {
+                yaxis: [
+                    {
+                        y: memoryAlarm.value,
+                        borderColor: '#ef4444',
+                        label: {
+                            borderColor: '#ef4444',
+                            style: {
+                                color: '#fff',
+                                background: '#ef4444'
+                            },
+                            text: `Alarm: ${memoryAlarm.value}%`
+                        }
+                    }
+                ]
+            };
+        }
 
         const links = ref([
             { name: subtitle }

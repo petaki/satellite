@@ -90,26 +90,31 @@ export default {
 
         let reloadInterval;
 
-        const options = ref(cpuAlarm.value
-            ? {
-                annotations: {
-                    yaxis: [
-                        {
-                            y: cpuAlarm.value,
-                            borderColor: '#ef4444',
-                            label: {
-                                borderColor: '#ef4444',
-                                style: {
-                                    color: '#fff',
-                                    background: '#ef4444'
-                                },
-                                text: `Alarm: ${cpuAlarm.value}%`
-                            }
-                        }
-                    ]
-                }
+        const options = ref({
+            yaxis: {
+                min: 0,
+                max: 100
             }
-            : {});
+        });
+
+        if (cpuAlarm.value) {
+            options.value.annotations = {
+                yaxis: [
+                    {
+                        y: cpuAlarm.value,
+                        borderColor: '#ef4444',
+                        label: {
+                            borderColor: '#ef4444',
+                            style: {
+                                color: '#fff',
+                                background: '#ef4444'
+                            },
+                            text: `Alarm: ${cpuAlarm.value}%`
+                        }
+                    }
+                ]
+            };
+        }
 
         const links = ref([
             { name: subtitle }

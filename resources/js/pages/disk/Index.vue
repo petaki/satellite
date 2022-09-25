@@ -95,26 +95,31 @@ export default {
 
         let reloadInterval;
 
-        const options = ref(diskAlarm.value
-            ? {
-                annotations: {
-                    yaxis: [
-                        {
-                            y: diskAlarm.value,
-                            borderColor: '#ef4444',
-                            label: {
-                                borderColor: '#ef4444',
-                                style: {
-                                    color: '#fff',
-                                    background: '#ef4444'
-                                },
-                                text: `Alarm: ${diskAlarm.value}%`
-                            }
-                        }
-                    ]
-                }
+        const options = ref({
+            yaxis: {
+                min: 0,
+                max: 100
             }
-            : {});
+        });
+
+        if (diskAlarm.value) {
+            options.value.annotations = {
+                yaxis: [
+                    {
+                        y: diskAlarm.value,
+                        borderColor: '#ef4444',
+                        label: {
+                            borderColor: '#ef4444',
+                            style: {
+                                color: '#fff',
+                                background: '#ef4444'
+                            },
+                            text: `Alarm: ${diskAlarm.value}%`
+                        }
+                    }
+                ]
+            };
+        }
 
         const links = ref([
             { name: subtitle }
