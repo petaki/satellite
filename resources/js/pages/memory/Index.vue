@@ -26,6 +26,7 @@
             </card-title>
             <div class="chart">
                 <apexchart v-if="memoryMinSeries"
+                           ref="chartEl"
                            type="line"
                            :series="series"
                            height="100%"
@@ -45,7 +46,7 @@ import {
     toRefs,
     computed,
     onMounted,
-    onUnmounted
+    onUnmounted, nextTick
 } from 'vue';
 
 import { Inertia } from '@inertiajs/inertia';
@@ -113,27 +114,43 @@ export default {
         } = toRefs(props);
 
         const subtitle = ref('Memory');
+        const chartEl = ref();
         const options = ref({});
         const reloadTimer = 60000;
         let reloadInterval;
 
-        if (memoryAlarm.value) {
-            options.value.annotations = {
-                yaxis: [
-                    {
-                        y: memoryAlarm.value,
-                        borderColor: '#ef4444',
-                        label: {
-                            borderColor: '#ef4444',
-                            style: {
-                                color: '#fff',
-                                background: '#ef4444'
-                            },
-                            text: `Alarm: ${memoryAlarm.value}%`
-                        }
+        const max = Math.max(...memoryMaxSeries.value.map(value => value.y));
+
+        options.value.annotations = {
+            yaxis: [
+                {
+                    y: max,
+                    borderColor: '#f6d757',
+                    label: {
+                        borderColor: '#f6d757',
+                        style: {
+                            color: '#fff',
+                            background: '#f6d757'
+                        },
+                        text: `Max: ${max.toFixed(2)}%`
                     }
-                ]
-            };
+                }
+            ]
+        };
+
+        if (memoryAlarm.value) {
+            options.value.annotations.yaxis.push({
+                y: memoryAlarm.value,
+                borderColor: '#ef4444',
+                label: {
+                    borderColor: '#ef4444',
+                    style: {
+                        color: '#fff',
+                        background: '#ef4444'
+                    },
+                    text: `Alarm: ${memoryAlarm.value}%`
+                }
+            });
         }
 
         const links = ref([
@@ -157,6 +174,11 @@ export default {
 
         onMounted(() => {
             reloadInterval = setInterval(() => Inertia.reload(), reloadTimer);
+
+            nextTick(() => {
+                chartEl.value.toggleSeries('Memory Max');
+                chartEl.value.toggleSeries('Memory Min');
+            });
         });
 
         onUnmounted(() => {
@@ -165,6 +187,7 @@ export default {
 
         return {
             subtitle,
+            chartEl,
             options,
             links,
             series

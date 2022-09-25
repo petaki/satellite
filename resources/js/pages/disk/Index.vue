@@ -26,6 +26,7 @@
             </card-title>
             <div class="chart">
                 <apexchart v-if="diskMinSeries"
+                           ref="chartEl"
                            type="line"
                            :series="series"
                            height="100%"
@@ -45,7 +46,7 @@ import {
     toRefs,
     computed,
     onMounted,
-    onUnmounted
+    onUnmounted, nextTick
 } from 'vue';
 
 import { Inertia } from '@inertiajs/inertia';
@@ -119,27 +120,43 @@ export default {
         } = toRefs(props);
 
         const subtitle = ref(`Disk - ${diskPath.value}`);
+        const chartEl = ref();
         const options = ref({});
         const reloadTimer = 60000;
         let reloadInterval;
 
-        if (diskAlarm.value) {
-            options.value.annotations = {
-                yaxis: [
-                    {
-                        y: diskAlarm.value,
-                        borderColor: '#ef4444',
-                        label: {
-                            borderColor: '#ef4444',
-                            style: {
-                                color: '#fff',
-                                background: '#ef4444'
-                            },
-                            text: `Alarm: ${diskAlarm.value}%`
-                        }
+        const max = Math.max(...diskMaxSeries.value.map(value => value.y));
+
+        options.value.annotations = {
+            yaxis: [
+                {
+                    y: max,
+                    borderColor: '#f6d757',
+                    label: {
+                        borderColor: '#f6d757',
+                        style: {
+                            color: '#fff',
+                            background: '#f6d757'
+                        },
+                        text: `Max: ${max.toFixed(2)}%`
                     }
-                ]
-            };
+                }
+            ]
+        };
+
+        if (diskAlarm.value) {
+            options.value.annotations.yaxis.push({
+                y: diskAlarm.value,
+                borderColor: '#ef4444',
+                label: {
+                    borderColor: '#ef4444',
+                    style: {
+                        color: '#fff',
+                        background: '#ef4444'
+                    },
+                    text: `Alarm: ${diskAlarm.value}%`
+                }
+            });
         }
 
         const links = ref([
@@ -163,6 +180,11 @@ export default {
 
         onMounted(() => {
             reloadInterval = setInterval(() => Inertia.reload(), reloadTimer);
+
+            nextTick(() => {
+                chartEl.value.toggleSeries(`Disk Max - ${diskPath.value}`);
+                chartEl.value.toggleSeries(`Disk Min - ${diskPath.value}`);
+            });
         });
 
         onUnmounted(() => {
@@ -171,6 +193,7 @@ export default {
 
         return {
             subtitle,
+            chartEl,
             options,
             links,
             series
