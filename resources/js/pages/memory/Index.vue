@@ -19,7 +19,7 @@
                 </inertia-link>
             </card-title>
             <div class="chart">
-                <apexchart v-if="memorySeries"
+                <apexchart v-if="memoryMinSeries"
                            type="line"
                            :series="series"
                            height="100%"
@@ -72,7 +72,17 @@ export default {
             default: () => []
         },
 
-        memorySeries: {
+        memoryMinSeries: {
+            type: Array,
+            default: () => []
+        },
+
+        memoryMaxSeries: {
+            type: Array,
+            default: () => []
+        },
+
+        memoryAvgSeries: {
             type: Array,
             default: () => []
         },
@@ -84,41 +94,55 @@ export default {
     },
 
     setup(props) {
-        const { memorySeries, memoryAlarm } = toRefs(props);
-        const subtitle = ref('Memory');
-        const reloadTimer = 60000;
+        const {
+            memoryMinSeries,
+            memoryMaxSeries,
+            memoryAvgSeries,
+            memoryAlarm
+        } = toRefs(props);
 
+        const subtitle = ref('Memory');
+        const options = ref({});
+        const reloadTimer = 60000;
         let reloadInterval;
 
-        const options = ref(memoryAlarm.value
-            ? {
-                annotations: {
-                    yaxis: [
-                        {
-                            y: memoryAlarm.value,
+        if (memoryAlarm.value) {
+            options.value.annotations = {
+                yaxis: [
+                    {
+                        y: memoryAlarm.value,
+                        borderColor: '#ef4444',
+                        label: {
                             borderColor: '#ef4444',
-                            label: {
-                                borderColor: '#ef4444',
-                                style: {
-                                    color: '#fff',
-                                    background: '#ef4444'
-                                },
-                                text: `Alarm: ${memoryAlarm.value}%`
-                            }
+                            style: {
+                                color: '#fff',
+                                background: '#ef4444'
+                            },
+                            text: `Alarm: ${memoryAlarm.value}%`
                         }
-                    ]
-                }
-            }
-            : {});
+                    }
+                ]
+            };
+        }
 
         const links = ref([
             { name: subtitle }
         ]);
 
-        const series = computed(() => [{
-            name: 'Memory',
-            data: memorySeries.value
-        }]);
+        const series = computed(() => [
+            {
+                name: 'Memory Min',
+                data: memoryMinSeries.value
+            },
+            {
+                name: 'Memory Max',
+                data: memoryMaxSeries.value
+            },
+            {
+                name: 'Memory Avg',
+                data: memoryAvgSeries.value
+            }
+        ]);
 
         onMounted(() => {
             reloadInterval = setInterval(() => Inertia.reload(), reloadTimer);

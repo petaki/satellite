@@ -19,7 +19,7 @@
                 </inertia-link>
             </card-title>
             <div class="chart">
-                <apexchart v-if="cpuSeries"
+                <apexchart v-if="cpuMinSeries"
                            type="line"
                            :series="series"
                            height="100%"
@@ -72,7 +72,17 @@ export default {
             default: () => []
         },
 
-        cpuSeries: {
+        cpuMinSeries: {
+            type: Array,
+            default: () => []
+        },
+
+        cpuMaxSeries: {
+            type: Array,
+            default: () => []
+        },
+
+        cpuAvgSeries: {
             type: Array,
             default: () => []
         },
@@ -84,41 +94,55 @@ export default {
     },
 
     setup(props) {
-        const { cpuSeries, cpuAlarm } = toRefs(props);
-        const subtitle = ref('CPU');
-        const reloadTimer = 60000;
+        const {
+            cpuMinSeries,
+            cpuMaxSeries,
+            cpuAvgSeries,
+            cpuAlarm
+        } = toRefs(props);
 
+        const subtitle = ref('CPU');
+        const options = ref({});
+        const reloadTimer = 60000;
         let reloadInterval;
 
-        const options = ref(cpuAlarm.value
-            ? {
-                annotations: {
-                    yaxis: [
-                        {
-                            y: cpuAlarm.value,
+        if (cpuAlarm.value) {
+            options.value.annotations = {
+                yaxis: [
+                    {
+                        y: cpuAlarm.value,
+                        borderColor: '#ef4444',
+                        label: {
                             borderColor: '#ef4444',
-                            label: {
-                                borderColor: '#ef4444',
-                                style: {
-                                    color: '#fff',
-                                    background: '#ef4444'
-                                },
-                                text: `Alarm: ${cpuAlarm.value}%`
-                            }
+                            style: {
+                                color: '#fff',
+                                background: '#ef4444'
+                            },
+                            text: `Alarm: ${cpuAlarm.value}%`
                         }
-                    ]
-                }
-            }
-            : {});
+                    }
+                ]
+            };
+        }
 
         const links = ref([
             { name: subtitle }
         ]);
 
-        const series = computed(() => [{
-            name: 'CPU',
-            data: cpuSeries.value
-        }]);
+        const series = computed(() => [
+            {
+                name: 'CPU Min',
+                data: cpuMinSeries.value
+            },
+            {
+                name: 'CPU Max',
+                data: cpuMaxSeries.value
+            },
+            {
+                name: 'CPU Avg',
+                data: cpuAvgSeries.value
+            }
+        ]);
 
         onMounted(() => {
             reloadInterval = setInterval(() => Inertia.reload(), reloadTimer);

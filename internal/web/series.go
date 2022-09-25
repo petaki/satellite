@@ -35,7 +35,7 @@ func (a *app) cpuIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cpuSeries, err := a.seriesRepository.FindCPU(probe, seriesType)
+	cpuMinSeries, cpuMaxSeries, cpuAvgSeries, err := a.seriesRepository.FindCPU(probe, seriesType)
 	if err != nil {
 		a.serverError(w, err)
 
@@ -56,12 +56,14 @@ func (a *app) cpuIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = a.inertiaManager.Render(w, r, "cpu/Index", map[string]interface{}{
-		"isCpuActive": true,
-		"seriesType":  seriesType,
-		"seriesTypes": seriesTypes,
-		"diskPaths":   diskPaths,
-		"cpuSeries":   cpuSeries,
-		"cpuAlarm":    cpuAlarm,
+		"isCpuActive":  true,
+		"seriesType":   seriesType,
+		"seriesTypes":  seriesTypes,
+		"diskPaths":    diskPaths,
+		"cpuMinSeries": cpuMinSeries,
+		"cpuMaxSeries": cpuMaxSeries,
+		"cpuAvgSeries": cpuAvgSeries,
+		"cpuAlarm":     cpuAlarm,
 	})
 	if err != nil {
 		a.serverError(w, err)
@@ -96,7 +98,7 @@ func (a *app) memoryIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	memorySeries, err := a.seriesRepository.FindMemory(probe, seriesType)
+	memoryMinSeries, memoryMaxSeries, memoryAvgSeries, err := a.seriesRepository.FindMemory(probe, seriesType)
 	if err != nil {
 		a.serverError(w, err)
 
@@ -117,12 +119,14 @@ func (a *app) memoryIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = a.inertiaManager.Render(w, r, "memory/Index", map[string]interface{}{
-		"isMemoryActive": true,
-		"seriesType":     seriesType,
-		"seriesTypes":    seriesTypes,
-		"diskPaths":      diskPaths,
-		"memorySeries":   memorySeries,
-		"memoryAlarm":    memoryAlarm,
+		"isMemoryActive":  true,
+		"seriesType":      seriesType,
+		"seriesTypes":     seriesTypes,
+		"diskPaths":       diskPaths,
+		"memoryMinSeries": memoryMinSeries,
+		"memoryMaxSeries": memoryMaxSeries,
+		"memoryAvgSeries": memoryAvgSeries,
+		"memoryAlarm":     memoryAlarm,
 	})
 	if err != nil {
 		a.serverError(w, err)
@@ -170,7 +174,7 @@ func (a *app) diskIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	diskSeries, err := a.seriesRepository.FindDisk(probe, seriesType, diskPath)
+	diskMinSeries, diskMaxSeries, diskAvgSeries, err := a.seriesRepository.FindDisk(probe, seriesType, diskPath)
 	if err != nil {
 		a.serverError(w, err)
 
@@ -191,12 +195,14 @@ func (a *app) diskIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = a.inertiaManager.Render(w, r, "disk/Index", map[string]interface{}{
-		"seriesType":  seriesType,
-		"seriesTypes": seriesTypes,
-		"diskPath":    diskPath,
-		"diskPaths":   diskPaths,
-		"diskSeries":  diskSeries,
-		"diskAlarm":   diskAlarm,
+		"seriesType":    seriesType,
+		"seriesTypes":   seriesTypes,
+		"diskPath":      diskPath,
+		"diskPaths":     diskPaths,
+		"diskMinSeries": diskMinSeries,
+		"diskMaxSeries": diskMaxSeries,
+		"diskAvgSeries": diskAvgSeries,
+		"diskAlarm":     diskAlarm,
 	})
 	if err != nil {
 		a.serverError(w, err)
