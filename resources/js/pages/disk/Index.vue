@@ -26,6 +26,7 @@
             </card-title>
             <div class="chart">
                 <apexchart v-if="diskMinSeries"
+                           ref="chartEl"
                            type="line"
                            :series="series"
                            height="100%"
@@ -45,7 +46,7 @@ import {
     toRefs,
     computed,
     onMounted,
-    onUnmounted
+    onUnmounted, nextTick
 } from 'vue';
 
 import { Inertia } from '@inertiajs/inertia';
@@ -119,6 +120,7 @@ export default {
         } = toRefs(props);
 
         const subtitle = ref(`Disk - ${diskPath.value}`);
+        const chartEl = ref();
         const options = ref({});
         const reloadTimer = 60000;
         let reloadInterval;
@@ -163,6 +165,11 @@ export default {
 
         onMounted(() => {
             reloadInterval = setInterval(() => Inertia.reload(), reloadTimer);
+
+            nextTick(() => {
+                chartEl.value.toggleSeries(`Disk Max - ${diskPath.value}`);
+                chartEl.value.toggleSeries(`Disk Min - ${diskPath.value}`);
+            });
         });
 
         onUnmounted(() => {
@@ -171,6 +178,7 @@ export default {
 
         return {
             subtitle,
+            chartEl,
             options,
             links,
             series

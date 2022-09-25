@@ -26,6 +26,7 @@
             </card-title>
             <div class="chart">
                 <apexchart v-if="memoryMinSeries"
+                           ref="chartEl"
                            type="line"
                            :series="series"
                            height="100%"
@@ -45,7 +46,7 @@ import {
     toRefs,
     computed,
     onMounted,
-    onUnmounted
+    onUnmounted, nextTick
 } from 'vue';
 
 import { Inertia } from '@inertiajs/inertia';
@@ -113,6 +114,7 @@ export default {
         } = toRefs(props);
 
         const subtitle = ref('Memory');
+        const chartEl = ref();
         const options = ref({});
         const reloadTimer = 60000;
         let reloadInterval;
@@ -157,6 +159,11 @@ export default {
 
         onMounted(() => {
             reloadInterval = setInterval(() => Inertia.reload(), reloadTimer);
+
+            nextTick(() => {
+                chartEl.value.toggleSeries('Memory Max');
+                chartEl.value.toggleSeries('Memory Min');
+            });
         });
 
         onUnmounted(() => {
@@ -165,6 +172,7 @@ export default {
 
         return {
             subtitle,
+            chartEl,
             options,
             links,
             series

@@ -27,7 +27,11 @@ window.Apex = {
         max: 100,
         labels: {
             formatter(val) {
-                return `${val.toFixed(2)}%`;
+                if (val) {
+                    return `${val.toFixed(2)}%`;
+                }
+
+                return '';
             }
         }
     }
