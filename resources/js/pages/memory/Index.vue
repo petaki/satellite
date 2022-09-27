@@ -53,6 +53,7 @@ import { Inertia } from '@inertiajs/inertia';
 import Breadcrumb from '../../common/Breadcrumb.vue';
 import CardTitle from '../../common/CardTitle.vue';
 import Layout from '../../common/Layout.vue';
+import useAnnotation from '../../common/useAnnotation';
 
 export default {
     components: {
@@ -113,48 +114,21 @@ export default {
             memoryAlarm
         } = toRefs(props);
 
+        const { alarm, max } = useAnnotation();
         const subtitle = ref('Memory');
         const chartEl = ref();
         const options = ref({});
         const reloadTimer = 60000;
         let reloadInterval;
 
-        const max = Math.max(...memoryMaxSeries.value.map(value => value.y));
-
         options.value.annotations = {
             yaxis: [
-                {
-                    y: max,
-                    borderColor: '#f6d757',
-                    label: {
-                        borderColor: '#f6d757',
-                        style: {
-                            color: '#1f2937',
-                            fontSize: '0.75rem',
-                            fontWeight: 700,
-                            background: '#f6d757'
-                        },
-                        text: `Max: ${max.toFixed(2)}%`
-                    }
-                }
+                max(Math.max(...memoryMaxSeries.value.map(value => value.y)))
             ]
         };
 
         if (memoryAlarm.value) {
-            options.value.annotations.yaxis.push({
-                y: memoryAlarm.value,
-                borderColor: '#ef4444',
-                label: {
-                    borderColor: '#ef4444',
-                    style: {
-                        color: '#fff',
-                        fontSize: '0.75rem',
-                        fontWeight: 700,
-                        background: '#ef4444'
-                    },
-                    text: `Alarm: ${memoryAlarm.value}%`
-                }
-            });
+            options.value.annotations.yaxis.push(alarm(memoryAlarm.value));
         }
 
         const links = ref([
