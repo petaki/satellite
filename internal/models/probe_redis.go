@@ -1,10 +1,16 @@
 package models
 
 import (
-	"github.com/gomodule/redigo/redis"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
+
+	"github.com/gomodule/redigo/redis"
+)
+
+const (
+	heartbeatKeySuffix = ":heartbeat"
 )
 
 // RedisProbeRepository type.
@@ -56,4 +62,83 @@ func (rpr *RedisProbeRepository) FindAll() ([]Probe, error) {
 	}
 
 	return probes, nil
+}
+
+// FindLatestValues function.
+func (rpr *RedisProbeRepository) FindLatestValues(probe Probe, limit int) ([]interface{}, *time.Time, error) {
+	if limit < 1 {
+		return nil, nil, ErrInvalidLimit
+	}
+
+	conn := rpr.RedisPool.Get()
+	defer conn.Close()
+
+	var fields []string
+
+	now := time.Now()
+	end := time.Date(
+		now.Year(),
+		now.Month(),
+		now.Day(),
+		now.Hour(),
+		now.Minute(),
+		0,
+		0,
+		now.Location(),
+	)
+
+	start := end.Add(-time.Duration(limit-1) * time.Minute)
+
+	for current := start; !current.After(end); current = current.Add(time.Minute) {
+		fields = append(fields, strconv.FormatInt(current.Unix(), 10))
+	}
+
+	values, err := redis.Values(
+		conn.Do("HMGET", redis.Args{}.Add(string(probe)+":"+seriesCPUKeyPrefix+strconv.FormatInt(today().Unix(), 10)).AddFlat(fields)...),
+	)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return values, &start, nil
+}
+
+// HasHeartbeat function.
+func (rpr *RedisProbeRepository) HasHeartbeat(probe Probe) (bool, error) {
+	conn := rpr.RedisPool.Get()
+	defer conn.Close()
+
+	return redis.Bool(conn.Do("EXISTS", string(probe)+heartbeatKeySuffix))
+}
+
+// SetHeartbeat function.
+func (rpr *RedisProbeRepository) SetHeartbeat(probe Probe, sleep int) error {
+	conn := rpr.RedisPool.Get()
+	defer conn.Close()
+
+	err := conn.Send("MULTI")
+	if err != nil {
+		return err
+	}
+
+	err = conn.Send(
+		"SET", string(probe)+heartbeatKeySuffix, true,
+	)
+	if err != nil {
+		return err
+	}
+
+	err = conn.Send(
+		"EXPIRE", string(probe)+heartbeatKeySuffix, sleep,
+	)
+	if err != nil {
+		return err
+	}
+
+	_, err = conn.Do("EXEC")
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
