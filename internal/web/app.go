@@ -2,6 +2,7 @@ package web
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/petaki/inertia-go"
 	"github.com/petaki/satellite/internal/models"
@@ -13,7 +14,6 @@ type app struct {
 	url                    string
 	errorLog               *log.Logger
 	infoLog                *log.Logger
-	heartbeatEnabled       bool
 	heartbeatWait          int
 	heartbeatSleep         int
 	heartbeatWebhookMethod string
@@ -22,6 +22,7 @@ type app struct {
 	heartbeatWebhookBody   string
 	mixManager             *mix.Mix
 	inertiaManager         *inertia.Inertia
+	client                 *http.Client
 	probeRepository        models.ProbeRepository
 	alarmRepository        models.AlarmRepository
 	seriesRepository       models.SeriesRepository

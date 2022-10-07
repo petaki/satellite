@@ -39,7 +39,6 @@ func Serve(
 		url:                    url,
 		infoLog:                cli.InfoLog,
 		errorLog:               cli.ErrorLog,
-		heartbeatEnabled:       heartbeatEnabled,
 		heartbeatWait:          heartbeatWait,
 		heartbeatSleep:         heartbeatSleep,
 		heartbeatWebhookMethod: heartbeatWebhookMethod,
@@ -48,6 +47,9 @@ func Serve(
 		heartbeatWebhookBody:   heartbeatWebhookBody,
 		mixManager:             mixManager,
 		inertiaManager:         inertiaManager,
+		client: &http.Client{
+			Timeout: 10 * time.Second,
+		},
 		probeRepository: &models.RedisProbeRepository{
 			RedisPool: redisPool,
 		},
@@ -68,6 +70,25 @@ func Serve(
 		WriteTimeout: 10 * time.Second,
 	}
 
+	var ticker *time.Ticker
+	var doneTicker chan bool
+
+	if heartbeatEnabled {
+		ticker = time.NewTicker(time.Minute)
+		doneTicker = make(chan bool)
+
+		go func() {
+			for {
+				select {
+				case <-doneTicker:
+					return
+				case <-ticker.C:
+					webApp.heartbeat()
+				}
+			}
+		}()
+	}
+
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
@@ -85,7 +106,15 @@ func Serve(
 	webApp.infoLog.Print("Server stopped")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	defer func() {
+		if heartbeatEnabled {
+			ticker.Stop()
+			doneTicker <- true
+			webApp.infoLog.Print("Ticker stopped")
+		}
+
+		cancel()
+	}()
 
 	err = srv.Shutdown(ctx)
 	if err != nil {

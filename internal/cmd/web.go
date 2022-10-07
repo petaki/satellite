@@ -22,12 +22,12 @@ func WebServe(group *cli.Group, command *cli.Command, arguments []string) int {
 	}
 
 	envHeartbeatWait, err := strconv.Atoi(os.Getenv("HEARTBEAT_WAIT"))
-	if err != nil {
+	if err != nil || envHeartbeatWait < 1 {
 		envHeartbeatWait = 5
 	}
 
 	envHeartbeatSleep, err := strconv.Atoi(os.Getenv("HEARTBEAT_SLEEP"))
-	if err != nil {
+	if err != nil || envHeartbeatSleep < 0 {
 		envHeartbeatSleep = 300
 	}
 
