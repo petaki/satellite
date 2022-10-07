@@ -78,10 +78,63 @@ APP_ADDR=:4000
 APP_URL=http://127.0.0.1:4000
 ```
 
+---
+
 #### Redis URL:
 
 ```
 REDIS_URL=redis://127.0.0.1:6379/0
+```
+
+---
+
+#### Heartbeat Enabled:
+
+```
+HEARTBEAT_ENABLED=false
+```
+
+#### Heartbeat Wait (in minutes before first notification):
+
+```
+HEARTBEAT_WAIT=5
+```
+
+#### Heartbeat Sleep (in seconds between notifications):
+
+- `0` - Disabled
+
+```
+HEARTBEAT_SLEEP=300
+```
+
+#### Heartbeat Webhook Method:
+
+```
+HEARTBEAT_WEBHOOK_METHOD=POST
+```
+
+#### Heartbeat Webhook URL:
+
+```
+HEARTBEAT_WEBHOOK_URL=http://127.0.0.1:4000/heartbeat
+```
+
+#### Heartbeat Webhook Header:
+
+```
+HEARTBEAT_WEBHOOK_HEADER='{"Authorization": "Bearer TOKEN", "Accept": "application/json"}'
+```
+
+#### Heartbeat Webhook Body:
+
+- `%p` - Probe
+- `%t` - Start timestamp of current heartbeat period in `RFC3339` format
+- `%x` - Start timestamp of current heartbeat period in `Unix` format
+- `%l` - Satellite link (relative)
+
+```
+HEARTBEAT_WEBHOOK_BODY='{"probe": "%p", "timestamp_rfc3339": "%t", "timestamp_unix": %x, "link": "%l"}'
 ```
 
 ## Usage
@@ -95,6 +148,10 @@ Run the app using the following command:
 ## Data Collection
 
 You can gather the necessary data with the [Probe](https://github.com/petaki/probe).
+
+## Contributors
+
+- [@dyipon](https://github.com/dyipon) for development ideas, bug reports and testing
 
 ## Reporting Issues
 
