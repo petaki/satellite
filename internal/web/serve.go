@@ -18,19 +18,36 @@ import (
 )
 
 // Serve function.
-func Serve(debug bool, addr, url string, redisPool *redis.Pool) {
+func Serve(
+	debug bool,
+	addr,
+	url string,
+	redisPool *redis.Pool,
+	heartbeatEnabled bool,
+	heartbeatWait, heartbeatSleep int,
+	heartbeatWebhookMethod, heartbeatWebhookURL string,
+	heartbeatWebhookHeader map[string]string,
+	heartbeatWebhookBody string,
+) {
 	mixManager, inertiaManager, err := newMixAndInertiaManager(debug, url)
 	if err != nil {
 		cli.ErrorLog.Fatal(err)
 	}
 
 	webApp := &app{
-		debug:          debug,
-		url:            url,
-		infoLog:        cli.InfoLog,
-		errorLog:       cli.ErrorLog,
-		mixManager:     mixManager,
-		inertiaManager: inertiaManager,
+		debug:                  debug,
+		url:                    url,
+		infoLog:                cli.InfoLog,
+		errorLog:               cli.ErrorLog,
+		heartbeatEnabled:       heartbeatEnabled,
+		heartbeatWait:          heartbeatWait,
+		heartbeatSleep:         heartbeatSleep,
+		heartbeatWebhookMethod: heartbeatWebhookMethod,
+		heartbeatWebhookURL:    heartbeatWebhookURL,
+		heartbeatWebhookHeader: heartbeatWebhookHeader,
+		heartbeatWebhookBody:   heartbeatWebhookBody,
+		mixManager:             mixManager,
+		inertiaManager:         inertiaManager,
 		probeRepository: &models.RedisProbeRepository{
 			RedisPool: redisPool,
 		},
