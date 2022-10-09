@@ -12,51 +12,64 @@ Before you start, you need to install the prerequisites.
 ### Prerequisites
 
 - Redis: `Version >= 5.0` for data reading
-- GO: `Version >= 1.19` for building
-- Node.js: `Version >= 14.0` for building
-- Yarn or NPM: for building
 
-### Install with Docker
+### Run with Docker
 
 Image can be found at package page on [GitHub](https://github.com/petaki/satellite/pkgs/container/satellite).
+
+```
+docker run --rm \
+-e APP_URL=http://127.0.0.1:4000 \
+-e REDIS_URL=redis://192.168.0.200:6379/0 \
+-p 4000:4000 \
+ghcr.io/petaki/satellite
+```
 
 ### Install from binary
 
 Downloads can be found at releases page on [GitHub](https://github.com/petaki/satellite/releases).
 
+---
+
 ### Install from source
 
-1. Clone the repository:
+#### Prerequisites for building
+
+- GO: `Version >= 1.19`
+- Node.js: `Version >= 14.0`
+- Yarn or NPM
+
+#### 1. Clone the repository:
 
 ```
 git clone git@github.com:petaki/satellite.git
 ```
 
-2. Open the folder:
+#### 2. Open the folder:
 
 ```
 cd satellite
 ```
 
-3. Install the UI dependencies
+#### 3. Install the UI dependencies
 
 ```
 yarn install
 ```
 
-4. Build the UI
+#### 4. Build the UI
 
 ```
 yarn prod
 ```
 
-5. Build the Satellite:
+#### 5. Build the Satellite:
 
 ```
 go build
 ```
 
-6. Copy the example configuration:
+#### 6. Copy the example configuration:
 
 ```
 cp .env.example .env
@@ -66,13 +79,13 @@ cp .env.example .env
 
 The configruation is stored in the `.env` file.
 
-#### Application Address:
+### Application Address
 
 ```
 APP_ADDR=:4000
 ```
 
-#### Application URL:
+### Application URL
 
 ```
 APP_URL=http://127.0.0.1:4000
@@ -80,7 +93,7 @@ APP_URL=http://127.0.0.1:4000
 
 ---
 
-#### Redis URL:
+### Redis URL
 
 ```
 REDIS_URL=redis://127.0.0.1:6379/0
@@ -88,19 +101,19 @@ REDIS_URL=redis://127.0.0.1:6379/0
 
 ---
 
-#### Heartbeat Enabled:
+### Heartbeat Enabled
 
 ```
 HEARTBEAT_ENABLED=false
 ```
 
-#### Heartbeat Wait (in minutes before first notification):
+### Heartbeat Wait (in minutes before first notification)
 
 ```
 HEARTBEAT_WAIT=5
 ```
 
-#### Heartbeat Sleep (in seconds between notifications):
+### Heartbeat Sleep (in seconds between notifications)
 
 - `0` - Disabled
 
@@ -108,25 +121,25 @@ HEARTBEAT_WAIT=5
 HEARTBEAT_SLEEP=300
 ```
 
-#### Heartbeat Webhook Method:
+### Heartbeat Webhook Method
 
 ```
 HEARTBEAT_WEBHOOK_METHOD=POST
 ```
 
-#### Heartbeat Webhook URL:
+### Heartbeat Webhook URL
 
 ```
 HEARTBEAT_WEBHOOK_URL=http://127.0.0.1:4000/heartbeat
 ```
 
-#### Heartbeat Webhook Header:
+### Heartbeat Webhook Header
 
 ```
 HEARTBEAT_WEBHOOK_HEADER='{"Authorization": "Bearer TOKEN", "Accept": "application/json"}'
 ```
 
-#### Heartbeat Webhook Body:
+### Heartbeat Webhook Body
 
 - `%p` - Probe
 - `%t` - Start timestamp of current heartbeat period in `RFC3339` format
