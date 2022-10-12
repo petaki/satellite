@@ -89,12 +89,12 @@ func (rsr *RedisSeriesRepository) FindDiskPaths(probe Probe) ([]string, error) {
 func (rsr *RedisSeriesRepository) ChunkSize(seriesType SeriesType) int {
 	switch seriesType {
 	case Week:
-		return 90 // 1 hour 30 minutes
+		return 60 * 24 // 24 hours
 	case Month:
-		return 60 * 8 // 8 hours
-	default:
-		return 1 // 1 minute
+		return 60 * 24 // 24 hours
 	}
+
+	return 1 // 1 minute
 }
 
 func (rsr *RedisSeriesRepository) findAllSeries(probe Probe, seriesType SeriesType, prefix, suffix string) (Series, Series, Series, error) {
