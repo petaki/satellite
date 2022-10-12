@@ -93,7 +93,7 @@ func (rsr *RedisSeriesRepository) ChunkSize(seriesType SeriesType) int {
 	case Month:
 		return 60 * 8 // 8 hours
 	default:
-		return 15 // 15 minutes
+		return 1 // 1 minute
 	}
 }
 
@@ -103,7 +103,11 @@ func (rsr *RedisSeriesRepository) findAllSeries(probe Probe, seriesType SeriesTy
 
 	var minSeries, maxSeries, avgSeries, rawSeries Series
 
+	chunkSize := rsr.ChunkSize(seriesType)
+
 	for _, timestamp := range rsr.timestamps(seriesType) {
+		rawSeries = nil
+
 		values, err := redis.Strings(
 			conn.Do("HGETALL", string(probe)+":"+prefix+strconv.FormatInt(timestamp, 10)+suffix),
 		)
@@ -127,74 +131,74 @@ func (rsr *RedisSeriesRepository) findAllSeries(probe Probe, seriesType SeriesTy
 				Y: y,
 			})
 		}
-	}
 
-	if len(rawSeries) == 0 {
-		return minSeries, maxSeries, avgSeries, nil
-	}
-
-	sort.Slice(rawSeries, func(i, j int) bool {
-		return rawSeries[i].X > rawSeries[j].X
-	})
-
-	var chunks []Series
-
-	chunkSize := rsr.ChunkSize(seriesType)
-
-	for chunkSize < len(rawSeries) {
-		rawSeries, chunks = rawSeries[chunkSize:], append(chunks, rawSeries[0:chunkSize:chunkSize])
-	}
-
-	chunks = append(chunks, rawSeries)
-
-	for _, chunk := range chunks {
-		minValue := Value{
-			X: 0,
-			Y: 0,
+		if len(rawSeries) == 0 {
+			continue
 		}
 
-		maxValue := Value{
-			X: 0,
-			Y: 0,
+		sort.SliceStable(rawSeries, func(i, j int) bool {
+			return rawSeries[i].X > rawSeries[j].X
+		})
+
+		var chunks []Series
+
+		for chunkSize < len(rawSeries) {
+			rawSeries, chunks = rawSeries[chunkSize:], append(chunks, rawSeries[0:chunkSize:chunkSize])
 		}
 
-		avgValue := Value{
-			X: 0,
-			Y: 0,
-		}
+		chunks = append(chunks, rawSeries)
 
-		var x int64 = 0
-
-		for index, value := range chunk {
-			x += value.X
-
-			if index == 0 {
-				minValue.Y = value.Y
-				maxValue.Y = value.Y
-			} else {
-				if minValue.Y > value.Y {
-					minValue.Y = value.Y
-				}
-
-				if maxValue.Y < value.Y {
-					maxValue.Y = value.Y
-				}
+		for _, chunk := range chunks {
+			minValue := Value{
+				X: 0,
+				Y: 0,
 			}
 
-			avgValue.Y += value.Y
+			maxValue := Value{
+				X: 0,
+				Y: 0,
+			}
+
+			avgValue := Value{
+				X: 0,
+				Y: 0,
+			}
+
+			var x int64 = 0
+
+			for index, value := range chunk {
+				if index == len(chunk)/2 {
+					x = value.X
+				}
+
+				if index == 0 {
+					minValue.Y = value.Y
+					maxValue.Y = value.Y
+				} else {
+					if minValue.Y > value.Y {
+						minValue.Y = value.Y
+					}
+
+					if maxValue.Y < value.Y {
+						maxValue.Y = value.Y
+					}
+				}
+
+				avgValue.Y += value.Y
+			}
+
+			x *= 1000
+
+			minValue.X = x
+			maxValue.X = x
+			avgValue.X = x
+
+			avgValue.Y = avgValue.Y / float64(len(chunk))
+
+			minSeries = append(minSeries, minValue)
+			maxSeries = append(maxSeries, maxValue)
+			avgSeries = append(avgSeries, avgValue)
 		}
-
-		x = x / int64(len(chunk)) * 1000
-
-		minValue.X = x
-		maxValue.X = x
-		avgValue.X = x
-
-		avgValue.Y = avgValue.Y / float64(len(chunk))
-
-		minSeries = append(minSeries, minValue)
-		maxSeries = append(maxSeries, maxValue)
-		avgSeries = append(avgSeries, avgValue)
 	}
 
 	return minSeries, maxSeries, avgSeries, nil

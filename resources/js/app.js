@@ -12,14 +12,31 @@ window.Apex = {
         }
     },
 
+    markers: {
+        size: 0
+    },
+
+    stroke: {
+        width: 3
+    },
+
     colors: [
         '#f6d757',
         '#2563EB',
         '#86EFAC'
     ],
 
+    tooltip: {
+        x: {
+            format: 'MMM. dd. HH:mm'
+        }
+    },
+
     xaxis: {
-        type: 'datetime'
+        type: 'datetime',
+        labels: {
+            datetimeUTC: false
+        }
     },
 
     yaxis: {
