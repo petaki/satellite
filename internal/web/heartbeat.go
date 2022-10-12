@@ -54,6 +54,8 @@ func (a *app) handleProbes() error {
 			}
 		}
 
+		a.infoLog.Printf("Calling the heartbeat webhook URL for %s...", probe)
+
 		body := strings.ReplaceAll(a.heartbeatWebhookBody, "%p", string(probe))
 		body = strings.ReplaceAll(body, "%t", start.Format(time.RFC3339))
 		body = strings.ReplaceAll(body, "%x", strconv.FormatInt(start.Unix(), 10))
