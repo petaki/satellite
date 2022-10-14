@@ -24,13 +24,11 @@ func (rpr *RedisProbeRepository) FindAll() ([]Probe, error) {
 	defer conn.Close()
 
 	cursor := 0
-	suffix := ":" + seriesCPUKeyPrefix + strconv.FormatInt(today().Unix(), 10)
-
 	var names []string
 
 	for {
 		values, err := redis.Values(
-			conn.Do("SCAN", cursor, "MATCH", "*"+suffix),
+			conn.Do("SCAN", cursor, "MATCH", "*"+seriesCPUKeyPrefix+"*"),
 		)
 		if err != nil {
 			return nil, err
@@ -58,7 +56,8 @@ func (rpr *RedisProbeRepository) FindAll() ([]Probe, error) {
 	probes := make([]Probe, len(names))
 
 	for key, value := range names {
-		probes[key] = Probe(strings.ReplaceAll(value, suffix, ""))
+		segments := strings.SplitN(value, ":"+seriesCPUKeyPrefix, 2)
+		probes[key] = Probe(segments[0])
 	}
 
 	return probes, nil

@@ -129,7 +129,7 @@ export default {
 
         options.value.annotations = {
             yaxis: [
-                max(Math.max(...diskMaxSeries.value.map(value => value.y)))
+                max(Math.max(...(diskMaxSeries.value ?? []).map(value => value.y)))
             ]
         };
 
@@ -158,6 +158,10 @@ export default {
 
         onMounted(() => {
             reloadInterval = setInterval(() => Inertia.reload(), reloadTimer);
+
+            if (!chartEl.value) {
+                return;
+            }
 
             nextTick(() => {
                 chartEl.value.toggleSeries(`Disk Max - ${diskPath.value}`);
