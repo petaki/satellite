@@ -123,7 +123,7 @@ export default {
 
         options.value.annotations = {
             yaxis: [
-                max(Math.max(...memoryMaxSeries.value.map(value => value.y)))
+                max(Math.max(...(memoryMaxSeries.value ?? []).map(value => value.y)))
             ]
         };
 
@@ -152,6 +152,10 @@ export default {
 
         onMounted(() => {
             reloadInterval = setInterval(() => Inertia.reload(), reloadTimer);
+
+            if (!chartEl.value) {
+                return;
+            }
 
             nextTick(() => {
                 chartEl.value.toggleSeries('Memory Max');
