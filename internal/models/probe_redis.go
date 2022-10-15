@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gomodule/redigo/redis"
+	"golang.org/x/exp/slices"
 )
 
 const (
@@ -44,7 +45,11 @@ func (rpr *RedisProbeRepository) FindAll() ([]Probe, error) {
 			return nil, err
 		}
 
-		names = append(names, current...)
+		for _, name := range current {
+			if !slices.Contains(names, name) {
+				names = append(names, name)
+			}
+		}
 
 		if cursor == 0 {
 			break
