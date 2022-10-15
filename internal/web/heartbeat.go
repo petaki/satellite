@@ -7,7 +7,10 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
+
+	"github.com/petaki/satellite/internal/models"
 )
 
 func (a *app) heartbeat() {
@@ -23,71 +26,95 @@ func (a *app) handleProbes() error {
 		return err
 	}
 
+	var wg sync.WaitGroup
+
+	wg.Add(len(probes))
+
 	for _, probe := range probes {
-		sendWebhook := true
+		go a.handleProbe(probe, &wg)
+	}
 
-		values, start, err := a.probeRepository.FindLatestValues(probe, a.heartbeatWait)
-		if err != nil {
-			return err
-		}
+	wg.Wait()
 
-		for _, value := range values {
-			if value != nil {
-				sendWebhook = false
+	return nil
+}
 
-				break
-			}
-		}
+func (a *app) handleProbe(probe models.Probe, wg *sync.WaitGroup) {
+	defer wg.Done()
 
-		if !sendWebhook {
-			return nil
-		}
+	sendWebhook := true
 
-		if a.heartbeatSleep > 0 {
-			hasHeartbeat, err := a.probeRepository.HasHeartbeat(probe)
-			if err != nil {
-				return err
-			}
+	values, start, err := a.probeRepository.FindLatestValues(probe, a.heartbeatWait)
+	if err != nil {
+		a.errorLog.Print(err)
 
-			if hasHeartbeat {
-				return nil
-			}
-		}
+		return
+	}
 
-		a.infoLog.Printf("Calling the heartbeat webhook URL for %s...", probe)
+	for _, value := range values {
+		if value != nil {
+			sendWebhook = false
 
-		body := strings.ReplaceAll(a.heartbeatWebhookBody, "%p", string(probe))
-		body = strings.ReplaceAll(body, "%t", start.Format(time.RFC3339))
-		body = strings.ReplaceAll(body, "%x", strconv.FormatInt(start.Unix(), 10))
-		body = strings.ReplaceAll(body, "%l", fmt.Sprintf("/cpu?probe=%s", probe))
-
-		req, err := http.NewRequest(a.heartbeatWebhookMethod, a.heartbeatWebhookURL, bytes.NewBuffer([]byte(body)))
-		if err != nil {
-			return err
-		}
-
-		for key, value := range a.heartbeatWebhookHeader {
-			req.Header.Set(key, value)
-		}
-
-		resp, err := a.client.Do(req)
-		if err != nil {
-			return err
-		}
-
-		defer resp.Body.Close()
-
-		if resp.StatusCode > 400 {
-			return errors.New("heartbeat: bad status code")
-		}
-
-		if a.heartbeatSleep > 0 {
-			err = a.probeRepository.SetHeartbeat(probe, a.heartbeatSleep)
-			if err != nil {
-				return err
-			}
+			break
 		}
 	}
 
-	return nil
+	if !sendWebhook {
+		return
+	}
+
+	if a.heartbeatSleep > 0 {
+		hasHeartbeat, err := a.probeRepository.HasHeartbeat(probe)
+		if err != nil {
+			a.errorLog.Print(err)
+
+			return
+		}
+
+		if hasHeartbeat {
+			return
+		}
+	}
+
+	a.infoLog.Printf("Calling the heartbeat webhook URL for %s...", probe)
+
+	body := strings.ReplaceAll(a.heartbeatWebhookBody, "%p", string(probe))
+	body = strings.ReplaceAll(body, "%t", start.Format(time.RFC3339))
+	body = strings.ReplaceAll(body, "%x", strconv.FormatInt(start.Unix(), 10))
+	body = strings.ReplaceAll(body, "%l", fmt.Sprintf("/cpu?probe=%s", probe))
+
+	req, err := http.NewRequest(a.heartbeatWebhookMethod, a.heartbeatWebhookURL, bytes.NewBuffer([]byte(body)))
+	if err != nil {
+		a.errorLog.Print(err)
+
+		return
+	}
+
+	for key, value := range a.heartbeatWebhookHeader {
+		req.Header.Set(key, value)
+	}
+
+	resp, err := a.client.Do(req)
+	if err != nil {
+		a.errorLog.Print(err)
+
+		return
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode > 400 {
+		a.errorLog.Print(errors.New("heartbeat: bad status code"))
+
+		return
+	}
+
+	if a.heartbeatSleep > 0 {
+		err = a.probeRepository.SetHeartbeat(probe, a.heartbeatSleep)
+		if err != nil {
+			a.errorLog.Print(err)
+
+			return
+		}
+	}
 }

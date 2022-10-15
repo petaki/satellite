@@ -72,7 +72,7 @@ func (rpr *RedisProbeRepository) FindLatestValues(probe Probe, limit int) ([]int
 	conn := rpr.RedisPool.Get()
 	defer conn.Close()
 
-	var fields []string
+	days := map[string][]string{}
 
 	now := time.Now()
 	end := time.Date(
@@ -89,14 +89,31 @@ func (rpr *RedisProbeRepository) FindLatestValues(probe Probe, limit int) ([]int
 	start := end.Add(-time.Duration(limit-1) * time.Minute)
 
 	for current := start; !current.After(end); current = current.Add(time.Minute) {
-		fields = append(fields, strconv.FormatInt(current.Unix(), 10))
+		day := strconv.FormatInt(time.Date(
+			current.Year(),
+			current.Month(),
+			current.Day(),
+			0,
+			0,
+			0,
+			0,
+			now.Location(),
+		).Unix(), 10)
+
+		days[day] = append(days[day], strconv.FormatInt(current.Unix(), 10))
 	}
 
-	values, err := redis.Values(
-		conn.Do("HMGET", redis.Args{}.Add(string(probe)+":"+seriesCPUKeyPrefix+strconv.FormatInt(today().Unix(), 10)).AddFlat(fields)...),
-	)
-	if err != nil {
-		return nil, nil, err
+	var values []interface{}
+
+	for day, fields := range days {
+		dayValues, err := redis.Values(
+			conn.Do("HMGET", redis.Args{}.Add(string(probe)+":"+seriesCPUKeyPrefix+day).AddFlat(fields)...),
+		)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		values = append(values, dayValues...)
 	}
 
 	return values, &start, nil
