@@ -41,46 +41,55 @@ func (rsr *RedisSeriesRepository) FindDiskPaths(probe Probe) ([]string, error) {
 	conn := rsr.RedisPool.Get()
 	defer conn.Close()
 
-	cursor := 0
-	prefix := string(probe) + ":" + seriesDiskKeyPrefix + strconv.FormatInt(today().Unix(), 10) + ":"
-
 	var paths []string
+	timestamps := rsr.timestamps(Month)
 
-	for {
-		values, err := redis.Values(
-			conn.Do("SCAN", cursor, "MATCH", prefix+"*"),
-		)
-		if err != nil {
-			return nil, err
+	for i := len(timestamps) - 1; i >= 0; i-- {
+		cursor := 0
+		prefix := string(probe) + ":" + seriesDiskKeyPrefix + strconv.FormatInt(timestamps[i], 10) + ":"
+
+		for {
+			values, err := redis.Values(
+				conn.Do("SCAN", cursor, "MATCH", prefix+"*"),
+			)
+			if err != nil {
+				return nil, err
+			}
+
+			cursor, err = redis.Int(values[0], nil)
+			if err != nil {
+				return nil, err
+			}
+
+			current, err := redis.Strings(values[1], nil)
+			if err != nil {
+				return nil, err
+			}
+
+			paths = append(paths, current...)
+
+			if cursor == 0 {
+				break
+			}
 		}
 
-		cursor, err = redis.Int(values[0], nil)
-		if err != nil {
-			return nil, err
+		if len(paths) == 0 {
+			continue
 		}
 
-		current, err := redis.Strings(values[1], nil)
-		if err != nil {
-			return nil, err
+		for key, value := range paths {
+			path, err := base64.StdEncoding.DecodeString(strings.ReplaceAll(value, prefix, ""))
+			if err != nil {
+				return nil, err
+			}
+
+			paths[key] = string(path)
 		}
 
-		paths = append(paths, current...)
+		sort.Strings(paths)
 
-		if cursor == 0 {
-			break
-		}
+		break
 	}
-
-	for key, value := range paths {
-		path, err := base64.StdEncoding.DecodeString(strings.ReplaceAll(value, prefix, ""))
-		if err != nil {
-			return nil, err
-		}
-
-		paths[key] = string(path)
-	}
-
-	sort.Strings(paths)
 
 	return paths, nil
 }
