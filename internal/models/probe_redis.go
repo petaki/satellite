@@ -46,8 +46,10 @@ func (rpr *RedisProbeRepository) FindAll() ([]Probe, error) {
 		}
 
 		for _, name := range current {
-			if !slices.Contains(names, name) {
-				names = append(names, name)
+			segments := strings.SplitN(name, ":"+seriesCPUKeyPrefix, 2)
+
+			if !slices.Contains(names, segments[0]) {
+				names = append(names, segments[0])
 			}
 		}
 
@@ -61,8 +63,7 @@ func (rpr *RedisProbeRepository) FindAll() ([]Probe, error) {
 	probes := make([]Probe, len(names))
 
 	for key, value := range names {
-		segments := strings.SplitN(value, ":"+seriesCPUKeyPrefix, 2)
-		probes[key] = Probe(segments[0])
+		probes[key] = Probe(value)
 	}
 
 	return probes, nil
