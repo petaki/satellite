@@ -68,6 +68,17 @@
                         </div>
                     </div>
                 </sidebar-link>
+                <sidebar-title>
+                    Delete
+                </sidebar-title>
+                <sidebar-link :is-highlight="true"
+                              :href="`/probe/delete?probe=${$page.props.probe}`"
+                              method="delete">
+                    <trash-icon class="h-5 w-5 mr-2" />
+                    <span>
+                        Delete
+                    </span>
+                </sidebar-link>
             </div>
         </div>
         <div class="flex h-20 bg-slate-700 bg-opacity-40 text-sm text-slate-300">
@@ -102,7 +113,8 @@ import {
     CubeIcon,
     CubeTransparentIcon,
     DocumentDuplicateIcon,
-    PaperAirplaneIcon
+    PaperAirplaneIcon,
+    TrashIcon
 } from '@heroicons/vue/24/outline';
 
 import {
@@ -123,6 +135,7 @@ export default {
         CubeTransparentIcon,
         DocumentDuplicateIcon,
         PaperAirplaneIcon,
+        TrashIcon,
         ChevronRightIcon,
         SidebarTitle,
         SidebarLink
