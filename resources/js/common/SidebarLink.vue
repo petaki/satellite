@@ -1,8 +1,13 @@
 <template>
     <!-- eslint-disable max-len -->
-    <inertia-link class="flex items-center px-5 py-3.5 text-slate-300 hover:text-cyan-500 hover:bg-black/20 hover:bg-opacity-40"
-                  :class="{'text-cyan-500 bg-black/20 bg-opacity-40': isActive}"
-                  :href="href">
+    <inertia-link class="flex items-center px-5 py-3.5 hover:bg-black/20 hover:bg-opacity-40"
+                  :class="{
+                      'text-cyan-500 bg-black/20 bg-opacity-40': isActive,
+                      'text-slate-300 hover:text-cyan-500': !isHighlight,
+                      'text-red-400 hover:text-red-500': isHighlight,
+                  }"
+                  :href="href"
+                  :method="method">
         <slot></slot>
     </inertia-link>
     <!-- eslint-enable max-len -->
@@ -13,12 +18,22 @@ export default {
     props: {
         isActive: {
             type: Boolean,
-            required: true
+            default: false
+        },
+
+        isHighlight: {
+            type: Boolean,
+            default: false
         },
 
         href: {
             type: String,
             required: true
+        },
+
+        method: {
+            type: String,
+            default: 'get'
         }
     }
 };

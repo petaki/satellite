@@ -27,3 +27,22 @@ func (a *app) probeIndex(w http.ResponseWriter, r *http.Request) {
 		a.serverError(w, err)
 	}
 }
+
+func (a *app) probeDelete(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "DELETE" {
+		a.methodNotAllowed(w, []string{"DELETE"})
+
+		return
+	}
+
+	probe := r.Context().Value(contextKeyProbe).(models.Probe)
+
+	err := a.probeRepository.Delete(probe)
+	if err != nil {
+		a.serverError(w, err)
+
+		return
+	}
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}

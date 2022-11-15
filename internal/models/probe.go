@@ -11,4 +11,5 @@ type ProbeRepository interface {
 	FindLatestValues(Probe, int) ([]interface{}, *time.Time, error)
 	HasHeartbeat(Probe) (bool, error)
 	SetHeartbeat(Probe, int) error
+	Delete(Probe) error
 }
