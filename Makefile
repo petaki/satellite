@@ -28,7 +28,7 @@ linux:
 	rm -f dist/satellite
 
 docker_linux:
-	GOOS=linux GOARCH=amd64 go build -o dist/amd64/satellite .
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o dist/amd64/satellite .
 
 linux_arm64:
 	GOOS=linux GOARCH=arm64 go build -o dist/satellite .
@@ -36,7 +36,7 @@ linux_arm64:
 	rm -f dist/satellite
 
 docker_linux_arm64:
-	GOOS=linux GOARCH=arm64 go build -o dist/arm64/satellite .
+	GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -o dist/arm64/satellite .
 
 windows:
 	GOOS=windows GOARCH=amd64 go build -o dist/satellite.exe .
