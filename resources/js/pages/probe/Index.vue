@@ -43,7 +43,7 @@ import {
     onUnmounted
 } from 'vue';
 
-import { Inertia } from '@inertiajs/inertia';
+import { router } from '@inertiajs/vue3';
 import Breadcrumb from '../../common/Breadcrumb.vue';
 import Layout from '../../common/Layout.vue';
 
@@ -96,7 +96,7 @@ export default {
         });
 
         onMounted(() => {
-            reloadInterval = setInterval(() => Inertia.reload(), reloadTimer);
+            reloadInterval = setInterval(() => router.reload(), reloadTimer);
         });
 
         onUnmounted(() => {
