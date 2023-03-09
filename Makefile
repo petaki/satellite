@@ -23,7 +23,7 @@ darwin_arm64:
 	rm -f dist/satellite
 
 linux:
-	GOOS=linux GOARCH=amd64 go build -o dist/satellite .
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o dist/satellite .
 	cd dist && zip satellite_$(VERSION)_linux_amd64.zip .env satellite
 	rm -f dist/satellite
 
@@ -31,7 +31,7 @@ docker_linux:
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o dist/amd64/satellite .
 
 linux_arm64:
-	GOOS=linux GOARCH=arm64 go build -o dist/satellite .
+	GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -o dist/satellite .
 	cd dist && zip satellite_$(VERSION)_linux_arm64.zip .env satellite
 	rm -f dist/satellite
 
