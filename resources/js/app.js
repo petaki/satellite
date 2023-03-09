@@ -1,7 +1,6 @@
 import { DateTime, Duration } from 'luxon';
 import { createApp, h } from 'vue';
-import { createInertiaApp, InertiaLink } from '@inertiajs/inertia-vue3';
-import { InertiaProgress } from '@inertiajs/progress';
+import { createInertiaApp, Head, Link } from '@inertiajs/vue3';
 import VueApexCharts from 'vue3-apexcharts';
 import AppTitle from './common/AppTitle.vue';
 
@@ -54,8 +53,6 @@ window.Apex = {
     }
 };
 
-InertiaProgress.init();
-
 createInertiaApp({
     // eslint-disable-next-line import/no-dynamic-require
     resolve: name => require(`./pages/${name}`),
@@ -65,7 +62,8 @@ createInertiaApp({
         createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(VueApexCharts)
-            .component('InertiaLink', InertiaLink)
+            .component('InertiaHead', Head)
+            .component('InertiaLink', Link)
             .component('AppTitle', AppTitle)
             .mixin({
                 methods: {

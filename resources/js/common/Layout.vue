@@ -122,7 +122,7 @@ import {
 } from '@heroicons/vue/20/solid';
 
 import { ref, onUnmounted } from 'vue';
-import { Inertia } from '@inertiajs/inertia';
+import { router } from '@inertiajs/vue3';
 import SidebarTitle from './SidebarTitle.vue';
 import SidebarLink from './SidebarLink.vue';
 
@@ -146,7 +146,7 @@ export default {
         const year = ref(new Date().getFullYear());
 
         onUnmounted(
-            Inertia.on('navigate', () => {
+            router.on('navigate', () => {
                 isSidebarOpen.value = false;
             })
         );
