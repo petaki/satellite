@@ -2,8 +2,6 @@ module github.com/petaki/satellite
 
 go 1.21
 
-toolchain go1.21.1
-
 require (
 	github.com/gomodule/redigo v1.8.9
 	github.com/joho/godotenv v1.5.1
