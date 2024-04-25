@@ -8,7 +8,7 @@
         "hot": "mix watch --hot",
         "production": "mix --production",
         "prod": "yarn run production",
-        "lint": "yarn eslint ./resources/js"
+        "lint": "yarn eslint --ext .js,.vue ./resources/js"
     },
     "devDependencies": {
         "@babel/eslint-parser": "^7.24",
