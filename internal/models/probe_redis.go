@@ -46,6 +46,10 @@ func (rpr *RedisProbeRepository) FindAll() ([]Probe, error) {
 		}
 
 		for _, name := range current {
+			if strings.Contains(name, seriesProcessCPUKeyPrefix) {
+				continue
+			}
+
 			segments := strings.SplitN(name, ":"+seriesCPUKeyPrefix, 2)
 
 			if !slices.Contains(names, segments[0]) {

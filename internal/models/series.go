@@ -1,5 +1,19 @@
 package models
 
+// WatcherType type.
+type WatcherType string
+
+const (
+	// CPU watcher.
+	CPU WatcherType = "cpu"
+
+	// Memory watcher.
+	Memory WatcherType = "memory"
+
+	// Disk watcher.
+	Disk WatcherType = "disk"
+)
+
 // SeriesType type.
 type SeriesType string
 
@@ -16,8 +30,15 @@ const (
 
 // Value type.
 type Value struct {
-	X int64   `json:"x"`
-	Y float64 `json:"y"`
+	X int64          `json:"x"`
+	Y float64        `json:"y"`
+	P []ProcessValue `json:"p"`
+}
+
+// ProcessValue type.
+type ProcessValue struct {
+	Name string  `json:"name"`
+	Y    float64 `json:"y"`
 }
 
 // Series type.
