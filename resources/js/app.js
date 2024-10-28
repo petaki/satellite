@@ -22,7 +22,10 @@ window.Apex = {
     colors: [
         '#f6d757',
         '#2563EB',
-        '#86EFAC'
+        '#86EFAC',
+        '#fecaca',
+        '#fef08a',
+        '#bbf7d0'
     ],
 
     tooltip: {

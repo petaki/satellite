@@ -27,7 +27,7 @@
             <div class="chart">
                 <apexchart v-if="cpuMinSeries"
                            ref="chartEl"
-                           type="line"
+                           type="bar"
                            :series="series"
                            height="100%"
                            :options="options" />
@@ -118,9 +118,77 @@ export default {
         const { alarm, max } = useAnnotation();
         const subtitle = ref('CPU');
         const chartEl = ref();
-        const options = ref({});
         const reloadTimer = 60000;
         let reloadInterval;
+
+        const series = computed(() => [
+            {
+                name: 'CPU Max',
+                type: 'line',
+                data: cpuMaxSeries.value
+            },
+            {
+                name: 'CPU Avg',
+                type: 'line',
+                data: cpuAvgSeries.value
+            },
+            {
+                name: 'CPU Min',
+                type: 'line',
+                data: cpuMinSeries.value
+            },
+            {
+                name: 'Process #1',
+                type: 'column',
+                data: []
+            },
+            {
+                name: 'Process #2',
+                type: 'column',
+                data: []
+            },
+            {
+                name: 'Process #3',
+                type: 'column',
+                data: []
+            }
+        ]);
+
+        cpuAvgSeries.value.forEach(value => {
+            if (!value.p) {
+                return;
+            }
+
+            value.p.forEach((process, index) => {
+                if (index > 2) {
+                    return;
+                }
+
+                series.value[index + 3].data.push({
+                    x: value.x, ...process
+                });
+            });
+        });
+
+        const options = ref({
+            chart: {
+                stacked: true
+            },
+            dataLabels: {
+                enabled: false
+            },
+            tooltip: {
+                y: {
+                    formatter(value, { seriesIndex, dataPointIndex }) {
+                        if (seriesIndex > 2) {
+                            return `${series.value[seriesIndex].data[dataPointIndex].name}: ${value.toFixed(2)}%`;
+                        }
+
+                        return `${value.toFixed(2)}%`;
+                    }
+                }
+            }
+        });
 
         options.value.annotations = {
             yaxis: [
@@ -134,21 +202,6 @@ export default {
 
         const links = ref([
             { name: subtitle }
-        ]);
-
-        const series = computed(() => [
-            {
-                name: 'CPU Max',
-                data: cpuMaxSeries.value
-            },
-            {
-                name: 'CPU Avg',
-                data: cpuAvgSeries.value
-            },
-            {
-                name: 'CPU Min',
-                data: cpuMinSeries.value
-            }
         ]);
 
         onMounted(() => {
