@@ -36,18 +36,19 @@
     </div>
 </template>
 
-<script>
+<script setup>
 import {
     CpuChipIcon
 } from '@heroicons/vue/24/outline';
 
 import {
     ref,
-    toRefs,
     computed,
     nextTick,
     onMounted,
-    onUnmounted
+    onUnmounted,
+    defineProps,
+    defineOptions
 } from 'vue';
 
 import { router } from '@inertiajs/vue3';
@@ -56,180 +57,162 @@ import CardTitle from '../../common/CardTitle.vue';
 import Layout from '../../common/Layout.vue';
 import useAnnotation from '../../common/useAnnotation';
 
-export default {
-    components: {
-        CpuChipIcon,
-        Breadcrumb,
-        CardTitle
+const {
+    cpuMinSeries,
+    cpuMaxSeries,
+    cpuAvgSeries,
+    process1Series,
+    process2Series,
+    process3Series,
+    cpuAlarm
+} = defineProps({
+    probe: {
+        type: String,
+        required: true
     },
 
-    layout: Layout,
-
-    props: {
-        probe: {
-            type: String,
-            required: true
-        },
-
-        chunkSize: {
-            type: Number,
-            required: true
-        },
-
-        seriesType: {
-            type: String,
-            default: ''
-        },
-
-        seriesTypes: {
-            type: Array,
-            default: () => []
-        },
-
-        cpuMinSeries: {
-            type: Array,
-            default: () => []
-        },
-
-        cpuMaxSeries: {
-            type: Array,
-            default: () => []
-        },
-
-        cpuAvgSeries: {
-            type: Array,
-            default: () => []
-        },
-
-        process1Series: {
-            type: Array,
-            default: () => []
-        },
-
-        process2Series: {
-            type: Array,
-            default: () => []
-        },
-
-        process3Series: {
-            type: Array,
-            default: () => []
-        },
-
-        cpuAlarm: {
-            type: Number,
-            default: 0
-        }
+    chunkSize: {
+        type: Number,
+        required: true
     },
 
-    setup(props) {
-        const {
-            cpuMinSeries,
-            cpuMaxSeries,
-            cpuAvgSeries,
-            process1Series,
-            process2Series,
-            process3Series,
-            cpuAlarm
-        } = toRefs(props);
+    seriesType: {
+        type: String,
+        default: ''
+    },
 
-        const { alarm, max } = useAnnotation();
-        const subtitle = ref('CPU');
-        const chartEl = ref();
-        const reloadTimer = 60000;
-        let reloadInterval;
+    seriesTypes: {
+        type: Array,
+        default: () => []
+    },
 
-        const series = computed(() => [
-            {
-                name: 'CPU Max',
-                type: 'line',
-                data: cpuMaxSeries.value
-            },
-            {
-                name: 'CPU Avg',
-                type: 'line',
-                data: cpuAvgSeries.value
-            },
-            {
-                name: 'CPU Min',
-                type: 'line',
-                data: cpuMinSeries.value
-            },
-            {
-                name: 'Process #1',
-                type: 'column',
-                data: process1Series.value
-            },
-            {
-                name: 'Process #2',
-                type: 'column',
-                data: process2Series.value
-            },
-            {
-                name: 'Process #3',
-                type: 'column',
-                data: process3Series.value
-            }
-        ]);
+    cpuMinSeries: {
+        type: Array,
+        default: () => []
+    },
 
-        const options = ref({
-            chart: {
-                stacked: true
-            },
-            dataLabels: {
-                enabled: false
-            },
-            tooltip: {
-                y: {
-                    formatter(value, { seriesIndex, dataPointIndex }) {
-                        if (seriesIndex > 2) {
-                            return `${series.value[seriesIndex].data[dataPointIndex].name}: ${value.toFixed(2)}%`;
-                        }
+    cpuMaxSeries: {
+        type: Array,
+        default: () => []
+    },
 
-                        return `${value.toFixed(2)}%`;
-                    }
-                }
-            }
-        });
+    cpuAvgSeries: {
+        type: Array,
+        default: () => []
+    },
 
-        options.value.annotations = {
-            yaxis: [
-                max(Math.max(...(cpuMaxSeries.value ?? []).map(value => value.y)))
-            ]
-        };
+    process1Series: {
+        type: Array,
+        default: () => []
+    },
 
-        if (cpuAlarm.value) {
-            options.value.annotations.yaxis.push(alarm(cpuAlarm.value));
-        }
+    process2Series: {
+        type: Array,
+        default: () => []
+    },
 
-        const links = ref([
-            { name: subtitle }
-        ]);
+    process3Series: {
+        type: Array,
+        default: () => []
+    },
 
-        onMounted(() => {
-            reloadInterval = setInterval(() => router.reload(), reloadTimer);
-
-            if (!chartEl.value) {
-                return;
-            }
-
-            nextTick(() => {
-                chartEl.value.toggleSeries('CPU Max');
-                chartEl.value.toggleSeries('CPU Min');
-            });
-        });
-
-        onUnmounted(() => {
-            clearInterval(reloadInterval);
-        });
-
-        return {
-            subtitle,
-            chartEl,
-            options,
-            links,
-            series
-        };
+    cpuAlarm: {
+        type: Number,
+        default: 0
     }
+});
+
+defineOptions({
+    layout: Layout
+});
+
+const { alarm, max } = useAnnotation();
+const subtitle = ref('CPU');
+const chartEl = ref();
+const reloadTimer = 60000;
+let reloadInterval;
+
+const series = computed(() => [
+    {
+        name: 'CPU Max',
+        type: 'line',
+        data: cpuMaxSeries
+    },
+    {
+        name: 'CPU Avg',
+        type: 'line',
+        data: cpuAvgSeries
+    },
+    {
+        name: 'CPU Min',
+        type: 'line',
+        data: cpuMinSeries
+    },
+    {
+        name: 'Process #1',
+        type: 'column',
+        data: process1Series
+    },
+    {
+        name: 'Process #2',
+        type: 'column',
+        data: process2Series
+    },
+    {
+        name: 'Process #3',
+        type: 'column',
+        data: process3Series
+    }
+]);
+
+const options = ref({
+    chart: {
+        stacked: true
+    },
+    dataLabels: {
+        enabled: false
+    },
+    tooltip: {
+        y: {
+            formatter(value, { seriesIndex, dataPointIndex }) {
+                if (seriesIndex > 2) {
+                    return `${series.value[seriesIndex].data[dataPointIndex].name}: ${value.toFixed(2)}%`;
+                }
+
+                return `${value.toFixed(2)}%`;
+            }
+        }
+    }
+});
+
+options.value.annotations = {
+    yaxis: [
+        max(Math.max(...(cpuMaxSeries ?? []).map(value => value.y)))
+    ]
 };
+
+if (cpuAlarm) {
+    options.value.annotations.yaxis.push(alarm(cpuAlarm));
+}
+
+const links = ref([
+    { name: subtitle }
+]);
+
+onMounted(() => {
+    reloadInterval = setInterval(() => router.reload(), reloadTimer);
+
+    if (!chartEl.value) {
+        return;
+    }
+
+    nextTick(() => {
+        chartEl.value.toggleSeries('CPU Max');
+        chartEl.value.toggleSeries('CPU Min');
+    });
+});
+
+onUnmounted(() => {
+    clearInterval(reloadInterval);
+});
 </script>

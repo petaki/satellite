@@ -36,17 +36,19 @@
     </div>
 </template>
 
-<script>
+<script setup>
 import {
     DocumentDuplicateIcon
 } from '@heroicons/vue/24/outline';
 
 import {
     ref,
-    toRefs,
     computed,
     onMounted,
-    onUnmounted, nextTick
+    onUnmounted,
+    nextTick,
+    defineProps,
+    defineOptions
 } from 'vue';
 
 import { router } from '@inertiajs/vue3';
@@ -55,180 +57,162 @@ import CardTitle from '../../common/CardTitle.vue';
 import Layout from '../../common/Layout.vue';
 import useAnnotation from '../../common/useAnnotation';
 
-export default {
-    components: {
-        DocumentDuplicateIcon,
-        Breadcrumb,
-        CardTitle
+const {
+    memoryMinSeries,
+    memoryMaxSeries,
+    memoryAvgSeries,
+    process1Series,
+    process2Series,
+    process3Series,
+    memoryAlarm
+} = defineProps({
+    probe: {
+        type: String,
+        required: true
     },
 
-    layout: Layout,
-
-    props: {
-        probe: {
-            type: String,
-            required: true
-        },
-
-        chunkSize: {
-            type: Number,
-            required: true
-        },
-
-        seriesType: {
-            type: String,
-            default: ''
-        },
-
-        seriesTypes: {
-            type: Array,
-            default: () => []
-        },
-
-        memoryMinSeries: {
-            type: Array,
-            default: () => []
-        },
-
-        memoryMaxSeries: {
-            type: Array,
-            default: () => []
-        },
-
-        memoryAvgSeries: {
-            type: Array,
-            default: () => []
-        },
-
-        process1Series: {
-            type: Array,
-            default: () => []
-        },
-
-        process2Series: {
-            type: Array,
-            default: () => []
-        },
-
-        process3Series: {
-            type: Array,
-            default: () => []
-        },
-
-        memoryAlarm: {
-            type: Number,
-            default: 0
-        }
+    chunkSize: {
+        type: Number,
+        required: true
     },
 
-    setup(props) {
-        const {
-            memoryMinSeries,
-            memoryMaxSeries,
-            memoryAvgSeries,
-            process1Series,
-            process2Series,
-            process3Series,
-            memoryAlarm
-        } = toRefs(props);
+    seriesType: {
+        type: String,
+        default: ''
+    },
 
-        const { alarm, max } = useAnnotation();
-        const subtitle = ref('Memory');
-        const chartEl = ref();
-        const reloadTimer = 60000;
-        let reloadInterval;
+    seriesTypes: {
+        type: Array,
+        default: () => []
+    },
 
-        const series = computed(() => [
-            {
-                name: 'Memory Max',
-                type: 'line',
-                data: memoryMaxSeries.value
-            },
-            {
-                name: 'Memory Avg',
-                type: 'line',
-                data: memoryAvgSeries.value
-            },
-            {
-                name: 'Memory Min',
-                type: 'line',
-                data: memoryMinSeries.value
-            },
-            {
-                name: 'Process #1',
-                type: 'column',
-                data: process1Series.value
-            },
-            {
-                name: 'Process #2',
-                type: 'column',
-                data: process2Series.value
-            },
-            {
-                name: 'Process #3',
-                type: 'column',
-                data: process3Series.value
-            }
-        ]);
+    memoryMinSeries: {
+        type: Array,
+        default: () => []
+    },
 
-        const options = ref({
-            chart: {
-                stacked: true
-            },
-            dataLabels: {
-                enabled: false
-            },
-            tooltip: {
-                y: {
-                    formatter(value, { seriesIndex, dataPointIndex }) {
-                        if (seriesIndex > 2) {
-                            return `${series.value[seriesIndex].data[dataPointIndex].name}: ${value.toFixed(2)}%`;
-                        }
+    memoryMaxSeries: {
+        type: Array,
+        default: () => []
+    },
 
-                        return `${value.toFixed(2)}%`;
-                    }
-                }
-            }
-        });
+    memoryAvgSeries: {
+        type: Array,
+        default: () => []
+    },
 
-        options.value.annotations = {
-            yaxis: [
-                max(Math.max(...(memoryMaxSeries.value ?? []).map(value => value.y)))
-            ]
-        };
+    process1Series: {
+        type: Array,
+        default: () => []
+    },
 
-        if (memoryAlarm.value) {
-            options.value.annotations.yaxis.push(alarm(memoryAlarm.value));
-        }
+    process2Series: {
+        type: Array,
+        default: () => []
+    },
 
-        const links = ref([
-            { name: subtitle }
-        ]);
+    process3Series: {
+        type: Array,
+        default: () => []
+    },
 
-        onMounted(() => {
-            reloadInterval = setInterval(() => router.reload(), reloadTimer);
-
-            if (!chartEl.value) {
-                return;
-            }
-
-            nextTick(() => {
-                chartEl.value.toggleSeries('Memory Max');
-                chartEl.value.toggleSeries('Memory Min');
-            });
-        });
-
-        onUnmounted(() => {
-            clearInterval(reloadInterval);
-        });
-
-        return {
-            subtitle,
-            chartEl,
-            options,
-            links,
-            series
-        };
+    memoryAlarm: {
+        type: Number,
+        default: 0
     }
+});
+
+defineOptions({
+    layout: Layout
+});
+
+const { alarm, max } = useAnnotation();
+const subtitle = ref('Memory');
+const chartEl = ref();
+const reloadTimer = 60000;
+let reloadInterval;
+
+const series = computed(() => [
+    {
+        name: 'Memory Max',
+        type: 'line',
+        data: memoryMaxSeries
+    },
+    {
+        name: 'Memory Avg',
+        type: 'line',
+        data: memoryAvgSeries
+    },
+    {
+        name: 'Memory Min',
+        type: 'line',
+        data: memoryMinSeries
+    },
+    {
+        name: 'Process #1',
+        type: 'column',
+        data: process1Series
+    },
+    {
+        name: 'Process #2',
+        type: 'column',
+        data: process2Series
+    },
+    {
+        name: 'Process #3',
+        type: 'column',
+        data: process3Series
+    }
+]);
+
+const options = ref({
+    chart: {
+        stacked: true
+    },
+    dataLabels: {
+        enabled: false
+    },
+    tooltip: {
+        y: {
+            formatter(value, { seriesIndex, dataPointIndex }) {
+                if (seriesIndex > 2) {
+                    return `${series.value[seriesIndex].data[dataPointIndex].name}: ${value.toFixed(2)}%`;
+                }
+
+                return `${value.toFixed(2)}%`;
+            }
+        }
+    }
+});
+
+options.value.annotations = {
+    yaxis: [
+        max(Math.max(...(memoryMaxSeries ?? []).map(value => value.y)))
+    ]
 };
+
+if (memoryAlarm) {
+    options.value.annotations.yaxis.push(alarm(memoryAlarm));
+}
+
+const links = ref([
+    { name: subtitle }
+]);
+
+onMounted(() => {
+    reloadInterval = setInterval(() => router.reload(), reloadTimer);
+
+    if (!chartEl.value) {
+        return;
+    }
+
+    nextTick(() => {
+        chartEl.value.toggleSeries('Memory Max');
+        chartEl.value.toggleSeries('Memory Min');
+    });
+});
+
+onUnmounted(() => {
+    clearInterval(reloadInterval);
+});
 </script>

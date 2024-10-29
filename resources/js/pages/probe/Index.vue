@@ -29,7 +29,7 @@
     </div>
 </template>
 
-<script>
+<script setup>
 import {
     CubeIcon,
     ChevronRightIcon
@@ -37,78 +37,63 @@ import {
 
 import {
     ref,
-    toRefs,
     computed,
     onMounted,
-    onUnmounted
+    onUnmounted,
+    defineProps,
+    defineOptions
 } from 'vue';
 
 import { router } from '@inertiajs/vue3';
 import Breadcrumb from '../../common/Breadcrumb.vue';
 import Layout from '../../common/Layout.vue';
 
-export default {
-    components: {
-        CubeIcon,
-        ChevronRightIcon,
-        Breadcrumb
-    },
-
-    layout: Layout,
-
-    props: {
-        probes: {
-            type: Array,
-            default: () => []
-        }
-    },
-
-    setup(props) {
-        const { probes } = toRefs(props);
-        const keyword = ref('');
-        const subtitle = ref('Probes');
-        const reloadTimer = 60000;
-
-        let reloadInterval;
-
-        const links = ref([
-            { name: subtitle }
-        ]);
-
-        const filteredProbes = computed(() => {
-            const words = keyword.value.trim().split(' ');
-
-            return probes.value.filter(probe => {
-                let has = true;
-
-                words.forEach(word => {
-                    if (probe.includes(word)) {
-                        return true;
-                    }
-
-                    has = false;
-
-                    return false;
-                });
-
-                return has;
-            });
-        });
-
-        onMounted(() => {
-            reloadInterval = setInterval(() => router.reload(), reloadTimer);
-        });
-
-        onUnmounted(() => {
-            clearInterval(reloadInterval);
-        });
-
-        return {
-            subtitle,
-            links,
-            keyword,
-            filteredProbes
-        };
+const { probes } = defineProps({
+    probes: {
+        type: Array,
+        default: () => []
     }
-};
+});
+
+defineOptions({
+    layout: Layout
+});
+
+const keyword = ref('');
+const subtitle = ref('Probes');
+const reloadTimer = 60000;
+
+let reloadInterval;
+
+const links = ref([
+    { name: subtitle }
+]);
+
+const filteredProbes = computed(() => {
+    const words = keyword.value.trim().split(' ');
+
+    return probes.filter(probe => {
+        let has = true;
+
+        words.forEach(word => {
+            if (probe.includes(word)) {
+                return true;
+            }
+
+            has = false;
+
+            return false;
+        });
+
+        return has;
+    });
+});
+
+onMounted(() => {
+    reloadInterval = setInterval(() => router.reload(), reloadTimer);
+});
+
+onUnmounted(() => {
+    clearInterval(reloadInterval);
+});
 </script>

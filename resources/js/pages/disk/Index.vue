@@ -36,17 +36,19 @@
     </div>
 </template>
 
-<script>
+<script setup>
 import {
     CircleStackIcon
 } from '@heroicons/vue/24/outline';
 
 import {
     ref,
-    toRefs,
     computed,
     onMounted,
-    onUnmounted, nextTick
+    onUnmounted,
+    nextTick,
+    defineProps,
+    defineOptions
 } from 'vue';
 
 import { router } from '@inertiajs/vue3';
@@ -55,131 +57,113 @@ import CardTitle from '../../common/CardTitle.vue';
 import Layout from '../../common/Layout.vue';
 import useAnnotation from '../../common/useAnnotation';
 
-export default {
-    components: {
-        CircleStackIcon,
-        Breadcrumb,
-        CardTitle
+const {
+    diskPath,
+    diskMinSeries,
+    diskMaxSeries,
+    diskAvgSeries,
+    diskAlarm
+} = defineProps({
+    probe: {
+        type: String,
+        required: true
     },
 
-    layout: Layout,
-
-    props: {
-        probe: {
-            type: String,
-            required: true
-        },
-
-        chunkSize: {
-            type: Number,
-            required: true
-        },
-
-        seriesType: {
-            type: String,
-            default: ''
-        },
-
-        seriesTypes: {
-            type: Array,
-            default: () => []
-        },
-
-        diskPath: {
-            type: String,
-            required: true
-        },
-
-        diskMinSeries: {
-            type: Array,
-            default: () => []
-        },
-
-        diskMaxSeries: {
-            type: Array,
-            default: () => []
-        },
-
-        diskAvgSeries: {
-            type: Array,
-            default: () => []
-        },
-
-        diskAlarm: {
-            type: Number,
-            default: 0
-        }
+    chunkSize: {
+        type: Number,
+        required: true
     },
 
-    setup(props) {
-        const {
-            diskPath,
-            diskMinSeries,
-            diskMaxSeries,
-            diskAvgSeries,
-            diskAlarm
-        } = toRefs(props);
+    seriesType: {
+        type: String,
+        default: ''
+    },
 
-        const { alarm, max } = useAnnotation();
-        const subtitle = ref(`Disk - ${diskPath.value}`);
-        const chartEl = ref();
-        const options = ref({});
-        const reloadTimer = 60000;
-        let reloadInterval;
+    seriesTypes: {
+        type: Array,
+        default: () => []
+    },
 
-        options.value.annotations = {
-            yaxis: [
-                max(Math.max(...(diskMaxSeries.value ?? []).map(value => value.y)))
-            ]
-        };
+    diskPath: {
+        type: String,
+        required: true
+    },
 
-        if (diskAlarm.value) {
-            options.value.annotations.yaxis.push(alarm(diskAlarm.value));
-        }
+    diskMinSeries: {
+        type: Array,
+        default: () => []
+    },
 
-        const links = ref([
-            { name: subtitle }
-        ]);
+    diskMaxSeries: {
+        type: Array,
+        default: () => []
+    },
 
-        const series = computed(() => [
-            {
-                name: `Disk Max - ${diskPath.value}`,
-                data: diskMaxSeries.value
-            },
-            {
-                name: `Disk Avg - ${diskPath.value}`,
-                data: diskAvgSeries.value
-            },
-            {
-                name: `Disk Min - ${diskPath.value}`,
-                data: diskMinSeries.value
-            }
-        ]);
+    diskAvgSeries: {
+        type: Array,
+        default: () => []
+    },
 
-        onMounted(() => {
-            reloadInterval = setInterval(() => router.reload(), reloadTimer);
-
-            if (!chartEl.value) {
-                return;
-            }
-
-            nextTick(() => {
-                chartEl.value.toggleSeries(`Disk Max - ${diskPath.value}`);
-                chartEl.value.toggleSeries(`Disk Min - ${diskPath.value}`);
-            });
-        });
-
-        onUnmounted(() => {
-            clearInterval(reloadInterval);
-        });
-
-        return {
-            subtitle,
-            chartEl,
-            options,
-            links,
-            series
-        };
+    diskAlarm: {
+        type: Number,
+        default: 0
     }
+});
+
+defineOptions({
+    layout: Layout
+});
+
+const { alarm, max } = useAnnotation();
+const subtitle = ref(`Disk - ${diskPath}`);
+const chartEl = ref();
+const options = ref({});
+const reloadTimer = 60000;
+let reloadInterval;
+
+options.value.annotations = {
+    yaxis: [
+        max(Math.max(...(diskMaxSeries ?? []).map(value => value.y)))
+    ]
 };
+
+if (diskAlarm) {
+    options.value.annotations.yaxis.push(alarm(diskAlarm));
+}
+
+const links = ref([
+    { name: subtitle }
+]);
+
+const series = computed(() => [
+    {
+        name: `Disk Max - ${diskPath}`,
+        data: diskMaxSeries
+    },
+    {
+        name: `Disk Avg - ${diskPath}`,
+        data: diskAvgSeries
+    },
+    {
+        name: `Disk Min - ${diskPath}`,
+        data: diskMinSeries
+    }
+]);
+
+onMounted(() => {
+    reloadInterval = setInterval(() => router.reload(), reloadTimer);
+
+    if (!chartEl.value) {
+        return;
+    }
+
+    nextTick(() => {
+        chartEl.value.toggleSeries(`Disk Max - ${diskPath}`);
+        chartEl.value.toggleSeries(`Disk Min - ${diskPath}`);
+    });
+});
+
+onUnmounted(() => {
+    clearInterval(reloadInterval);
+});
 </script>
