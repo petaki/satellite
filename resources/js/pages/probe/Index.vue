@@ -55,8 +55,8 @@ import {
 } from 'vue';
 
 import { router } from '@inertiajs/vue3';
-import Breadcrumb from '../../common/Breadcrumb.vue';
-import Layout from '../../common/Layout.vue';
+import Breadcrumb from '../../base/Breadcrumb.vue';
+import Layout from '../../base/Layout.vue';
 
 const { probes } = defineProps({
     probes: {
