@@ -23,7 +23,6 @@
         "eslint-plugin-import": "^2.29",
         "eslint-plugin-vue": "^9.25",
         "laravel-mix": "^6.0",
-        "lodash": "^4.17",
         "luxon": "^3.4",
         "postcss": "^8.4",
         "resolve-url-loader": "^5.0",
