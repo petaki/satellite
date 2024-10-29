@@ -52,10 +52,10 @@ import {
 } from 'vue';
 
 import { router } from '@inertiajs/vue3';
-import Breadcrumb from '../../common/Breadcrumb.vue';
-import CardTitle from '../../common/CardTitle.vue';
-import Layout from '../../common/Layout.vue';
-import useAnnotation from '../../common/useAnnotation';
+import Breadcrumb from '../../base/Breadcrumb.vue';
+import CardTitle from '../../base/CardTitle.vue';
+import Layout from '../../base/Layout.vue';
+import useAnnotation from '../../base/useAnnotation';
 
 const {
     cpuMinSeries,

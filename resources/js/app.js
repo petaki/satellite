@@ -2,7 +2,7 @@ import { DateTime, Duration } from 'luxon';
 import { createApp, h } from 'vue';
 import { createInertiaApp, Head, Link } from '@inertiajs/vue3';
 import VueApexCharts from 'vue3-apexcharts';
-import AppTitle from './common/AppTitle.vue';
+import AppTitle from './base/AppTitle.vue';
 
 window.Apex = {
     chart: {
