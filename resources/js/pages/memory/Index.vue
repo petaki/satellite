@@ -182,6 +182,19 @@ const options = ref({
                 return `${value.toFixed(2)}%`;
             }
         }
+    },
+    yaxis: {
+        min: 0,
+        max: 100,
+        labels: {
+            formatter(val) {
+                if (val) {
+                    return `${val.toFixed(2)}%`;
+                }
+
+                return '';
+            }
+        }
     }
 });
 

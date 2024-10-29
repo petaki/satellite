@@ -50,6 +50,13 @@
                         Memory
                     </span>
                 </sidebar-link>
+                <sidebar-link :is-active="!!$page.props.isLoadActive"
+                              :href="`/load?probe=${$page.props.probe}`">
+                    <chart-bar-icon class="h-5 w-5 mr-2" />
+                    <span>
+                        Load
+                    </span>
+                </sidebar-link>
                 <sidebar-title>
                     Disks
                 </sidebar-title>
@@ -106,11 +113,12 @@
     <!-- eslint-enable max-len -->
 </template>
 
-<script>
+<script setup>
 import {
     Bars3Icon,
     CpuChipIcon,
     CircleStackIcon,
+    ChartBarIcon,
     CubeIcon,
     CubeTransparentIcon,
     DocumentDuplicateIcon,
@@ -127,35 +135,12 @@ import { router } from '@inertiajs/vue3';
 import SidebarTitle from './SidebarTitle.vue';
 import SidebarLink from './SidebarLink.vue';
 
-export default {
-    components: {
-        Bars3Icon,
-        CpuChipIcon,
-        CircleStackIcon,
-        CubeIcon,
-        CubeTransparentIcon,
-        DocumentDuplicateIcon,
-        PaperAirplaneIcon,
-        TrashIcon,
-        ChevronRightIcon,
-        SidebarTitle,
-        SidebarLink
-    },
+const isSidebarOpen = ref(false);
+const year = ref(new Date().getFullYear());
 
-    setup() {
-        const isSidebarOpen = ref(false);
-        const year = ref(new Date().getFullYear());
-
-        onUnmounted(
-            router.on('navigate', () => {
-                isSidebarOpen.value = false;
-            })
-        );
-
-        return {
-            isSidebarOpen,
-            year
-        };
-    }
-};
+onUnmounted(
+    router.on('navigate', () => {
+        isSidebarOpen.value = false;
+    })
+);
 </script>

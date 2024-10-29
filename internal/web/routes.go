@@ -18,6 +18,7 @@ func (a *app) routes() http.Handler {
 	mux.Handle("/", webMiddleware.ThenFunc(a.probeIndex))
 	mux.Handle("/cpu", webMiddleware.Append(a.probe).ThenFunc(a.cpuIndex))
 	mux.Handle("/memory", webMiddleware.Append(a.probe).ThenFunc(a.memoryIndex))
+	mux.Handle("/load", webMiddleware.Append(a.probe).ThenFunc(a.loadIndex))
 	mux.Handle("/disk", webMiddleware.Append(a.probe).ThenFunc(a.diskIndex))
 	mux.Handle("/probe/delete", webMiddleware.Append(a.probe).ThenFunc(a.probeDelete))
 	mux.Handle("/probe/delete-all", webMiddleware.ThenFunc(a.probeDeleteAll))

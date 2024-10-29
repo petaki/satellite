@@ -10,15 +10,12 @@ window.Apex = {
             enabled: false
         }
     },
-
     markers: {
         size: 0
     },
-
     stroke: {
         width: 3
     },
-
     colors: [
         '#f6d757',
         '#2563EB',
@@ -27,31 +24,15 @@ window.Apex = {
         '#fef08a',
         '#bbf7d0'
     ],
-
     tooltip: {
         x: {
             format: 'MMM. dd. HH:mm'
         }
     },
-
     xaxis: {
         type: 'datetime',
         labels: {
             datetimeUTC: false
-        }
-    },
-
-    yaxis: {
-        min: 0,
-        max: 100,
-        labels: {
-            formatter(val) {
-                if (val) {
-                    return `${val.toFixed(2)}%`;
-                }
-
-                return '';
-            }
         }
     }
 };
