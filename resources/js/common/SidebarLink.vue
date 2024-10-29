@@ -1,6 +1,6 @@
 <template>
     <!-- eslint-disable max-len -->
-    <inertia-link class="flex items-center px-5 py-3.5 hover:bg-black/20 hover:bg-opacity-40"
+    <inertia-link class="flex items-center px-5 py-3.5 w-full hover:bg-black/20 hover:bg-opacity-40"
                   :class="{
                       'text-cyan-500 bg-black/20 bg-opacity-40': isActive,
                       'text-slate-300 hover:text-cyan-500': !isHighlight,
