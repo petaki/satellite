@@ -73,7 +73,8 @@
                 </sidebar-title>
                 <sidebar-link :is-highlight="true"
                               :href="`/probe/delete?probe=${$page.props.probe}`"
-                              method="delete">
+                              method="delete"
+                              as="button">
                     <trash-icon class="h-5 w-5 mr-2" />
                     <span>
                         Delete

@@ -3,11 +3,21 @@
     <div class="p-5">
         <breadcrumb :links="links" />
         <!-- eslint-disable max-len -->
-        <div class="mb-5 xl:w-1/4 xl:pr-4">
-            <input v-model="keyword"
-                   class="bg-transparent border-slate-300 text-slate-600 placeholder-gray-400 rounded-sm focus:border-cyan-500 focus:ring-cyan-500 w-full"
-                   type="text"
-                   placeholder="Search">
+        <div class="flex items-center mb-5">
+            <div class="xl:w-1/4 pr-4">
+                <input v-model="keyword"
+                       class="bg-transparent border-slate-300 text-slate-600 placeholder-gray-400 rounded-sm focus:border-cyan-500 focus:ring-cyan-500 w-full"
+                       type="text"
+                       placeholder="Search">
+            </div>
+            <div class="ml-auto flex-shrink-0">
+                <inertia-link class="btn-red"
+                              href="/probe/delete-all"
+                              method="delete"
+                              as="button">
+                    Delete All
+                </inertia-link>
+            </div>
         </div>
         <div class="grid grid-cols-1 gap-5 xl:grid-cols-4">
             <div v-if="!probes.length"

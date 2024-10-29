@@ -46,3 +46,29 @@ func (a *app) probeDelete(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
+
+func (a *app) probeDeleteAll(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "DELETE" {
+		a.methodNotAllowed(w, []string{"DELETE"})
+
+		return
+	}
+
+	probes, err := a.probeRepository.FindAll()
+	if err != nil {
+		a.serverError(w, err)
+
+		return
+	}
+
+	for _, probe := range probes {
+		err := a.probeRepository.Delete(probe)
+		if err != nil {
+			a.serverError(w, err)
+
+			return
+		}
+	}
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
