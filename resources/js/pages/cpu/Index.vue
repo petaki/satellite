@@ -101,6 +101,21 @@ export default {
             default: () => []
         },
 
+        process1Series: {
+            type: Array,
+            default: () => []
+        },
+
+        process2Series: {
+            type: Array,
+            default: () => []
+        },
+
+        process3Series: {
+            type: Array,
+            default: () => []
+        },
+
         cpuAlarm: {
             type: Number,
             default: 0
@@ -112,6 +127,9 @@ export default {
             cpuMinSeries,
             cpuMaxSeries,
             cpuAvgSeries,
+            process1Series,
+            process2Series,
+            process3Series,
             cpuAlarm
         } = toRefs(props);
 
@@ -140,35 +158,19 @@ export default {
             {
                 name: 'Process #1',
                 type: 'column',
-                data: []
+                data: process1Series.value
             },
             {
                 name: 'Process #2',
                 type: 'column',
-                data: []
+                data: process2Series.value
             },
             {
                 name: 'Process #3',
                 type: 'column',
-                data: []
+                data: process3Series.value
             }
         ]);
-
-        cpuAvgSeries.value.forEach(value => {
-            if (!value.p) {
-                return;
-            }
-
-            value.p.forEach((process, index) => {
-                if (index > 2) {
-                    return;
-                }
-
-                series.value[index + 3].data.push({
-                    x: value.x, ...process
-                });
-            });
-        });
 
         const options = ref({
             chart: {

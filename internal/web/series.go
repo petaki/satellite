@@ -35,7 +35,7 @@ func (a *app) cpuIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cpuMinSeries, cpuMaxSeries, cpuAvgSeries, err := a.seriesRepository.FindCPU(probe, seriesType)
+	cpuMinSeries, cpuMaxSeries, cpuAvgSeries, process1Series, process2Series, process3Series, err := a.seriesRepository.FindCPU(probe, seriesType)
 	if err != nil {
 		a.serverError(w, err)
 
@@ -56,15 +56,18 @@ func (a *app) cpuIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = a.inertiaManager.Render(w, r, "cpu/Index", map[string]interface{}{
-		"isCpuActive":  true,
-		"seriesType":   seriesType,
-		"seriesTypes":  seriesTypes,
-		"chunkSize":    a.seriesRepository.ChunkSize(seriesType),
-		"diskPaths":    diskPaths,
-		"cpuMinSeries": cpuMinSeries,
-		"cpuMaxSeries": cpuMaxSeries,
-		"cpuAvgSeries": cpuAvgSeries,
-		"cpuAlarm":     cpuAlarm,
+		"isCpuActive":    true,
+		"seriesType":     seriesType,
+		"seriesTypes":    seriesTypes,
+		"chunkSize":      a.seriesRepository.ChunkSize(seriesType),
+		"diskPaths":      diskPaths,
+		"cpuMinSeries":   cpuMinSeries,
+		"cpuMaxSeries":   cpuMaxSeries,
+		"cpuAvgSeries":   cpuAvgSeries,
+		"process1Series": process1Series,
+		"process2Series": process2Series,
+		"process3Series": process3Series,
+		"cpuAlarm":       cpuAlarm,
 	})
 	if err != nil {
 		a.serverError(w, err)
@@ -99,7 +102,7 @@ func (a *app) memoryIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	memoryMinSeries, memoryMaxSeries, memoryAvgSeries, err := a.seriesRepository.FindMemory(probe, seriesType)
+	memoryMinSeries, memoryMaxSeries, memoryAvgSeries, process1Series, process2Series, process3Series, err := a.seriesRepository.FindMemory(probe, seriesType)
 	if err != nil {
 		a.serverError(w, err)
 
@@ -128,6 +131,9 @@ func (a *app) memoryIndex(w http.ResponseWriter, r *http.Request) {
 		"memoryMinSeries": memoryMinSeries,
 		"memoryMaxSeries": memoryMaxSeries,
 		"memoryAvgSeries": memoryAvgSeries,
+		"process1Series":  process1Series,
+		"process2Series":  process2Series,
+		"process3Series":  process3Series,
 		"memoryAlarm":     memoryAlarm,
 	})
 	if err != nil {
