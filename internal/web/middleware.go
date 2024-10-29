@@ -3,10 +3,10 @@ package web
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/petaki/satellite/internal/models"
 	"golang.org/x/exp/slices"
-	"net/http"
 )
 
 func (a *app) recoverPanic(next http.Handler) http.Handler {

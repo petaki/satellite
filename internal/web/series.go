@@ -141,6 +141,56 @@ func (a *app) memoryIndex(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (a *app) loadIndex(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		a.methodNotAllowed(w, []string{"GET"})
+
+		return
+	}
+
+	seriesType := models.SeriesType(r.URL.Query().Get("type"))
+	if seriesType == "" {
+		seriesType = models.Day
+	}
+
+	seriesTypes := a.seriesTypes()
+	if !a.seriesTypeExists(seriesTypes, seriesType) {
+		a.notFound(w)
+
+		return
+	}
+
+	probe := r.Context().Value(contextKeyProbe).(models.Probe)
+
+	diskPaths, err := a.seriesRepository.FindDiskPaths(probe)
+	if err != nil {
+		a.serverError(w, err)
+
+		return
+	}
+
+	load1Series, load5Series, load15Series, err := a.seriesRepository.FindLoad(probe, seriesType)
+	if err != nil {
+		a.serverError(w, err)
+
+		return
+	}
+
+	err = a.inertiaManager.Render(w, r, "load/Index", map[string]interface{}{
+		"isLoadActive": true,
+		"seriesType":   seriesType,
+		"seriesTypes":  seriesTypes,
+		"chunkSize":    a.seriesRepository.ChunkSize(seriesType),
+		"diskPaths":    diskPaths,
+		"load1Series":  load1Series,
+		"load5Series":  load5Series,
+		"load15Series": load15Series,
+	})
+	if err != nil {
+		a.serverError(w, err)
+	}
+}
+
 func (a *app) diskIndex(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		a.methodNotAllowed(w, []string{"GET"})

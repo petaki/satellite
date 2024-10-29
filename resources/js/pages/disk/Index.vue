@@ -117,9 +117,24 @@ defineOptions({
 const { alarm, max } = useAnnotation();
 const subtitle = ref(`Disk - ${diskPath}`);
 const chartEl = ref();
-const options = ref({});
 const reloadTimer = 60000;
 let reloadInterval;
+
+const options = ref({
+    yaxis: {
+        min: 0,
+        max: 100,
+        labels: {
+            formatter(val) {
+                if (val) {
+                    return `${val.toFixed(2)}%`;
+                }
+
+                return '';
+            }
+        }
+    }
+});
 
 options.value.annotations = {
     yaxis: [

@@ -14,9 +14,11 @@ import (
 const (
 	seriesCPUKeyPrefix           = "cpu:"
 	seriesMemoryKeyPrefix        = "memory:"
-	seriesDiskKeyPrefix          = "disk:"
 	seriesProcessCPUKeyPrefix    = "process:cpu:"
 	seriesProcessMemoryKeyPrefix = "process:memory:"
+	seriesLoadKeyPrefix          = "load:"
+	seriesDiskKeyPrefix          = "disk:"
+	timestampMultiplier          = 1000
 )
 
 // RedisSeriesRepository type.
@@ -26,17 +28,37 @@ type RedisSeriesRepository struct {
 
 // FindCPU function.
 func (rsr *RedisSeriesRepository) FindCPU(probe Probe, seriesType SeriesType) (Series, Series, Series, ProcessSeries, ProcessSeries, ProcessSeries, error) {
-	return rsr.findAllProcessSeries(probe, seriesType, seriesCPUKeyPrefix, seriesProcessCPUKeyPrefix)
+	return rsr.findProcessSeries(probe, seriesType, seriesCPUKeyPrefix, seriesProcessCPUKeyPrefix)
 }
 
 // FindMemory function.
 func (rsr *RedisSeriesRepository) FindMemory(probe Probe, seriesType SeriesType) (Series, Series, Series, ProcessSeries, ProcessSeries, ProcessSeries, error) {
-	return rsr.findAllProcessSeries(probe, seriesType, seriesMemoryKeyPrefix, seriesProcessMemoryKeyPrefix)
+	return rsr.findProcessSeries(probe, seriesType, seriesMemoryKeyPrefix, seriesProcessMemoryKeyPrefix)
+}
+
+// FindLoad function.
+func (rsr *RedisSeriesRepository) FindLoad(probe Probe, seriesType SeriesType) (Series, Series, Series, error) {
+	load1Series, err := rsr.findAvgSeries(probe, seriesType, seriesLoadKeyPrefix, "load1")
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	load5Series, err := rsr.findAvgSeries(probe, seriesType, seriesLoadKeyPrefix, "load5")
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	load15Series, err := rsr.findAvgSeries(probe, seriesType, seriesLoadKeyPrefix, "load15")
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	return load1Series, load5Series, load15Series, nil
 }
 
 // FindDisk function.
 func (rsr *RedisSeriesRepository) FindDisk(probe Probe, seriesType SeriesType, path string) (Series, Series, Series, error) {
-	return rsr.findAllSeries(probe, seriesType, seriesDiskKeyPrefix, ":"+base64.StdEncoding.EncodeToString([]byte(path)))
+	return rsr.findThresholdSeries(probe, seriesType, seriesDiskKeyPrefix, ":"+base64.StdEncoding.EncodeToString([]byte(path)))
 }
 
 // FindDiskPaths function.
@@ -109,7 +131,88 @@ func (rsr *RedisSeriesRepository) ChunkSize(seriesType SeriesType) int {
 	return 1 // 1 minute
 }
 
-func (rsr *RedisSeriesRepository) findAllSeries(probe Probe, seriesType SeriesType, prefix, suffix string) (Series, Series, Series, error) {
+func (rsr *RedisSeriesRepository) findAvgSeries(probe Probe, seriesType SeriesType, prefix, suffix string) (Series, error) {
+	conn := rsr.RedisPool.Get()
+	defer conn.Close()
+
+	var avgSeries, rawSeries Series
+
+	chunkSize := rsr.ChunkSize(seriesType)
+
+	for _, timestamp := range rsr.timestamps(seriesType) {
+		rawSeries = nil
+
+		values, err := redis.Strings(
+			conn.Do("HGETALL", string(probe)+":"+prefix+strconv.FormatInt(timestamp, 10)),
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		for i := 0; i < len(values); i += 2 {
+			x, err := strconv.ParseInt(values[i], 10, 64)
+			if err != nil {
+				return nil, err
+			}
+
+			yv := values[i+1]
+
+			if suffix == "load1" {
+				yv = strings.SplitN(yv, ":", 3)[0]
+			} else if suffix == "load5" {
+				yv = strings.SplitN(yv, ":", 3)[1]
+			} else if suffix == "load15" {
+				yv = strings.SplitN(yv, ":", 3)[2]
+			}
+
+			y, err := strconv.ParseFloat(yv, 64)
+			if err != nil {
+				return nil, err
+			}
+
+			rawSeries = append(rawSeries, Value{
+				X: x,
+				Y: y,
+			})
+		}
+
+		if len(rawSeries) == 0 {
+			continue
+		}
+
+		sort.SliceStable(rawSeries, func(i, j int) bool {
+			return rawSeries[i].X > rawSeries[j].X
+		})
+
+		for _, chunk := range rsr.chunks(chunkSize, rawSeries) {
+			avgValue := Value{
+				X: 0,
+				Y: 0,
+			}
+
+			var x int64 = 0
+
+			for index, value := range chunk {
+				if index == len(chunk)/2 {
+					x = value.X
+				}
+
+				avgValue.Y += value.Y
+			}
+
+			x *= timestampMultiplier
+
+			avgValue.X = x
+			avgValue.Y = avgValue.Y / float64(len(chunk))
+
+			avgSeries = append(avgSeries, avgValue)
+		}
+	}
+
+	return avgSeries, nil
+}
+
+func (rsr *RedisSeriesRepository) findThresholdSeries(probe Probe, seriesType SeriesType, prefix, suffix string) (Series, Series, Series, error) {
 	conn := rsr.RedisPool.Get()
 	defer conn.Close()
 
@@ -191,7 +294,7 @@ func (rsr *RedisSeriesRepository) findAllSeries(probe Probe, seriesType SeriesTy
 				avgValue.Y += value.Y
 			}
 
-			x *= 1000
+			x *= timestampMultiplier
 
 			minValue.X = x
 			maxValue.X = x
@@ -208,8 +311,8 @@ func (rsr *RedisSeriesRepository) findAllSeries(probe Probe, seriesType SeriesTy
 	return minSeries, maxSeries, avgSeries, nil
 }
 
-func (rsr *RedisSeriesRepository) findAllProcessSeries(probe Probe, seriesType SeriesType, prefix, processPrefix string) (Series, Series, Series, ProcessSeries, ProcessSeries, ProcessSeries, error) {
-	minSeries, maxSeries, avgSeries, err := rsr.findAllSeries(probe, seriesType, prefix, "")
+func (rsr *RedisSeriesRepository) findProcessSeries(probe Probe, seriesType SeriesType, prefix, processPrefix string) (Series, Series, Series, ProcessSeries, ProcessSeries, ProcessSeries, error) {
+	minSeries, maxSeries, avgSeries, err := rsr.findThresholdSeries(probe, seriesType, prefix, "")
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, err
 	}
@@ -222,7 +325,7 @@ func (rsr *RedisSeriesRepository) findAllProcessSeries(probe Probe, seriesType S
 	process3Series := make(ProcessSeries, len(avgSeries))
 
 	for k, v := range avgSeries {
-		timestamp := v.X / 1000
+		timestamp := v.X / timestampMultiplier
 		t := time.Unix(timestamp, 0)
 		date := time.Date(
 			t.Year(),
@@ -242,7 +345,7 @@ func (rsr *RedisSeriesRepository) findAllProcessSeries(probe Probe, seriesType S
 			return nil, nil, nil, nil, nil, nil, err
 		}
 
-		processValues := ProcessSeries{
+		column := ProcessSeries{
 			ProcessValue{
 				Name: "Not Set",
 				Y:    0,
@@ -277,7 +380,7 @@ func (rsr *RedisSeriesRepository) findAllProcessSeries(probe Probe, seriesType S
 					continue
 				}
 
-				processValues[j] = ProcessValue{
+				column[j] = ProcessValue{
 					Name: segments[0],
 					X:    v.X,
 					Y:    math.Min(100, py),
@@ -287,9 +390,9 @@ func (rsr *RedisSeriesRepository) findAllProcessSeries(probe Probe, seriesType S
 			break
 		}
 
-		process1Series[k] = processValues[0]
-		process2Series[k] = processValues[1]
-		process3Series[k] = processValues[2]
+		process1Series[k] = column[0]
+		process2Series[k] = column[1]
+		process3Series[k] = column[2]
 	}
 
 	return minSeries, maxSeries, avgSeries, process1Series, process2Series, process3Series, nil
