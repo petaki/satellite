@@ -26,13 +26,13 @@
     </div>
 </template>
 
-<script>
-export default {
-    props: {
-        links: {
-            type: Array,
-            required: true
-        }
+<script setup>
+import { defineProps } from 'vue';
+
+defineProps({
+    links: {
+        type: Array,
+        required: true
     }
-};
+});
 </script>
