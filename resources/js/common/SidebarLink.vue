@@ -13,28 +13,28 @@
     <!-- eslint-enable max-len -->
 </template>
 
-<script>
-export default {
-    props: {
-        isActive: {
-            type: Boolean,
-            default: false
-        },
+<script setup>
+import { defineProps } from 'vue';
 
-        isHighlight: {
-            type: Boolean,
-            default: false
-        },
+defineProps({
+    isActive: {
+        type: Boolean,
+        default: false
+    },
 
-        href: {
-            type: String,
-            required: true
-        },
+    isHighlight: {
+        type: Boolean,
+        default: false
+    },
 
-        method: {
-            type: String,
-            default: 'get'
-        }
+    href: {
+        type: String,
+        required: true
+    },
+
+    method: {
+        type: String,
+        default: 'get'
     }
-};
+});
 </script>
