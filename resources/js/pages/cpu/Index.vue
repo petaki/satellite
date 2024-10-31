@@ -184,8 +184,7 @@ const options = ref({
         }
     },
     yaxis: {
-        min: 0,
-        max: 100,
+        forceNiceScale: true,
         labels: {
             formatter(val) {
                 if (val) {

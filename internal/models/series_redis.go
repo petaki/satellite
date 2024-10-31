@@ -2,7 +2,6 @@ package models
 
 import (
 	"encoding/base64"
-	"math"
 	"sort"
 	"strconv"
 	"strings"
@@ -348,14 +347,17 @@ func (rsr *RedisSeriesRepository) findProcessSeries(probe Probe, seriesType Seri
 		column := ProcessSeries{
 			ProcessValue{
 				Name: "Not Set",
+				X:    time.Now().UnixMilli(),
 				Y:    0,
 			},
 			ProcessValue{
 				Name: "Not Set",
+				X:    time.Now().UnixMilli(),
 				Y:    0,
 			},
 			ProcessValue{
 				Name: "Not Set",
+				X:    time.Now().UnixMilli(),
 				Y:    0,
 			},
 		}
@@ -383,7 +385,7 @@ func (rsr *RedisSeriesRepository) findProcessSeries(probe Probe, seriesType Seri
 				column[j] = ProcessValue{
 					Name: segments[0],
 					X:    v.X,
-					Y:    math.Min(100, py),
+					Y:    py,
 				}
 			}
 
