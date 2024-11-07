@@ -16,11 +16,10 @@ func (a *app) cpuIndex(w http.ResponseWriter, r *http.Request) {
 
 	seriesType := models.SeriesType(r.URL.Query().Get("type"))
 	if seriesType == "" {
-		seriesType = models.Day
+		seriesType = models.Last5Minutes
 	}
 
-	seriesTypes := a.seriesTypes()
-	if !a.seriesTypeExists(seriesTypes, seriesType) {
+	if !a.seriesTypeExists(seriesType) {
 		a.notFound(w)
 
 		return
@@ -58,7 +57,7 @@ func (a *app) cpuIndex(w http.ResponseWriter, r *http.Request) {
 	err = a.inertiaManager.Render(w, r, "cpu/Index", map[string]interface{}{
 		"isCpuActive":    true,
 		"seriesType":     seriesType,
-		"seriesTypes":    seriesTypes,
+		"seriesTypes":    models.SeriesTypes,
 		"chunkSize":      a.seriesRepository.ChunkSize(seriesType),
 		"diskPaths":      diskPaths,
 		"cpuMinSeries":   cpuMinSeries,
@@ -83,11 +82,10 @@ func (a *app) memoryIndex(w http.ResponseWriter, r *http.Request) {
 
 	seriesType := models.SeriesType(r.URL.Query().Get("type"))
 	if seriesType == "" {
-		seriesType = models.Day
+		seriesType = models.Last5Minutes
 	}
 
-	seriesTypes := a.seriesTypes()
-	if !a.seriesTypeExists(seriesTypes, seriesType) {
+	if !a.seriesTypeExists(seriesType) {
 		a.notFound(w)
 
 		return
@@ -125,7 +123,7 @@ func (a *app) memoryIndex(w http.ResponseWriter, r *http.Request) {
 	err = a.inertiaManager.Render(w, r, "memory/Index", map[string]interface{}{
 		"isMemoryActive":  true,
 		"seriesType":      seriesType,
-		"seriesTypes":     seriesTypes,
+		"seriesTypes":     models.SeriesTypes,
 		"chunkSize":       a.seriesRepository.ChunkSize(seriesType),
 		"diskPaths":       diskPaths,
 		"memoryMinSeries": memoryMinSeries,
@@ -150,11 +148,10 @@ func (a *app) loadIndex(w http.ResponseWriter, r *http.Request) {
 
 	seriesType := models.SeriesType(r.URL.Query().Get("type"))
 	if seriesType == "" {
-		seriesType = models.Day
+		seriesType = models.Last5Minutes
 	}
 
-	seriesTypes := a.seriesTypes()
-	if !a.seriesTypeExists(seriesTypes, seriesType) {
+	if !a.seriesTypeExists(seriesType) {
 		a.notFound(w)
 
 		return
@@ -179,7 +176,7 @@ func (a *app) loadIndex(w http.ResponseWriter, r *http.Request) {
 	err = a.inertiaManager.Render(w, r, "load/Index", map[string]interface{}{
 		"isLoadActive": true,
 		"seriesType":   seriesType,
-		"seriesTypes":  seriesTypes,
+		"seriesTypes":  models.SeriesTypes,
 		"chunkSize":    a.seriesRepository.ChunkSize(seriesType),
 		"diskPaths":    diskPaths,
 		"load1Series":  load1Series,
@@ -200,11 +197,10 @@ func (a *app) diskIndex(w http.ResponseWriter, r *http.Request) {
 
 	seriesType := models.SeriesType(r.URL.Query().Get("type"))
 	if seriesType == "" {
-		seriesType = models.Day
+		seriesType = models.Last5Minutes
 	}
 
-	seriesTypes := a.seriesTypes()
-	if !a.seriesTypeExists(seriesTypes, seriesType) {
+	if !a.seriesTypeExists(seriesType) {
 		a.notFound(w)
 
 		return
@@ -254,7 +250,7 @@ func (a *app) diskIndex(w http.ResponseWriter, r *http.Request) {
 
 	err = a.inertiaManager.Render(w, r, "disk/Index", map[string]interface{}{
 		"seriesType":    seriesType,
-		"seriesTypes":   seriesTypes,
+		"seriesTypes":   models.SeriesTypes,
 		"chunkSize":     a.seriesRepository.ChunkSize(seriesType),
 		"diskPath":      diskPath,
 		"diskPaths":     diskPaths,
@@ -278,29 +274,12 @@ func (a *app) diskPathExists(diskPaths []string, diskPath string) bool {
 	return false
 }
 
-func (a *app) seriesTypeExists(seriesTypes []map[string]interface{}, seriesType models.SeriesType) bool {
-	for _, current := range seriesTypes {
+func (a *app) seriesTypeExists(seriesType models.SeriesType) bool {
+	for _, current := range models.SeriesTypes {
 		if current["value"] == seriesType {
 			return true
 		}
 	}
 
 	return false
-}
-
-func (a *app) seriesTypes() []map[string]interface{} {
-	return []map[string]interface{}{
-		{
-			"name":  "Day",
-			"value": models.Day,
-		},
-		{
-			"name":  "Week",
-			"value": models.Week,
-		},
-		{
-			"name":  "Month",
-			"value": models.Month,
-		},
-	}
 }

@@ -14,15 +14,13 @@
                         {{ duration(chunkSize) }}
                     </span>
                 </span>
-                <inertia-link v-for="(type, index) in seriesTypes"
-                              :key="type.value"
-                              :href="index === 0
-                                  ? `/memory?probe=${probe}`
-                                  : `/memory?probe=${probe}&type=${type.value}`"
-                              class="hover:text-cyan-500 sm:ml-3"
-                              :class="{'text-cyan-500': seriesType === type.value}">
-                    {{ type.name }}
-                </inertia-link>
+                <select v-model="selectedType" class="form-select">
+                    <option v-for="type in seriesTypes"
+                            :key="type.value"
+                            :value="type.value">
+                        {{ type.name }}
+                    </option>
+                </select>
             </card-title>
             <div class="chart">
                 <apexchart v-if="memoryMinSeries"
@@ -48,7 +46,7 @@ import {
     onUnmounted,
     nextTick,
     defineProps,
-    defineOptions
+    defineOptions, watch
 } from 'vue';
 
 import { router } from '@inertiajs/vue3';
@@ -58,6 +56,9 @@ import Layout from '../../base/Layout.vue';
 import useAnnotation from '../../base/useAnnotation';
 
 const {
+    probe,
+    seriesType,
+    seriesTypes,
     memoryMinSeries,
     memoryMaxSeries,
     memoryAvgSeries,
@@ -128,6 +129,7 @@ defineOptions({
 
 const { alarm, max } = useAnnotation();
 const subtitle = ref('Memory');
+const selectedType = ref(seriesType);
 const chartEl = ref();
 const reloadTimer = 60000;
 let reloadInterval;
@@ -227,5 +229,15 @@ onMounted(() => {
 
 onUnmounted(() => {
     clearInterval(reloadInterval);
+});
+
+watch(selectedType, () => {
+    const index = seriesTypes.map(type => type.value).indexOf(selectedType.value);
+
+    const href = index === 0
+        ? `/memory?probe=${probe}`
+        : `/memory?probe=${probe}&type=${selectedType.value}`;
+
+    router.visit(href);
 });
 </script>

@@ -66,7 +66,7 @@ func (rsr *RedisSeriesRepository) FindDiskPaths(probe Probe) ([]string, error) {
 	defer conn.Close()
 
 	var paths []string
-	timestamps := rsr.timestamps(Month)
+	timestamps := rsr.timestamps(Last30Days)
 
 	for i := len(timestamps) - 1; i >= 0; i-- {
 		cursor := 0
@@ -121,10 +121,18 @@ func (rsr *RedisSeriesRepository) FindDiskPaths(probe Probe) ([]string, error) {
 // ChunkSize function.
 func (rsr *RedisSeriesRepository) ChunkSize(seriesType SeriesType) int {
 	switch seriesType {
-	case Week:
+	case Last6Hours:
+		return 60 // 60 minutes
+	case Last12Hours:
+		return 60 // 60 minutes
+	case Last24Hours:
+		return 60 // 60 minutes
+	case Last2Days:
+		return 60 // 60 minutes
+	case Last7Days:
 		return 60 * 24 // 24 hours
-	case Month:
-		return 60 * 24 // 24 hours
+	case Last30Days:
+		return 60 * 24 * 4 // 96 hours
 	}
 
 	return 1 // 1 minute
@@ -137,6 +145,8 @@ func (rsr *RedisSeriesRepository) findAvgSeries(probe Probe, seriesType SeriesTy
 	var avgSeries, rawSeries Series
 
 	chunkSize := rsr.ChunkSize(seriesType)
+	start := now()
+	end := rsr.end(start, seriesType)
 
 	for _, timestamp := range rsr.timestamps(seriesType) {
 		rawSeries = nil
@@ -152,6 +162,10 @@ func (rsr *RedisSeriesRepository) findAvgSeries(probe Probe, seriesType SeriesTy
 			x, err := strconv.ParseInt(values[i], 10, 64)
 			if err != nil {
 				return nil, err
+			}
+
+			if !between(start, end, x) {
+				continue
 			}
 
 			yv := values[i+1]
@@ -208,6 +222,10 @@ func (rsr *RedisSeriesRepository) findAvgSeries(probe Probe, seriesType SeriesTy
 		}
 	}
 
+	sort.SliceStable(avgSeries, func(i, j int) bool {
+		return avgSeries[i].X > avgSeries[j].X
+	})
+
 	return avgSeries, nil
 }
 
@@ -218,6 +236,8 @@ func (rsr *RedisSeriesRepository) findThresholdSeries(probe Probe, seriesType Se
 	var minSeries, maxSeries, avgSeries, rawSeries Series
 
 	chunkSize := rsr.ChunkSize(seriesType)
+	start := now()
+	end := rsr.end(start, seriesType)
 
 	for _, timestamp := range rsr.timestamps(seriesType) {
 		rawSeries = nil
@@ -233,6 +253,10 @@ func (rsr *RedisSeriesRepository) findThresholdSeries(probe Probe, seriesType Se
 			x, err := strconv.ParseInt(values[i], 10, 64)
 			if err != nil {
 				return nil, nil, nil, err
+			}
+
+			if !between(start, end, x) {
+				continue
 			}
 
 			y, err := strconv.ParseFloat(values[i+1], 64)
@@ -307,6 +331,18 @@ func (rsr *RedisSeriesRepository) findThresholdSeries(probe Probe, seriesType Se
 		}
 	}
 
+	sort.SliceStable(minSeries, func(i, j int) bool {
+		return minSeries[i].X > minSeries[j].X
+	})
+
+	sort.SliceStable(maxSeries, func(i, j int) bool {
+		return maxSeries[i].X > maxSeries[j].X
+	})
+
+	sort.SliceStable(avgSeries, func(i, j int) bool {
+		return avgSeries[i].X > avgSeries[j].X
+	})
+
 	return minSeries, maxSeries, avgSeries, nil
 }
 
@@ -325,17 +361,7 @@ func (rsr *RedisSeriesRepository) findProcessSeries(probe Probe, seriesType Seri
 
 	for k, v := range avgSeries {
 		timestamp := v.X / timestampMultiplier
-		t := time.Unix(timestamp, 0)
-		date := time.Date(
-			t.Year(),
-			t.Month(),
-			t.Day(),
-			0,
-			0,
-			0,
-			0,
-			t.Location(),
-		)
+		date := day(timestamp)
 
 		values, err := redis.Strings(
 			conn.Do("HGETALL", string(probe)+":"+processPrefix+strconv.FormatInt(date.Unix(), 10)),
@@ -347,17 +373,17 @@ func (rsr *RedisSeriesRepository) findProcessSeries(probe Probe, seriesType Seri
 		column := ProcessSeries{
 			ProcessValue{
 				Name: "Not Set",
-				X:    time.Now().UnixMilli(),
+				X:    now().UnixMilli(),
 				Y:    0,
 			},
 			ProcessValue{
 				Name: "Not Set",
-				X:    time.Now().UnixMilli(),
+				X:    now().UnixMilli(),
 				Y:    0,
 			},
 			ProcessValue{
 				Name: "Not Set",
-				X:    time.Now().UnixMilli(),
+				X:    now().UnixMilli(),
 				Y:    0,
 			},
 		}
@@ -397,6 +423,18 @@ func (rsr *RedisSeriesRepository) findProcessSeries(probe Probe, seriesType Seri
 		process3Series[k] = column[2]
 	}
 
+	sort.SliceStable(process1Series, func(i, j int) bool {
+		return process1Series[i].X > process1Series[j].X
+	})
+
+	sort.SliceStable(process2Series, func(i, j int) bool {
+		return process2Series[i].X > process2Series[j].X
+	})
+
+	sort.SliceStable(process3Series, func(i, j int) bool {
+		return process3Series[i].X > process3Series[j].X
+	})
+
 	return minSeries, maxSeries, avgSeries, process1Series, process2Series, process3Series, nil
 }
 
@@ -407,7 +445,36 @@ func (rsr *RedisSeriesRepository) chunks(chunkSize int, series Series) []Series 
 		series, chunks = series[chunkSize:], append(chunks, series[0:chunkSize:chunkSize])
 	}
 
-	return append(chunks, series)
+	chunks = append(chunks, series)
+
+	return chunks
+}
+
+func (rsr *RedisSeriesRepository) end(start time.Time, seriesType SeriesType) time.Time {
+	switch seriesType {
+	case Last15Minutes:
+		return start.Add(-15 * time.Minute)
+	case Last30Minutes:
+		return start.Add(-30 * time.Minute)
+	case Last1Hour:
+		return start.Add(-1 * time.Hour)
+	case Last3Hours:
+		return start.Add(-3 * time.Hour)
+	case Last6Hours:
+		return start.Add(-6 * time.Hour)
+	case Last12Hours:
+		return start.Add(-12 * time.Hour)
+	case Last24Hours:
+		return start.Add(-24 * time.Hour)
+	case Last2Days:
+		return start.Add(-2 * 24 * time.Hour)
+	case Last7Days:
+		return start.Add(-7 * 24 * time.Hour)
+	case Last30Days:
+		return start.Add(-30 * 24 * time.Hour)
+	}
+
+	return start.Add(-5 * time.Minute)
 }
 
 func (rsr *RedisSeriesRepository) timestamps(seriesType SeriesType) []int64 {
@@ -417,12 +484,14 @@ func (rsr *RedisSeriesRepository) timestamps(seriesType SeriesType) []int64 {
 	var start time.Time
 
 	switch seriesType {
-	case Week:
+	case Last2Days:
+		start = end.AddDate(0, 0, -2)
+	case Last7Days:
 		start = end.AddDate(0, 0, -6)
-	case Month:
-		start = end.AddDate(0, -1, 0)
+	case Last30Days:
+		start = end.AddDate(0, 0, -29)
 	default:
-		start = end
+		start = end.AddDate(0, 0, -1)
 	}
 
 	for current := start; !current.After(end); current = current.AddDate(0, 0, 1) {
