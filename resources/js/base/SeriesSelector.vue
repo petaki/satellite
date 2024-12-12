@@ -1,0 +1,34 @@
+<template>
+    <!-- eslint-disable max-len -->
+    <button v-for="(button, index) in createSeriesButtons($page.props.seriesButtons, $page.props.seriesTypes)"
+            :key="button.value"
+            class="btn-white py-0 h-11 md:border-r-0 md:rounded-none text-sm font-semibold px-3"
+            :class="{'md:rounded-l-sm md:rounded-r-none': index === 0, 'bg-gray-100': model === button.value}"
+            @click="model = button.value">
+        {{ button.name }}
+    </button>
+    <!-- eslint-enable max-len -->
+    <select v-model="model"
+            class="form-select h-11 border-gray-300 md:rounded-l-none md:rounded-r-sm">
+        <option v-for="type in $page.props.seriesTypes"
+                :key="type.value"
+                :value="type.value">
+            {{ type.name }}
+        </option>
+    </select>
+</template>
+
+<script setup>
+import { defineModel } from 'vue';
+
+const model = defineModel({
+    type: String
+});
+
+const createSeriesButtons = (seriesButtons, seriesTypes) => seriesTypes
+    .filter(type => seriesButtons.indexOf(type.value) !== -1)
+    .map(type => ({
+        name: type.name.match(/\b\w/g).join('').toUpperCase(),
+        value: type.value
+    }));
+</script>

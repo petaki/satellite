@@ -14,13 +14,7 @@
                         {{ duration(chunkSize) }}
                     </span>
                 </span>
-                <select v-model="selectedType" class="form-select">
-                    <option v-for="type in seriesTypes"
-                            :key="type.value"
-                            :value="type.value">
-                        {{ type.name }}
-                    </option>
-                </select>
+                <SeriesSelector v-model="selectedType" />
             </card-title>
             <div class="chart">
                 <apexchart v-if="load1Series"
@@ -53,6 +47,7 @@ import Breadcrumb from '../../base/Breadcrumb.vue';
 import CardTitle from '../../base/CardTitle.vue';
 import Layout from '../../base/Layout.vue';
 import useAnnotation from '../../base/useAnnotation';
+import SeriesSelector from '../../base/SeriesSelector.vue';
 
 const {
     probe,
