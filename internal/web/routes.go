@@ -10,6 +10,7 @@ import (
 func (a *app) routes() http.Handler {
 	baseMiddleware := alice.New(a.recoverPanic)
 	webMiddleware := alice.New(
+		a.sessionManager.LoadAndSave,
 		a.probes,
 		a.inertiaManager.Middleware,
 	)
