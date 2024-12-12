@@ -91,6 +91,28 @@ APP_ADDR=:4000
 APP_URL=http://127.0.0.1:4000
 ```
 
+### Application Series Buttons
+
+```
+APP_SERIES_BUTTONS=last_7_days,last_5_minutes,last_1_hour,last_24_hours
+```
+
+Available options:
+
+```
+last_5_minutes
+last_15_minutes
+last_30_minutes
+last_1_hour
+last_3_hours
+last_6_hours
+last_12_hours
+last_24_hours
+last_2_days
+last_7_days
+last_30_days
+```
+
 ---
 
 ### Redis URL
