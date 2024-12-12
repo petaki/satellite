@@ -171,6 +171,19 @@ func (a *app) loadIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var loadAlarm float64 = 0
+
+	alarm, err := a.alarmRepository.Find(probe)
+	if err != nil && !errors.Is(err, models.ErrNoRecord) {
+		a.serverError(w, err)
+
+		return
+	}
+
+	if alarm != nil {
+		loadAlarm = alarm.Load
+	}
+
 	err = a.inertiaManager.Render(w, r, "load/Index", map[string]interface{}{
 		"isLoadActive": true,
 		"seriesType":   seriesType,
@@ -179,6 +192,7 @@ func (a *app) loadIndex(w http.ResponseWriter, r *http.Request) {
 		"load1Series":  load1Series,
 		"load5Series":  load5Series,
 		"load15Series": load15Series,
+		"loadAlarm":    loadAlarm,
 	})
 	if err != nil {
 		a.serverError(w, err)

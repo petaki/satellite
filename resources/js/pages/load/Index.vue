@@ -53,7 +53,8 @@ const {
     probe,
     load1Series,
     load5Series,
-    load15Series
+    load15Series,
+    loadAlarm
 } = defineProps({
     probe: {
         type: String,
@@ -78,6 +79,11 @@ const {
     load15Series: {
         type: Array,
         default: () => []
+    },
+
+    loadAlarm: {
+        type: Number,
+        default: 0
     }
 });
 
@@ -123,6 +129,14 @@ const options = ref({
         }
     }
 });
+
+if (loadAlarm) {
+    options.value.annotations = {
+        yaxis: [
+            alarm(loadAlarm, '')
+        ]
+    };
+}
 
 const links = ref([
     { name: subtitle }

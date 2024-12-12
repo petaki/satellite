@@ -1,5 +1,5 @@
 export default () => {
-    const alarm = value => ({
+    const alarm = (value, suffix = '%') => ({
         y: value,
         borderColor: '#ef4444',
         label: {
@@ -10,7 +10,7 @@ export default () => {
                 fontWeight: 700,
                 background: '#ef4444'
             },
-            text: `Alarm: ${value}%`,
+            text: `Alarm: ${value}${suffix}`,
             offsetY: 5
         }
     });
