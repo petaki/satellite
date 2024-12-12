@@ -16,7 +16,7 @@ func (a *app) cpuIndex(w http.ResponseWriter, r *http.Request) {
 
 	seriesType := models.SeriesType(r.URL.Query().Get("type"))
 	if seriesType == "" {
-		seriesType = models.Last5Minutes
+		seriesType = a.seriesButtons[0]
 	}
 
 	if !a.seriesTypeExists(seriesType) {
@@ -57,7 +57,6 @@ func (a *app) cpuIndex(w http.ResponseWriter, r *http.Request) {
 	err = a.inertiaManager.Render(w, r, "cpu/Index", map[string]interface{}{
 		"isCpuActive":    true,
 		"seriesType":     seriesType,
-		"seriesTypes":    models.SeriesTypes,
 		"chunkSize":      a.seriesRepository.ChunkSize(seriesType),
 		"diskPaths":      diskPaths,
 		"cpuMinSeries":   cpuMinSeries,
@@ -82,7 +81,7 @@ func (a *app) memoryIndex(w http.ResponseWriter, r *http.Request) {
 
 	seriesType := models.SeriesType(r.URL.Query().Get("type"))
 	if seriesType == "" {
-		seriesType = models.Last5Minutes
+		seriesType = a.seriesButtons[0]
 	}
 
 	if !a.seriesTypeExists(seriesType) {
@@ -123,7 +122,6 @@ func (a *app) memoryIndex(w http.ResponseWriter, r *http.Request) {
 	err = a.inertiaManager.Render(w, r, "memory/Index", map[string]interface{}{
 		"isMemoryActive":  true,
 		"seriesType":      seriesType,
-		"seriesTypes":     models.SeriesTypes,
 		"chunkSize":       a.seriesRepository.ChunkSize(seriesType),
 		"diskPaths":       diskPaths,
 		"memoryMinSeries": memoryMinSeries,
@@ -148,7 +146,7 @@ func (a *app) loadIndex(w http.ResponseWriter, r *http.Request) {
 
 	seriesType := models.SeriesType(r.URL.Query().Get("type"))
 	if seriesType == "" {
-		seriesType = models.Last5Minutes
+		seriesType = a.seriesButtons[0]
 	}
 
 	if !a.seriesTypeExists(seriesType) {
@@ -176,7 +174,6 @@ func (a *app) loadIndex(w http.ResponseWriter, r *http.Request) {
 	err = a.inertiaManager.Render(w, r, "load/Index", map[string]interface{}{
 		"isLoadActive": true,
 		"seriesType":   seriesType,
-		"seriesTypes":  models.SeriesTypes,
 		"chunkSize":    a.seriesRepository.ChunkSize(seriesType),
 		"diskPaths":    diskPaths,
 		"load1Series":  load1Series,
@@ -197,7 +194,7 @@ func (a *app) diskIndex(w http.ResponseWriter, r *http.Request) {
 
 	seriesType := models.SeriesType(r.URL.Query().Get("type"))
 	if seriesType == "" {
-		seriesType = models.Last5Minutes
+		seriesType = a.seriesButtons[0]
 	}
 
 	if !a.seriesTypeExists(seriesType) {
@@ -250,7 +247,6 @@ func (a *app) diskIndex(w http.ResponseWriter, r *http.Request) {
 
 	err = a.inertiaManager.Render(w, r, "disk/Index", map[string]interface{}{
 		"seriesType":    seriesType,
-		"seriesTypes":   models.SeriesTypes,
 		"chunkSize":     a.seriesRepository.ChunkSize(seriesType),
 		"diskPath":      diskPath,
 		"diskPaths":     diskPaths,

@@ -22,6 +22,7 @@ func Serve(
 	debug bool,
 	addr,
 	url string,
+	seriesButtons []models.SeriesType,
 	redisPool *redis.Pool,
 	heartbeatEnabled bool,
 	heartbeatWait, heartbeatSleep int,
@@ -34,9 +35,13 @@ func Serve(
 		cli.ErrorLog.Fatal(err)
 	}
 
+	inertiaManager.Share("seriesButtons", seriesButtons)
+	inertiaManager.Share("seriesTypes", models.SeriesTypes)
+
 	webApp := &app{
 		debug:                  debug,
 		url:                    url,
+		seriesButtons:          seriesButtons,
 		infoLog:                cli.InfoLog,
 		errorLog:               cli.ErrorLog,
 		heartbeatWait:          heartbeatWait,

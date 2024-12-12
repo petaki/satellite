@@ -12,6 +12,7 @@ import (
 type app struct {
 	debug                  bool
 	url                    string
+	seriesButtons          []models.SeriesType
 	errorLog               *log.Logger
 	infoLog                *log.Logger
 	heartbeatWait          int
