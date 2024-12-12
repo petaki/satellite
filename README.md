@@ -93,9 +93,9 @@ APP_URL=http://127.0.0.1:4000
 
 ### Application Series Buttons
 
-- Maximum 4 items
-- The first item is the default
-- The order does not matter from the second item
+- Maximum `4` items.
+- The first item is the `default`.
+- The order does not matter from the second item.
 
 ```
 APP_SERIES_BUTTONS=last_5_minutes,last_1_hour,last_24_hours,last_7_days
