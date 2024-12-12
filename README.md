@@ -91,7 +91,7 @@ APP_ADDR=:4000
 APP_URL=http://127.0.0.1:4000
 ```
 
-### Application Series Buttons
+### Application Series Buttons (max 4)
 
 ```
 APP_SERIES_BUTTONS=last_7_days,last_5_minutes,last_1_hour,last_24_hours
