@@ -2,6 +2,8 @@ package web
 
 import (
 	"context"
+	"github.com/alexedwards/scs/redisstore"
+	"github.com/alexedwards/scs/v2"
 	"net/http"
 	"os"
 	"os/signal"
@@ -22,6 +24,7 @@ func Serve(
 	debug bool,
 	addr,
 	url string,
+	seriesButtons []models.SeriesType,
 	redisPool *redis.Pool,
 	heartbeatEnabled bool,
 	heartbeatWait, heartbeatSleep int,
@@ -29,16 +32,24 @@ func Serve(
 	heartbeatWebhookHeader map[string]string,
 	heartbeatWebhookBody string,
 ) {
+	sessionManager := scs.New()
+	sessionManager.Store = redisstore.NewWithPrefix(redisPool, "satellite:scs:session:")
+
 	mixManager, inertiaManager, err := newMixAndInertiaManager(debug, url)
 	if err != nil {
 		cli.ErrorLog.Fatal(err)
 	}
 
+	inertiaManager.Share("seriesButtons", seriesButtons)
+	inertiaManager.Share("seriesTypes", models.SeriesTypes)
+
 	webApp := &app{
 		debug:                  debug,
 		url:                    url,
+		seriesButtons:          seriesButtons,
 		infoLog:                cli.InfoLog,
 		errorLog:               cli.ErrorLog,
+		sessionManager:         sessionManager,
 		heartbeatWait:          heartbeatWait,
 		heartbeatSleep:         heartbeatSleep,
 		heartbeatWebhookMethod: heartbeatWebhookMethod,

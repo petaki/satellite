@@ -32,4 +32,8 @@
     .btn-red {
         @apply bg-red-500 text-white py-2 px-6 rounded-sm hover:bg-red-600;
     }
+
+    .btn-white {
+        @apply bg-white text-slate-600 border border-gray-300 py-2 px-6 rounded-sm hover:bg-gray-50;
+    }
 }

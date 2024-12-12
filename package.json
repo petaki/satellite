@@ -11,25 +11,25 @@
         "lint": "yarn eslint --ext .js,.vue ./resources/js"
     },
     "devDependencies": {
-        "@babel/eslint-parser": "^7.24",
-        "@heroicons/vue": "^2.1",
-        "@inertiajs/vue3": "^1.0",
+        "@babel/eslint-parser": "^7.25",
+        "@heroicons/vue": "^2.2",
+        "@inertiajs/vue3": "^1.2",
         "@tailwindcss/forms": "^0.5",
-        "@vue/compiler-sfc": "^3.4",
-        "apexcharts": "^3.54",
+        "@vue/compiler-sfc": "^3.5",
+        "apexcharts": "^4.2",
         "autoprefixer": "^10.4",
         "eslint": "^8.57",
         "eslint-config-airbnb-base": "^15.0",
-        "eslint-plugin-import": "^2.29",
-        "eslint-plugin-vue": "^9.25",
+        "eslint-plugin-import": "^2.31",
+        "eslint-plugin-vue": "^9.32",
         "laravel-mix": "^6.0",
-        "luxon": "^3.4",
+        "luxon": "^3.5",
         "postcss": "^8.4",
         "resolve-url-loader": "^5.0",
         "tailwindcss": "^3.4",
-        "vue": "^3.4",
+        "vue": "^3.5",
         "vue-eslint-parser": "^9.4",
         "vue-loader": "^17.4",
-        "vue3-apexcharts": "^1.7"
+        "vue3-apexcharts": "^1.8"
     }
 }

@@ -2,9 +2,12 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"strconv"
+	"strings"
 
+	"github.com/petaki/satellite/internal/models"
 	"github.com/petaki/satellite/internal/web"
 	"github.com/petaki/support-go/cli"
 )
@@ -14,6 +17,7 @@ func WebServe(group *cli.Group, command *cli.Command, arguments []string) int {
 	debug := command.FlagSet().Bool("debug", false, "Application Debug Mode")
 	addr := command.FlagSet().String("addr", os.Getenv("APP_ADDR"), "Application Address")
 	url := command.FlagSet().String("url", os.Getenv("APP_URL"), "Application URL")
+	seriesButtons := command.FlagSet().String("series-buttons", os.Getenv("APP_SERIES_BUTTONS"), "Application Series Buttons")
 	redisURL := command.FlagSet().String("redis-url", os.Getenv("REDIS_URL"), "Redis URL")
 
 	envHeartbeatEnabled, err := strconv.ParseBool(os.Getenv("HEARTBEAT_ENABLED"))
@@ -44,6 +48,27 @@ func WebServe(group *cli.Group, command *cli.Command, arguments []string) int {
 		return command.PrintHelp(group)
 	}
 
+	var sb []models.SeriesType
+	segments := strings.Split(*seriesButtons, ",")
+
+	for _, segment := range segments {
+		st := models.SeriesType(segment)
+
+		for _, current := range models.SeriesTypes {
+			if st == current["value"].(models.SeriesType) {
+				sb = append(sb, st)
+
+				break
+			}
+		}
+	}
+
+	sb = sb[:min(4, len(sb))]
+
+	if len(sb) == 0 {
+		cli.ErrorLog.Fatal(errors.New("web: invalid series buttons"))
+	}
+
 	redisPool := newRedisPool(*redisURL)
 	defer redisPool.Close()
 
@@ -58,6 +83,7 @@ func WebServe(group *cli.Group, command *cli.Command, arguments []string) int {
 		*debug,
 		*addr,
 		*url,
+		sb,
 		redisPool,
 		*heartbeatEnabled,
 		*heartbeatWait,

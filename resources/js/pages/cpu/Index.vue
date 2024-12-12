@@ -14,13 +14,7 @@
                         {{ duration(chunkSize) }}
                     </span>
                 </span>
-                <select v-model="selectedType" class="form-select">
-                    <option v-for="type in seriesTypes"
-                            :key="type.value"
-                            :value="type.value">
-                        {{ type.name }}
-                    </option>
-                </select>
+                <SeriesSelector :href="seriesHref" />
             </card-title>
             <div class="chart">
                 <apexchart v-if="cpuMinSeries"
@@ -46,8 +40,7 @@ import {
     onMounted,
     onUnmounted,
     defineProps,
-    defineOptions,
-    watch
+    defineOptions
 } from 'vue';
 
 import { router } from '@inertiajs/vue3';
@@ -55,11 +48,10 @@ import Breadcrumb from '../../base/Breadcrumb.vue';
 import CardTitle from '../../base/CardTitle.vue';
 import Layout from '../../base/Layout.vue';
 import useAnnotation from '../../base/useAnnotation';
+import SeriesSelector from '../../base/SeriesSelector.vue';
 
 const {
     probe,
-    seriesType,
-    seriesTypes,
     cpuMinSeries,
     cpuMaxSeries,
     cpuAvgSeries,
@@ -76,16 +68,6 @@ const {
     chunkSize: {
         type: Number,
         required: true
-    },
-
-    seriesType: {
-        type: String,
-        default: ''
-    },
-
-    seriesTypes: {
-        type: Array,
-        default: () => []
     },
 
     cpuMinSeries: {
@@ -130,7 +112,6 @@ defineOptions({
 
 const { alarm, max } = useAnnotation();
 const subtitle = ref('CPU');
-const selectedType = ref(seriesType);
 const chartEl = ref();
 const reloadTimer = 60000;
 let reloadInterval;
@@ -214,6 +195,10 @@ const links = ref([
     { name: subtitle }
 ]);
 
+const seriesHref = (isDefault, selectedType) => (isDefault
+    ? `/cpu?probe=${probe}`
+    : `/cpu?probe=${probe}&type=${selectedType}`);
+
 onMounted(() => {
     reloadInterval = setInterval(() => router.reload(), reloadTimer);
 
@@ -229,15 +214,5 @@ onMounted(() => {
 
 onUnmounted(() => {
     clearInterval(reloadInterval);
-});
-
-watch(selectedType, () => {
-    const index = seriesTypes.map(type => type.value).indexOf(selectedType.value);
-
-    const href = index === 0
-        ? `/cpu?probe=${probe}`
-        : `/cpu?probe=${probe}&type=${selectedType.value}`;
-
-    router.visit(href);
 });
 </script>
