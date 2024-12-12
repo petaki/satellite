@@ -14,7 +14,7 @@
                         {{ duration(chunkSize) }}
                     </span>
                 </span>
-                <SeriesSelector v-model="selectedType" />
+                <SeriesSelector :href="seriesHref" />
             </card-title>
             <div class="chart">
                 <apexchart v-if="memoryMinSeries"
@@ -52,8 +52,6 @@ import SeriesSelector from '../../base/SeriesSelector.vue';
 
 const {
     probe,
-    seriesType,
-    seriesTypes,
     memoryMinSeries,
     memoryMaxSeries,
     memoryAvgSeries,
@@ -70,16 +68,6 @@ const {
     chunkSize: {
         type: Number,
         required: true
-    },
-
-    seriesType: {
-        type: String,
-        default: ''
-    },
-
-    seriesTypes: {
-        type: Array,
-        default: () => []
     },
 
     memoryMinSeries: {
@@ -124,7 +112,6 @@ defineOptions({
 
 const { alarm, max } = useAnnotation();
 const subtitle = ref('Memory');
-const selectedType = ref(seriesType);
 const chartEl = ref();
 const reloadTimer = 60000;
 let reloadInterval;
@@ -209,6 +196,10 @@ const links = ref([
     { name: subtitle }
 ]);
 
+const seriesHref = (isDefault, selectedType) => (isDefault
+    ? `/memory?probe=${probe}`
+    : `/memory?probe=${probe}&type=${selectedType}`);
+
 onMounted(() => {
     reloadInterval = setInterval(() => router.reload(), reloadTimer);
 
@@ -224,15 +215,5 @@ onMounted(() => {
 
 onUnmounted(() => {
     clearInterval(reloadInterval);
-});
-
-watch(selectedType, () => {
-    const index = seriesTypes.map(type => type.value).indexOf(selectedType.value);
-
-    const href = index === 0
-        ? `/memory?probe=${probe}`
-        : `/memory?probe=${probe}&type=${selectedType.value}`;
-
-    router.visit(href);
 });
 </script>

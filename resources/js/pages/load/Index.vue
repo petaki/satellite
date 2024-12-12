@@ -14,7 +14,7 @@
                         {{ duration(chunkSize) }}
                     </span>
                 </span>
-                <SeriesSelector v-model="selectedType" />
+                <SeriesSelector :href="seriesHref" />
             </card-title>
             <div class="chart">
                 <apexchart v-if="load1Series"
@@ -51,8 +51,6 @@ import SeriesSelector from '../../base/SeriesSelector.vue';
 
 const {
     probe,
-    seriesType,
-    seriesTypes,
     load1Series,
     load5Series,
     load15Series
@@ -65,16 +63,6 @@ const {
     chunkSize: {
         type: Number,
         required: true
-    },
-
-    seriesType: {
-        type: String,
-        default: ''
-    },
-
-    seriesTypes: {
-        type: Array,
-        default: () => []
     },
 
     load1Series: {
@@ -99,7 +87,6 @@ defineOptions({
 
 const { alarm, max } = useAnnotation();
 const subtitle = ref('Load');
-const selectedType = ref(seriesType);
 const chartEl = ref();
 const reloadTimer = 60000;
 let reloadInterval;
@@ -141,21 +128,15 @@ const links = ref([
     { name: subtitle }
 ]);
 
+const seriesHref = (isDefault, selectedType) => (isDefault
+    ? `/load?probe=${probe}`
+    : `/load?probe=${probe}&type=${selectedType}`);
+
 onMounted(() => {
     reloadInterval = setInterval(() => router.reload(), reloadTimer);
 });
 
 onUnmounted(() => {
     clearInterval(reloadInterval);
-});
-
-watch(selectedType, () => {
-    const index = seriesTypes.map(type => type.value).indexOf(selectedType.value);
-
-    const href = index === 0
-        ? `/load?probe=${probe}`
-        : `/load?probe=${probe}&type=${selectedType.value}`;
-
-    router.visit(href);
 });
 </script>

@@ -1,6 +1,6 @@
 <template>
     <!-- eslint-disable max-len -->
-    <button v-for="(button, index) in createSeriesButtons($page.props.seriesButtons, $page.props.seriesTypes)"
+    <button v-for="(button, index) in createSeriesButtons()"
             :key="button.value"
             class="btn-white py-0 h-11 md:border-r-0 md:rounded-none text-sm font-semibold px-3"
             :class="{'md:rounded-l-sm md:rounded-r-none': index === 0, 'bg-gray-100': model === button.value}"
@@ -19,16 +19,40 @@
 </template>
 
 <script setup>
-import { defineModel } from 'vue';
+import {
+    defineModel,
+    defineProps,
+    watch
+} from 'vue';
+
+import { router, usePage } from '@inertiajs/vue3';
 
 const model = defineModel({
     type: String
 });
 
-const createSeriesButtons = (seriesButtons, seriesTypes) => seriesTypes
-    .filter(type => seriesButtons.indexOf(type.value) !== -1)
+const { href } = defineProps({
+    href: {
+        type: Function,
+        required: true
+    }
+});
+
+const page = usePage();
+
+model.value = page.props.seriesType;
+
+const createSeriesButtons = () => page.props.seriesTypes
+    .filter(type => page.props.seriesButtons.indexOf(type.value) !== -1)
     .map(type => ({
         name: type.name.match(/\b\w/g).join('').toUpperCase(),
         value: type.value
     }));
+
+watch(model, () => {
+    router.visit(href(
+        model.value === page.props.seriesType,
+        model.value
+    ));
+});
 </script>

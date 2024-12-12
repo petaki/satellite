@@ -30,6 +30,6 @@
         "vue": "^3.4",
         "vue-eslint-parser": "^9.4",
         "vue-loader": "^17.4",
-        "vue3-apexcharts": "^1.7"
+        "vue3-apexcharts": "^1.8"
     }
 }

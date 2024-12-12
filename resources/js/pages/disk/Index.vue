@@ -14,7 +14,7 @@
                         {{ duration(chunkSize) }}
                     </span>
                 </span>
-                <SeriesSelector v-model="selectedType" />
+                <SeriesSelector :href="seriesHref" />
             </card-title>
             <div class="chart">
                 <apexchart v-if="diskMinSeries"
@@ -52,8 +52,6 @@ import SeriesSelector from '../../base/SeriesSelector.vue';
 
 const {
     probe,
-    seriesType,
-    seriesTypes,
     diskPath,
     diskMinSeries,
     diskMaxSeries,
@@ -68,16 +66,6 @@ const {
     chunkSize: {
         type: Number,
         required: true
-    },
-
-    seriesType: {
-        type: String,
-        default: ''
-    },
-
-    seriesTypes: {
-        type: Array,
-        default: () => []
     },
 
     diskPath: {
@@ -112,7 +100,6 @@ defineOptions({
 
 const { alarm, max } = useAnnotation();
 const subtitle = ref(`Disk - ${diskPath}`);
-const selectedType = ref(seriesType);
 const chartEl = ref();
 const reloadTimer = 60000;
 let reloadInterval;
@@ -162,6 +149,10 @@ const series = computed(() => [
     }
 ]);
 
+const seriesHref = (isDefault, selectedType) => (isDefault
+    ? `/disk?probe=${probe}&path=${diskPath}`
+    : `/disk?probe=${probe}&path=${diskPath}&type=${selectedType}`);
+
 onMounted(() => {
     reloadInterval = setInterval(() => router.reload(), reloadTimer);
 
@@ -177,15 +168,5 @@ onMounted(() => {
 
 onUnmounted(() => {
     clearInterval(reloadInterval);
-});
-
-watch(selectedType, () => {
-    const index = seriesTypes.map(type => type.value).indexOf(selectedType.value);
-
-    const href = index === 0
-        ? `/disk?probe=${probe}&path=${diskPath}`
-        : `/disk?probe=${probe}&path=${diskPath}&type=${selectedType.value}`;
-
-    router.visit(href);
 });
 </script>
