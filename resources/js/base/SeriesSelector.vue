@@ -4,6 +4,7 @@
             :key="button.value"
             class="btn-white py-0 px-3 h-11 md:border-r-0 md:rounded-none text-sm font-semibold"
             :class="{'md:rounded-l-sm md:rounded-r-none': index === 0, 'bg-gray-100': model === button.value}"
+            type="button"
             @click="model = button.value">
         {{ button.name }}
     </button>
