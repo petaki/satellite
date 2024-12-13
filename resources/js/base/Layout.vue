@@ -78,15 +78,18 @@
                 <sidebar-title>
                     Delete
                 </sidebar-title>
+                <!-- eslint-disable vue/attribute-hyphenation -->
                 <sidebar-link :is-highlight="true"
                               :href="`/probe/delete?probe=${$page.props.probe}`"
                               method="delete"
-                              as="button">
+                              as="button"
+                              :onBefore="confirmDelete">
                     <trash-icon class="h-5 w-5 mr-2" />
                     <span>
                         Delete
                     </span>
                 </sidebar-link>
+                <!-- eslint-enable vue/attribute-hyphenation -->
             </div>
         </div>
         <div class="flex h-20 bg-slate-700 bg-opacity-40 text-sm text-slate-300">
@@ -137,6 +140,9 @@ import SidebarLink from './SidebarLink.vue';
 
 const isSidebarOpen = ref(false);
 const year = ref(new Date().getFullYear());
+
+// eslint-disable-next-line no-alert
+const confirmDelete = () => window.confirm('Are you sure you want to delete this probe?');
 
 onUnmounted(
     router.on('navigate', () => {
