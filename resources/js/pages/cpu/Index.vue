@@ -165,6 +165,9 @@ const options = ref({
 
                 return `${value.toFixed(2)}%`;
             }
+        },
+        marker: {
+            show: false
         }
     },
     yaxis: {

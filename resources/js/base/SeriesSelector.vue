@@ -51,7 +51,9 @@ model.value = page.props.seriesType;
 const createSeriesButtons = () => page.props.seriesTypes
     .filter(type => page.props.seriesButtons.indexOf(type.value) !== -1)
     .map(type => ({
-        name: type.name.match(/\b\w/g).join('').toUpperCase(),
+        name: type.name.split(' ').map(segment => (!Number.isNaN(Number(segment))
+            ? segment
+            : segment[0])).join('').toUpperCase(),
         value: type.value
     }));
 
