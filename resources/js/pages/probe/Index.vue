@@ -28,16 +28,16 @@
                  class="bg-white p-8">
                 No probes.
             </div>
-            <a v-for="probe in filteredProbes"
-               :key="probe"
-               :href="`/cpu?probe=${probe}`"
-               class="bg-white p-8 flex flex-col sm:flex-row items-center text-base text-gray-800 text-lg hover:text-cyan-500">
+            <inertia-link v-for="probe in filteredProbes"
+                          :key="probe"
+                          :href="`/cpu?probe=${probe}`"
+                          class="bg-white p-8 flex flex-col sm:flex-row items-center text-base text-gray-800 text-lg hover:text-cyan-500">
                 <cube-icon class="h-6 w-6 sm:mr-2" />
                 <span class="break-all flex-1 sm:mr-auto">
                     {{ probe }}
                 </span>
                 <chevron-right-icon class="h-6 w-6 sm:ml-2" />
-            </a>
+            </inertia-link>
         </div>
         <!-- eslint-enable max-len vue/attribute-hyphenation -->
     </div>
