@@ -102,7 +102,7 @@
         </div>
     </div>
     <div class="md:ml-60">
-        <header class="flex items-center bg-white h-20 shadow-sm px-5">
+        <header class="flex items-center bg-white h-20 shadow-xs px-5">
             <a class="md:hidden"
                href="#"
                @click.prevent="isSidebarOpen = true">
