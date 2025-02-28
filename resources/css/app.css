@@ -2,6 +2,8 @@
 
 @plugin '@tailwindcss/forms';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans:
     Sarabun, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
@@ -26,7 +28,7 @@
 
 @layer base {
     body {
-        @apply bg-slate-100 text-slate-600;
+        @apply bg-slate-100 text-slate-600 dark:bg-slate-900;
     }
 
     .sidebar {
