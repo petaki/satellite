@@ -10,5 +10,5 @@ require (
 	github.com/justinas/alice v1.2.0
 	github.com/petaki/inertia-go v1.9.0
 	github.com/petaki/support-go v1.11.0
-	golang.org/x/exp v0.0.0-20250215185904-eff6e970281f
+	golang.org/x/exp v0.0.0-20250228200357-dead58393ab7
 )
