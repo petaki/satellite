@@ -102,20 +102,20 @@
         </div>
     </div>
     <div class="md:ml-60">
-        <header class="flex items-center bg-white h-20 shadow-xs px-5">
-            <button class="cursor-pointer md:hidden"
+        <header class="flex items-center bg-white h-20 shadow-xs px-5 dark:bg-slate-700">
+            <button class="cursor-pointer md:hidden dark:text-slate-300"
                     type="button"
                     @click="isSidebarOpen = true">
                 <bars3-icon class="h-6 w-6" />
             </button>
             <button v-if="theme === 'system'"
-                    class="ml-auto cursor-pointer"
+                    class="ml-auto cursor-pointer dark:text-slate-300"
                     type="button"
                     @click="theme = 'dark'">
                 <computer-desktop-icon class="h-6 w-6" />
             </button>
             <button v-else-if="theme === 'dark'"
-                    class="ml-auto cursor-pointer"
+                    class="ml-auto cursor-pointer text-slate-300"
                     type="button"
                     @click="theme = 'light'">
                 <moon-icon class="h-6 w-6" />
