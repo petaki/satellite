@@ -15,7 +15,7 @@
 }
 
 @utility form-select {
-  @apply border-gray-100 text-slate-600 rounded-xs focus:border-cyan-500 focus:ring-cyan-500;
+  @apply border-gray-300 text-slate-600 rounded-xs focus:border-cyan-500 focus:ring-cyan-500 dark:bg-slate-800 dark:border-transparent dark:text-slate-300;
 }
 
 @utility btn-red {
@@ -23,7 +23,7 @@
 }
 
 @utility btn-white {
-  @apply bg-white text-slate-600 border border-gray-300 py-2 px-6 rounded-xs hover:bg-gray-50;
+  @apply bg-white text-slate-600 border border-gray-300 py-2 px-6 rounded-xs hover:bg-gray-50 dark:bg-slate-600 dark:border-transparent dark:text-slate-300 dark:hover:bg-slate-800;
 }
 
 @layer base {
