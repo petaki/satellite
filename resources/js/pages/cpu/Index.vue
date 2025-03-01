@@ -202,6 +202,10 @@ const seriesHref = (isDefault, selectedType) => (isDefault
     ? `/cpu?probe=${probe}`
     : `/cpu?probe=${probe}&type=${selectedType}`);
 
+const onSetTheme = () => {
+    chartEl.value.refresh();
+};
+
 onMounted(() => {
     reloadInterval = setInterval(() => router.reload(), reloadTimer);
 
@@ -213,9 +217,13 @@ onMounted(() => {
         chartEl.value.toggleSeries('CPU Max');
         chartEl.value.toggleSeries('CPU Min');
     });
+
+    document.addEventListener('set-theme', onSetTheme);
 });
 
 onUnmounted(() => {
     clearInterval(reloadInterval);
+
+    document.removeEventListener('set-theme', onSetTheme);
 });
 </script>

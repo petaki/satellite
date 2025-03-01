@@ -146,11 +146,19 @@ const seriesHref = (isDefault, selectedType) => (isDefault
     ? `/load?probe=${probe}`
     : `/load?probe=${probe}&type=${selectedType}`);
 
+const onSetTheme = () => {
+    chartEl.value.refresh();
+};
+
 onMounted(() => {
     reloadInterval = setInterval(() => router.reload(), reloadTimer);
+
+    document.addEventListener('set-theme', onSetTheme);
 });
 
 onUnmounted(() => {
     clearInterval(reloadInterval);
+
+    document.removeEventListener('set-theme', onSetTheme);
 });
 </script>

@@ -153,6 +153,10 @@ const seriesHref = (isDefault, selectedType) => (isDefault
     ? `/disk?probe=${probe}&path=${diskPath}`
     : `/disk?probe=${probe}&path=${diskPath}&type=${selectedType}`);
 
+const onSetTheme = () => {
+    chartEl.value.refresh();
+};
+
 onMounted(() => {
     reloadInterval = setInterval(() => router.reload(), reloadTimer);
 
@@ -164,9 +168,13 @@ onMounted(() => {
         chartEl.value.toggleSeries(`Disk Max - ${diskPath}`);
         chartEl.value.toggleSeries(`Disk Min - ${diskPath}`);
     });
+
+    document.addEventListener('set-theme', onSetTheme);
 });
 
 onUnmounted(() => {
     clearInterval(reloadInterval);
+
+    document.removeEventListener('set-theme', onSetTheme);
 });
 </script>

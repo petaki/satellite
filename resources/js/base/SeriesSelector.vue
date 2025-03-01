@@ -3,14 +3,14 @@
     <button v-for="(button, index) in createSeriesButtons()"
             :key="button.value"
             class="btn-white py-0 px-3 h-11 md:border-r-0 md:rounded-none text-sm font-semibold"
-            :class="{'md:rounded-l-sm md:rounded-r-none': index === 0, 'bg-gray-100': model === button.value}"
+            :class="{'md:rounded-l-sm md:rounded-r-none': index === 0, 'bg-gray-100 dark:bg-slate-800': model === button.value}"
             type="button"
             @click="model = button.value">
         {{ button.name }}
     </button>
     <!-- eslint-enable max-len -->
     <select v-model="model"
-            class="form-select h-11 border-gray-300 md:rounded-none">
+            class="form-select h-11 md:rounded-none">
         <option v-for="type in $page.props.seriesTypes"
                 :key="type.value"
                 :value="type.value">

@@ -6,7 +6,7 @@
         <div class="flex items-center bg-white p-5 shadow-xs mb-5 dark:bg-slate-700">
             <div class="flex-1">
                 <input v-model="keyword"
-                       class="bg-transparent border-slate-300 text-slate-600 placeholder-gray-400 rounded-xs focus:border-cyan-500 focus:ring-cyan-500 w-full h-11"
+                       class="bg-transparent border-slate-300 text-slate-600 placeholder-gray-400 rounded-xs focus:border-cyan-500 focus:ring-cyan-500 w-full h-11 dark:border-transparent dark:bg-slate-800 dark:text-slate-300"
                        type="text"
                        placeholder="Search">
             </div>
@@ -25,13 +25,13 @@
         </div>
         <div class="grid grid-cols-1 gap-5 xl:grid-cols-4">
             <div v-if="!probes.length"
-                 class="bg-white p-8 dark:bg-slate-700">
+                 class="bg-white p-5 dark:bg-slate-700 dark:text-slate-500">
                 No probes.
             </div>
             <inertia-link v-for="probe in filteredProbes"
                           :key="probe"
                           :href="`/cpu?probe=${probe}`"
-                          class="bg-white p-8 flex flex-col sm:flex-row items-center text-gray-800 text-lg hover:text-cyan-500 dark:text-slate-300 dark:bg-slate-700">
+                          class="bg-white p-5 flex flex-col sm:flex-row items-center text-gray-800 text-lg hover:text-cyan-500 dark:text-slate-300 dark:bg-slate-700">
                 <cube-icon class="h-6 w-6 sm:mr-2" />
                 <span class="break-all flex-1 sm:mr-auto">
                     {{ probe }}

@@ -103,25 +103,25 @@
     </div>
     <div class="md:ml-60">
         <header class="flex items-center bg-white h-20 shadow-xs px-5 dark:bg-slate-700">
-            <button class="cursor-pointer md:hidden dark:text-slate-300"
+            <button class="md:hidden dark:text-slate-300"
                     type="button"
                     @click="isSidebarOpen = true">
                 <bars3-icon class="h-6 w-6" />
             </button>
             <button v-if="theme === 'system'"
-                    class="ml-auto cursor-pointer dark:text-slate-300"
+                    class="ml-auto dark:text-slate-300"
                     type="button"
                     @click="theme = 'dark'">
                 <computer-desktop-icon class="h-6 w-6" />
             </button>
             <button v-else-if="theme === 'dark'"
-                    class="ml-auto cursor-pointer text-slate-300"
+                    class="ml-auto text-slate-300"
                     type="button"
                     @click="theme = 'light'">
                 <moon-icon class="h-6 w-6" />
             </button>
             <button v-else-if="theme === 'light'"
-                    class="ml-auto cursor-pointer"
+                    class="ml-auto"
                     type="button"
                     @click="theme = 'system'">
                 <sun-icon class="h-6 w-6" />
@@ -164,11 +164,15 @@ const theme = ref(!('theme' in localStorage)
     : localStorage.theme);
 
 const setTheme = () => {
-    document.documentElement.classList.toggle(
-        'dark',
-        localStorage.theme === 'dark'
-        || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
-    );
+    document.documentElement.classList.toggle('dark', window.isDark());
+
+    window.createApex();
+
+    document.dispatchEvent(new CustomEvent('set-theme', {
+        detail: {
+            theme: theme.value
+        }
+    }));
 };
 
 setTheme();
