@@ -203,6 +203,10 @@ const seriesHref = (isDefault, selectedType) => (isDefault
     ? `/memory?probe=${probe}`
     : `/memory?probe=${probe}&type=${selectedType}`);
 
+const onSetTheme = () => {
+    chartEl.value.refresh();
+};
+
 onMounted(() => {
     reloadInterval = setInterval(() => router.reload(), reloadTimer);
 
@@ -214,9 +218,13 @@ onMounted(() => {
         chartEl.value.toggleSeries('Memory Max');
         chartEl.value.toggleSeries('Memory Min');
     });
+
+    document.addEventListener('set-theme', onSetTheme);
 });
 
 onUnmounted(() => {
     clearInterval(reloadInterval);
+
+    document.removeEventListener('set-theme', onSetTheme);
 });
 </script>

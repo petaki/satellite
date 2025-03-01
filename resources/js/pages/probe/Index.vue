@@ -25,7 +25,7 @@
         </div>
         <div class="grid grid-cols-1 gap-5 xl:grid-cols-4">
             <div v-if="!probes.length"
-                 class="bg-white p-5 dark:bg-slate-700">
+                 class="bg-white p-5 dark:bg-slate-700 dark:text-slate-500">
                 No probes.
             </div>
             <inertia-link v-for="probe in filteredProbes"

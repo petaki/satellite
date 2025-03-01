@@ -164,11 +164,15 @@ const theme = ref(!('theme' in localStorage)
     : localStorage.theme);
 
 const setTheme = () => {
-    document.documentElement.classList.toggle(
-        'dark',
-        localStorage.theme === 'dark'
-        || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
-    );
+    document.documentElement.classList.toggle('dark', window.isDark());
+
+    window.createApex();
+
+    document.dispatchEvent(new CustomEvent('set-theme', {
+        detail: {
+            theme: theme.value
+        }
+    }));
 };
 
 setTheme();
