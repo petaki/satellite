@@ -1,6 +1,6 @@
 <template>
     <div v-show="isSidebarOpen"
-         class="bg-black bg-opacity-50 fixed inset-0 z-20 md:hidden"
+         class="bg-black/50 fixed inset-0 z-20 md:hidden"
          @click.prevent="isSidebarOpen = false"></div>
     <!-- eslint-disable max-len -->
     <div class="fixed inset-y-0 left-0 bg-gray-800 w-60 z-30 transform transition-transform md:translate-x-0"
@@ -92,7 +92,7 @@
                 <!-- eslint-enable vue/attribute-hyphenation -->
             </div>
         </div>
-        <div class="flex h-20 bg-slate-700 bg-opacity-40 text-sm text-slate-300">
+        <div class="flex h-20 bg-slate-700/40 text-sm text-slate-300">
             <span class="m-auto">
                 &copy; {{ year }}
                 <span class="text-cyan-500">
@@ -102,12 +102,30 @@
         </div>
     </div>
     <div class="md:ml-60">
-        <header class="flex items-center bg-white h-20 shadow-sm px-5">
-            <a class="md:hidden"
-               href="#"
-               @click.prevent="isSidebarOpen = true">
+        <header class="flex items-center bg-white h-20 shadow-xs px-5 dark:bg-slate-700">
+            <button class="cursor-pointer md:hidden dark:text-slate-300"
+                    type="button"
+                    @click="isSidebarOpen = true">
                 <bars3-icon class="h-6 w-6" />
-            </a>
+            </button>
+            <button v-if="theme === 'system'"
+                    class="ml-auto cursor-pointer dark:text-slate-300"
+                    type="button"
+                    @click="theme = 'dark'">
+                <computer-desktop-icon class="h-6 w-6" />
+            </button>
+            <button v-else-if="theme === 'dark'"
+                    class="ml-auto cursor-pointer text-slate-300"
+                    type="button"
+                    @click="theme = 'light'">
+                <moon-icon class="h-6 w-6" />
+            </button>
+            <button v-else-if="theme === 'light'"
+                    class="ml-auto cursor-pointer"
+                    type="button"
+                    @click="theme = 'system'">
+                <sun-icon class="h-6 w-6" />
+            </button>
         </header>
         <main class="content overflow-y-auto" scroll-region>
             <slot></slot>
@@ -122,10 +140,13 @@ import {
     CpuChipIcon,
     CircleStackIcon,
     ChartBarIcon,
+    ComputerDesktopIcon,
     CubeIcon,
     CubeTransparentIcon,
     DocumentDuplicateIcon,
+    MoonIcon,
     PaperAirplaneIcon,
+    SunIcon,
     TrashIcon
 } from '@heroicons/vue/24/outline';
 
@@ -133,10 +154,34 @@ import {
     ChevronRightIcon
 } from '@heroicons/vue/20/solid';
 
-import { ref, onUnmounted } from 'vue';
+import { ref, onUnmounted, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 import SidebarTitle from './SidebarTitle.vue';
 import SidebarLink from './SidebarLink.vue';
+
+const theme = ref(!('theme' in localStorage)
+    ? 'system'
+    : localStorage.theme);
+
+const setTheme = () => {
+    document.documentElement.classList.toggle(
+        'dark',
+        localStorage.theme === 'dark'
+        || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
+    );
+};
+
+setTheme();
+
+watch(theme, () => {
+    if (theme.value === 'system') {
+        localStorage.removeItem('theme');
+    } else {
+        localStorage.theme = theme.value;
+    }
+
+    setTheme();
+});
 
 const isSidebarOpen = ref(false);
 const year = ref(new Date().getFullYear());

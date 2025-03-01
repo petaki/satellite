@@ -15,7 +15,7 @@
                           :href="link.href">
                 {{ link.name }}
             </inertia-link>
-            <div v-else>
+            <div v-else class="dark:text-slate-300">
                 {{ link.name }}
             </div>
             <div v-if="index < links.length - 1"
