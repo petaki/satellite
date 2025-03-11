@@ -40,7 +40,8 @@ import {
     onUnmounted,
     nextTick,
     defineProps,
-    defineOptions, watch
+    defineOptions,
+    watch
 } from 'vue';
 
 import { router } from '@inertiajs/vue3';
@@ -207,9 +208,7 @@ const onSetTheme = () => {
     chartEl.value.refresh();
 };
 
-onMounted(() => {
-    reloadInterval = setInterval(() => router.reload(), reloadTimer);
-
+const toggleMinMaxSeries = () => {
     if (!chartEl.value) {
         return;
     }
@@ -218,6 +217,14 @@ onMounted(() => {
         chartEl.value.toggleSeries('Memory Max');
         chartEl.value.toggleSeries('Memory Min');
     });
+};
+
+watch(series, toggleMinMaxSeries);
+
+onMounted(() => {
+    reloadInterval = setInterval(() => router.reload(), reloadTimer);
+
+    toggleMinMaxSeries();
 
     document.addEventListener('set-theme', onSetTheme);
 });
