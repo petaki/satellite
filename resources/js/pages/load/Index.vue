@@ -39,7 +39,7 @@ import {
     onMounted,
     onUnmounted,
     defineProps,
-    defineOptions, watch
+    defineOptions, watch, nextTick
 } from 'vue';
 
 import { router } from '@inertiajs/vue3';
@@ -130,14 +130,6 @@ const options = ref({
     }
 });
 
-if (loadAlarm) {
-    options.value.annotations = {
-        yaxis: [
-            alarm(loadAlarm, '')
-        ]
-    };
-}
-
 const links = ref([
     { name: subtitle }
 ]);
@@ -150,8 +142,30 @@ const onSetTheme = () => {
     chartEl.value.refresh();
 };
 
+const refreshSeries = () => {
+    if (!chartEl.value) {
+        return;
+    }
+
+    if (loadAlarm) {
+        options.value.annotations = {
+            yaxis: [
+                alarm(loadAlarm, '')
+            ]
+        };
+    }
+
+    nextTick(() => {
+        chartEl.value.refresh();
+    });
+};
+
+watch(series, refreshSeries);
+
 onMounted(() => {
-    reloadInterval = setInterval(() => router.reload(), reloadTimer);
+    reloadInterval = setInterval(() => { router.reload(); }, reloadTimer);
+
+    refreshSeries();
 
     document.addEventListener('set-theme', onSetTheme);
 });

@@ -121,16 +121,6 @@ const options = ref({
     }
 });
 
-options.value.annotations = {
-    yaxis: [
-        max(Math.max(...(diskMaxSeries ?? []).map(value => value.y)))
-    ]
-};
-
-if (diskAlarm) {
-    options.value.annotations.yaxis.push(alarm(diskAlarm));
-}
-
 const links = ref([
     { name: subtitle }
 ]);
@@ -158,23 +148,37 @@ const onSetTheme = () => {
     chartEl.value.refresh();
 };
 
-const toggleMinMaxSeries = () => {
+const refreshSeries = async () => {
     if (!chartEl.value) {
         return;
     }
 
-    nextTick(() => {
+    options.value.annotations = {
+        yaxis: [
+            max(Math.max(...(diskMaxSeries ?? []).map(value => value.y)))
+        ]
+    };
+
+    if (diskAlarm) {
+        options.value.annotations.yaxis.push(alarm(diskAlarm));
+    }
+
+    await nextTick(() => {
+        chartEl.value.refresh();
+    });
+
+    await nextTick(() => {
         chartEl.value.toggleSeries(`Disk Max - ${diskPath}`);
         chartEl.value.toggleSeries(`Disk Min - ${diskPath}`);
     });
 };
 
-watch(series, toggleMinMaxSeries);
+watch(series, refreshSeries);
 
 onMounted(() => {
     reloadInterval = setInterval(() => { router.reload(); }, reloadTimer);
 
-    toggleMinMaxSeries();
+    refreshSeries();
 
     document.addEventListener('set-theme', onSetTheme);
 });
