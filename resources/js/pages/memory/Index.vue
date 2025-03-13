@@ -186,16 +186,6 @@ const options = ref({
     }
 });
 
-options.value.annotations = {
-    yaxis: [
-        max(Math.max(...(memoryMaxSeries ?? []).map(value => value.y)))
-    ]
-};
-
-if (memoryAlarm) {
-    options.value.annotations.yaxis.push(alarm(memoryAlarm));
-}
-
 const links = ref([
     { name: subtitle }
 ]);
@@ -208,23 +198,37 @@ const onSetTheme = () => {
     chartEl.value.refresh();
 };
 
-const toggleMinMaxSeries = () => {
+const refreshSeries = async () => {
     if (!chartEl.value) {
         return;
     }
 
-    nextTick(() => {
+    options.value.annotations = {
+        yaxis: [
+            max(Math.max(...(memoryMaxSeries ?? []).map(value => value.y)))
+        ]
+    };
+
+    if (memoryAlarm) {
+        options.value.annotations.yaxis.push(alarm(memoryAlarm));
+    }
+
+    await nextTick(() => {
+        chartEl.value.refresh();
+    });
+
+    await nextTick(() => {
         chartEl.value.toggleSeries('Memory Max');
         chartEl.value.toggleSeries('Memory Min');
     });
 };
 
-watch(series, toggleMinMaxSeries);
+watch(series, refreshSeries);
 
 onMounted(() => {
     reloadInterval = setInterval(() => router.reload(), reloadTimer);
 
-    toggleMinMaxSeries();
+    refreshSeries();
 
     document.addEventListener('set-theme', onSetTheme);
 });

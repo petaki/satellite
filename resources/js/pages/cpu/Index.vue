@@ -185,16 +185,6 @@ const options = ref({
     }
 });
 
-options.value.annotations = {
-    yaxis: [
-        max(Math.max(...(cpuMaxSeries ?? []).map(value => value.y)))
-    ]
-};
-
-if (cpuAlarm) {
-    options.value.annotations.yaxis.push(alarm(cpuAlarm));
-}
-
 const links = ref([
     { name: subtitle }
 ]);
@@ -207,23 +197,37 @@ const onSetTheme = () => {
     chartEl.value.refresh();
 };
 
-const toggleMinMaxSeries = () => {
+const refreshSeries = async () => {
     if (!chartEl.value) {
         return;
     }
 
-    nextTick(() => {
+    options.value.annotations = {
+        yaxis: [
+            max(Math.max(...(cpuMaxSeries ?? []).map(value => value.y)))
+        ]
+    };
+
+    if (cpuAlarm) {
+        options.value.annotations.yaxis.push(alarm(cpuAlarm));
+    }
+
+    await nextTick(() => {
+        chartEl.value.refresh();
+    });
+
+    await nextTick(() => {
         chartEl.value.toggleSeries('CPU Max');
         chartEl.value.toggleSeries('CPU Min');
     });
 };
 
-watch(series, toggleMinMaxSeries);
+watch(series, refreshSeries);
 
 onMounted(() => {
     reloadInterval = setInterval(() => { router.reload(); }, reloadTimer);
 
-    toggleMinMaxSeries();
+    refreshSeries();
 
     document.addEventListener('set-theme', onSetTheme);
 });
