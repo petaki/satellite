@@ -15,6 +15,7 @@ import (
 // WebServe command.
 func WebServe(group *cli.Group, command *cli.Command, arguments []string) int {
 	debug := command.FlagSet().Bool("debug", false, "Application Debug Mode")
+	name := command.FlagSet().String("name", os.Getenv("APP_NAME"), "Application Name")
 	addr := command.FlagSet().String("addr", os.Getenv("APP_ADDR"), "Application Address")
 	url := command.FlagSet().String("url", os.Getenv("APP_URL"), "Application URL")
 	seriesButtons := command.FlagSet().String("series-buttons", os.Getenv("APP_SERIES_BUTTONS"), "Application Series Buttons")
@@ -81,6 +82,7 @@ func WebServe(group *cli.Group, command *cli.Command, arguments []string) int {
 
 	web.Serve(
 		*debug,
+		*name,
 		*addr,
 		*url,
 		sb,
