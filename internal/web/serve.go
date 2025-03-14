@@ -2,14 +2,15 @@ package web
 
 import (
 	"context"
-	"github.com/alexedwards/scs/redisstore"
-	"github.com/alexedwards/scs/v2"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/alexedwards/scs/redisstore"
+	"github.com/alexedwards/scs/v2"
 	"github.com/gomodule/redigo/redis"
 	"github.com/petaki/inertia-go"
 	"github.com/petaki/satellite/internal/models"
@@ -22,6 +23,7 @@ import (
 // Serve function.
 func Serve(
 	debug bool,
+	name,
 	addr,
 	url string,
 	seriesButtons []models.SeriesType,
@@ -35,7 +37,7 @@ func Serve(
 	sessionManager := scs.New()
 	sessionManager.Store = redisstore.NewWithPrefix(redisPool, "satellite:scs:session:")
 
-	mixManager, inertiaManager, err := newMixAndInertiaManager(debug, url)
+	mixManager, inertiaManager, err := newMixAndInertiaManager(debug, name, url)
 	if err != nil {
 		cli.ErrorLog.Fatal(err)
 	}
@@ -135,7 +137,7 @@ func Serve(
 	webApp.infoLog.Print("Server exited properly")
 }
 
-func newMixAndInertiaManager(debug bool, url string) (*mix.Mix, *inertia.Inertia, error) {
+func newMixAndInertiaManager(debug bool, name, url string) (*mix.Mix, *inertia.Inertia, error) {
 	mixManager := mix.New("", "./static", "")
 
 	var version string
@@ -155,6 +157,14 @@ func newMixAndInertiaManager(debug bool, url string) (*mix.Mix, *inertia.Inertia
 
 	inertiaManager := inertia.NewWithFS(url, "app.gohtml", version, views.Templates)
 	inertiaManager.Share("title", "Satellite")
+
+	suffix := ""
+
+	if name != "" {
+		suffix = fmt.Sprintf(": %s", name)
+	}
+
+	inertiaManager.Share("suffix", suffix)
 
 	inertiaManager.ShareFunc("asset", func(path string) (string, error) {
 		if debug {
