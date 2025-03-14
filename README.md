@@ -79,6 +79,12 @@ cp .env.example .env
 
 The configruation is stored in the `.env` file.
 
+### Application Name
+
+```
+APP_NAME=
+```
+
 ### Application Address
 
 ```
