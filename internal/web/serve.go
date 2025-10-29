@@ -3,6 +3,7 @@ package web
 import (
 	"context"
 	"fmt"
+	"github.com/petaki/support-go/vite"
 	"net/http"
 	"os"
 	"os/signal"
@@ -17,7 +18,6 @@ import (
 	"github.com/petaki/satellite/resources/views"
 	"github.com/petaki/satellite/static"
 	"github.com/petaki/support-go/cli"
-	"github.com/petaki/support-go/mix"
 )
 
 // Serve function.
@@ -37,7 +37,7 @@ func Serve(
 	sessionManager := scs.New()
 	sessionManager.Store = redisstore.NewWithPrefix(redisPool, "satellite:scs:session:")
 
-	mixManager, inertiaManager, err := newMixAndInertiaManager(debug, name, url)
+	viteManager, inertiaManager, err := newViteAndInertiaManager(debug, name, url)
 	if err != nil {
 		cli.ErrorLog.Fatal(err)
 	}
@@ -58,7 +58,7 @@ func Serve(
 		heartbeatWebhookURL:    heartbeatWebhookURL,
 		heartbeatWebhookHeader: heartbeatWebhookHeader,
 		heartbeatWebhookBody:   heartbeatWebhookBody,
-		mixManager:             mixManager,
+		viteManager:            viteManager,
 		inertiaManager:         inertiaManager,
 		client: &http.Client{
 			Timeout: 10 * time.Second,
@@ -137,22 +137,20 @@ func Serve(
 	webApp.infoLog.Print("Server exited properly")
 }
 
-func newMixAndInertiaManager(debug bool, name, url string) (*mix.Mix, *inertia.Inertia, error) {
-	mixManager := mix.New("", "./static", "")
-
+func newViteAndInertiaManager(debug bool, name, url string) (*vite.Vite, *inertia.Inertia, error) {
+	var viteManager *vite.Vite
 	var version string
 	var err error
 
 	if debug {
-		version, err = mixManager.Hash("")
-		if err != nil {
-			return nil, nil, err
-		}
+		viteManager = vite.New("static", "build")
 	} else {
-		version, err = mixManager.HashFromFS("", static.Files)
-		if err != nil {
-			return nil, nil, err
-		}
+		viteManager = vite.NewWithFS("static", "build", static.Files)
+	}
+
+	version, err = viteManager.ManifestHash()
+	if err != nil {
+		return nil, nil, err
 	}
 
 	inertiaManager := inertia.NewWithFS(url, "app.gohtml", version, views.Templates)
@@ -165,14 +163,9 @@ func newMixAndInertiaManager(debug bool, name, url string) (*mix.Mix, *inertia.I
 	}
 
 	inertiaManager.Share("suffix", suffix)
+	inertiaManager.ShareFunc("isRunningHot", viteManager.IsRunningHot)
+	inertiaManager.ShareFunc("asset", viteManager.Asset)
+	inertiaManager.ShareFunc("css", viteManager.CSS)
 
-	inertiaManager.ShareFunc("asset", func(path string) (string, error) {
-		if debug {
-			return mixManager.Mix(path, "")
-		}
-
-		return "/" + path, nil
-	})
-
-	return mixManager, inertiaManager, nil
+	return viteManager, inertiaManager, nil
 }
