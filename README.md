@@ -35,8 +35,8 @@ Downloads can be found at releases page on [GitHub](https://github.com/petaki/sa
 
 #### Prerequisites for building
 
-- GO: `Version >= 1.21`
-- Node.js: `Version >= 18.0`
+- GO: `Version >= 1.25`
+- Node.js: `Version >= 22.0`
 - Yarn or NPM
 
 #### 1. Clone the repository:
