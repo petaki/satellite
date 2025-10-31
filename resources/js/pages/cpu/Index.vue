@@ -4,8 +4,8 @@
         <breadcrumb :links="links" />
         <div class="bg-white p-8 dark:bg-slate-700">
             <card-title>
-                <cpu-chip-icon class="h-6 w-6 sm:mr-2 dark:text-slate-300" />
-                <span class="dark:text-slate-300">
+                <cpu-chip-icon class="h-6 w-6 sm:mr-2" />
+                <span>
                     {{ subtitle }}
                 </span>
                 <span class="text-slate-600 sm:mx-auto dark:text-slate-500">
