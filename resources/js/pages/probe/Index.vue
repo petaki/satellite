@@ -51,6 +51,8 @@ import {
 
 import { ArrowPathIcon, TrashIcon } from '@heroicons/vue/20/solid';
 
+import type { PropType } from 'vue';
+
 import {
     ref,
     computed,
@@ -64,7 +66,7 @@ import Layout from '../../base/Layout.vue';
 
 const { probes } = defineProps({
     probes: {
-        type: Array,
+        type: Array as PropType<string[]>,
         default: () => []
     }
 });
@@ -77,7 +79,7 @@ const keyword = ref('');
 const subtitle = ref('Probes');
 const reloadTimer = 60000;
 
-let reloadInterval;
+let reloadInterval: ReturnType<typeof setInterval>;
 
 const links = ref([
     { name: subtitle }
@@ -86,7 +88,7 @@ const links = ref([
 const filteredProbes = computed(() => {
     const words = keyword.value.trim().split(' ');
 
-    return (probes as any[]).filter(probe => {
+    return probes.filter(probe => {
         let has = true;
 
         words.forEach(word => {

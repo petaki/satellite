@@ -1,7 +1,7 @@
 import { DateTime, Duration } from 'luxon';
 
 export default () => {
-    const date = value => {
+    const date = (value: string) => {
         const d = DateTime.fromISO(value);
 
         if (!d.isValid) {
@@ -11,7 +11,7 @@ export default () => {
         return d.toLocaleString(DateTime.DATETIME_MED);
     };
 
-    const duration = minutes => Duration.fromObject({ minutes }).toFormat('hh:mm:ss');
+    const duration = (minutes: number) => Duration.fromObject({ minutes }).toFormat('hh:mm:ss');
 
     return {
         date,

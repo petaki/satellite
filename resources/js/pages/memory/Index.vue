@@ -33,6 +33,8 @@ import {
     DocumentDuplicateIcon
 } from '@heroicons/vue/24/outline';
 
+import type { PropType } from 'vue';
+
 import {
     ref,
     computed,
@@ -49,6 +51,7 @@ import Layout from '../../base/Layout.vue';
 import useAnnotation from '../../use/useAnnotation';
 import useDate from '../../use/useDate';
 import SeriesSelector from '../../base/SeriesSelector.vue';
+import type { SeriesDataPoint, ApexConfig } from '../../types';
 
 const {
     probe,
@@ -71,32 +74,32 @@ const {
     },
 
     memoryMinSeries: {
-        type: Array,
+        type: Array as PropType<SeriesDataPoint[]>,
         default: () => []
     },
 
     memoryMaxSeries: {
-        type: Array,
+        type: Array as PropType<SeriesDataPoint[]>,
         default: () => []
     },
 
     memoryAvgSeries: {
-        type: Array,
+        type: Array as PropType<SeriesDataPoint[]>,
         default: () => []
     },
 
     process1Series: {
-        type: Array,
+        type: Array as PropType<SeriesDataPoint[]>,
         default: () => []
     },
 
     process2Series: {
-        type: Array,
+        type: Array as PropType<SeriesDataPoint[]>,
         default: () => []
     },
 
     process3Series: {
-        type: Array,
+        type: Array as PropType<SeriesDataPoint[]>,
         default: () => []
     },
 
@@ -115,7 +118,7 @@ const { duration } = useDate();
 const subtitle = ref('Memory');
 const chartEl = ref();
 const reloadTimer = 60000;
-let reloadInterval;
+let reloadInterval: ReturnType<typeof setInterval>;
 
 const series = computed(() => [
     {
@@ -150,7 +153,7 @@ const series = computed(() => [
     }
 ]);
 
-const options: any = ref({
+const options = ref<ApexConfig>({
     chart: {
         stacked: true
     },
@@ -159,9 +162,9 @@ const options: any = ref({
     },
     tooltip: {
         y: {
-            formatter(value, { seriesIndex, dataPointIndex }) {
+            formatter(value: number, { seriesIndex, dataPointIndex }) {
                 if (seriesIndex > 2) {
-                    return `${(series.value[seriesIndex].data[dataPointIndex] as any).name}: ${value.toFixed(2)}%`;
+                    return `${series.value[seriesIndex].data[dataPointIndex].name}: ${value.toFixed(2)}%`;
                 }
 
                 return `${value.toFixed(2)}%`;
@@ -175,7 +178,7 @@ const options: any = ref({
         min: 0,
         max: 100,
         labels: {
-            formatter(val) {
+            formatter(val: number) {
                 if (val) {
                     return `${val.toFixed(2)}%`;
                 }
@@ -190,7 +193,7 @@ const links = ref([
     { name: subtitle }
 ]);
 
-const seriesHref = (isDefault, selectedType) => (isDefault
+const seriesHref = (isDefault: boolean, selectedType: string | undefined) => (isDefault
     ? `/memory?probe=${probe}`
     : `/memory?probe=${probe}&type=${selectedType}`);
 
@@ -205,7 +208,7 @@ const refreshSeries = async () => {
 
     options.value.annotations = {
         yaxis: [
-            max(Math.max(...(memoryMaxSeries ?? []).map((value: any) => value.y)))
+            max(Math.max(...(memoryMaxSeries ?? []).map(value => value.y)))
         ]
     };
 

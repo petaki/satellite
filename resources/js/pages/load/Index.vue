@@ -33,6 +33,8 @@ import {
     DocumentDuplicateIcon
 } from '@heroicons/vue/24/outline';
 
+import type { PropType } from 'vue';
+
 import {
     ref,
     computed,
@@ -48,6 +50,7 @@ import Layout from '../../base/Layout.vue';
 import useAnnotation from '../../use/useAnnotation';
 import useDate from '../../use/useDate';
 import SeriesSelector from '../../base/SeriesSelector.vue';
+import type { SeriesDataPoint, ApexConfig } from '../../types';
 
 const {
     probe,
@@ -67,17 +70,17 @@ const {
     },
 
     load1Series: {
-        type: Array,
+        type: Array as PropType<SeriesDataPoint[]>,
         default: () => []
     },
 
     load5Series: {
-        type: Array,
+        type: Array as PropType<SeriesDataPoint[]>,
         default: () => []
     },
 
     load15Series: {
-        type: Array,
+        type: Array as PropType<SeriesDataPoint[]>,
         default: () => []
     },
 
@@ -96,7 +99,7 @@ const { duration } = useDate();
 const subtitle = ref('Load');
 const chartEl = ref();
 const reloadTimer = 60000;
-let reloadInterval;
+let reloadInterval: ReturnType<typeof setInterval>;
 
 const series = computed(() => [
     {
@@ -113,14 +116,14 @@ const series = computed(() => [
     }
 ]);
 
-const options: any = ref({
+const options = ref<ApexConfig>({
     dataLabels: {
         enabled: false
     },
     yaxis: {
         min: 0,
         labels: {
-            formatter(val) {
+            formatter(val: number) {
                 if (val) {
                     return val.toFixed(2);
                 }
@@ -135,7 +138,7 @@ const links = ref([
     { name: subtitle }
 ]);
 
-const seriesHref = (isDefault, selectedType) => (isDefault
+const seriesHref = (isDefault: boolean, selectedType: string | undefined) => (isDefault
     ? `/load?probe=${probe}`
     : `/load?probe=${probe}&type=${selectedType}`);
 
