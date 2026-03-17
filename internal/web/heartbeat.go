@@ -44,7 +44,7 @@ func (a *app) handleProbe(probe models.Probe, wg *sync.WaitGroup) {
 
 	sendWebhook := true
 
-	values, start, err := a.probeRepository.FindLatestValues(probe, a.heartbeatWait)
+	values, start, err := a.probeRepository.FindLatestValues(probe, a.appConfig.HeartbeatWait)
 	if err != nil {
 		a.errorLog.Print(err)
 
@@ -63,7 +63,7 @@ func (a *app) handleProbe(probe models.Probe, wg *sync.WaitGroup) {
 		return
 	}
 
-	if a.heartbeatSleep > 0 {
+	if a.appConfig.HeartbeatSleep > 0 {
 		hasHeartbeat, err := a.probeRepository.HasHeartbeat(probe)
 		if err != nil {
 			a.errorLog.Print(err)
@@ -78,19 +78,19 @@ func (a *app) handleProbe(probe models.Probe, wg *sync.WaitGroup) {
 
 	a.infoLog.Printf("Calling the heartbeat webhook URL for %s...", probe)
 
-	body := strings.ReplaceAll(a.heartbeatWebhookBody, "%p", string(probe))
+	body := strings.ReplaceAll(a.appConfig.HeartbeatWebhookBody, "%p", string(probe))
 	body = strings.ReplaceAll(body, "%t", start.Format(time.RFC3339))
 	body = strings.ReplaceAll(body, "%x", strconv.FormatInt(start.Unix(), 10))
 	body = strings.ReplaceAll(body, "%l", fmt.Sprintf("/cpu?probe=%s", probe))
 
-	req, err := http.NewRequest(a.heartbeatWebhookMethod, a.heartbeatWebhookURL, bytes.NewBuffer([]byte(body)))
+	req, err := http.NewRequest(a.appConfig.HeartbeatWebhookMethod, a.appConfig.HeartbeatWebhookURL, bytes.NewBuffer([]byte(body)))
 	if err != nil {
 		a.errorLog.Print(err)
 
 		return
 	}
 
-	for key, value := range a.heartbeatWebhookHeader {
+	for key, value := range a.appConfig.HeartbeatWebhookHeader {
 		req.Header.Set(key, value)
 	}
 
@@ -109,8 +109,8 @@ func (a *app) handleProbe(probe models.Probe, wg *sync.WaitGroup) {
 		return
 	}
 
-	if a.heartbeatSleep > 0 {
-		err = a.probeRepository.SetHeartbeat(probe, a.heartbeatSleep)
+	if a.appConfig.HeartbeatSleep > 0 {
+		err = a.probeRepository.SetHeartbeat(probe, a.appConfig.HeartbeatSleep)
 		if err != nil {
 			a.errorLog.Print(err)
 

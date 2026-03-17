@@ -277,7 +277,7 @@ func (a *app) seriesTypeFromRequest(r *http.Request) models.SeriesType {
 	if seriesType == "" {
 		exists := a.sessionManager.Exists(r.Context(), sessionKeySeriesType)
 		if !exists {
-			return a.seriesButtons[0]
+			return a.appConfig.SeriesButtons[0]
 		}
 
 		return models.SeriesType(a.sessionManager.GetString(r.Context(), sessionKeySeriesType))
