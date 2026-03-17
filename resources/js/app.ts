@@ -1,4 +1,4 @@
-import { DateTime, Duration } from 'luxon';
+import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import { createInertiaApp, Head, Link } from '@inertiajs/vue3';
 import VueApexCharts from 'vue3-apexcharts';
@@ -10,7 +10,7 @@ window.isDark = () => localStorage.theme === 'dark'
     || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
 window.createApex = () => {
-    const apex = {
+    const apex: any = {
         chart: {
             animations: {
                 enabled: false
@@ -66,8 +66,8 @@ window.createApex = () => {
 window.createApex();
 
 createInertiaApp({
-    resolve: name => {
-        const pages = import.meta.glob('./pages/**/*.vue', { eager: true });
+    resolve: (name: string) => {
+        const pages = import.meta.glob<{ default: DefineComponent }>('./pages/**/*.vue', { eager: true });
 
         return pages[`./pages/${name}.vue`];
     },
@@ -80,23 +80,6 @@ createInertiaApp({
             .component('InertiaHead', Head)
             .component('InertiaLink', Link)
             .component('AppTitle', AppTitle)
-            .mixin({
-                methods: {
-                    date(value) {
-                        const date = DateTime.fromISO(value);
-
-                        if (!date.isValid) {
-                            return value;
-                        }
-
-                        return date.toLocaleString(DateTime.DATETIME_MED);
-                    },
-
-                    duration(minutes) {
-                        return Duration.fromObject({ minutes }).toFormat('hh:mm:ss');
-                    }
-                }
-            })
             .mount(el);
     }
 });

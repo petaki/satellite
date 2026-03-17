@@ -28,7 +28,7 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
     CircleStackIcon
 } from '@heroicons/vue/24/outline';
@@ -39,8 +39,6 @@ import {
     onMounted,
     onUnmounted,
     nextTick,
-    defineProps,
-    defineOptions,
     watch
 } from 'vue';
 
@@ -48,7 +46,8 @@ import { router } from '@inertiajs/vue3';
 import Breadcrumb from '../../base/Breadcrumb.vue';
 import CardTitle from '../../base/CardTitle.vue';
 import Layout from '../../base/Layout.vue';
-import useAnnotation from '../../base/useAnnotation';
+import useAnnotation from '../../use/useAnnotation';
+import useDate from '../../use/useDate';
 import SeriesSelector from '../../base/SeriesSelector.vue';
 
 const {
@@ -100,12 +99,13 @@ defineOptions({
 });
 
 const { alarm, max } = useAnnotation();
+const { duration } = useDate();
 const subtitle = ref(`Disk - ${diskPath}`);
 const chartEl = ref();
 const reloadTimer = 60000;
 let reloadInterval;
 
-const options = ref({
+const options: any = ref({
     yaxis: {
         min: 0,
         max: 100,
@@ -155,7 +155,7 @@ const refreshSeries = async () => {
 
     options.value.annotations = {
         yaxis: [
-            max(Math.max(...(diskMaxSeries ?? []).map(value => value.y)))
+            max(Math.max(...(diskMaxSeries ?? []).map((value: any) => value.y)))
         ]
     };
 

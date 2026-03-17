@@ -28,7 +28,7 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
     DocumentDuplicateIcon
 } from '@heroicons/vue/24/outline';
@@ -38,15 +38,15 @@ import {
     computed,
     onMounted,
     onUnmounted,
-    defineProps,
-    defineOptions, watch, nextTick
+    watch, nextTick
 } from 'vue';
 
 import { router } from '@inertiajs/vue3';
 import Breadcrumb from '../../base/Breadcrumb.vue';
 import CardTitle from '../../base/CardTitle.vue';
 import Layout from '../../base/Layout.vue';
-import useAnnotation from '../../base/useAnnotation';
+import useAnnotation from '../../use/useAnnotation';
+import useDate from '../../use/useDate';
 import SeriesSelector from '../../base/SeriesSelector.vue';
 
 const {
@@ -92,6 +92,7 @@ defineOptions({
 });
 
 const { alarm, max } = useAnnotation();
+const { duration } = useDate();
 const subtitle = ref('Load');
 const chartEl = ref();
 const reloadTimer = 60000;
@@ -112,7 +113,7 @@ const series = computed(() => [
     }
 ]);
 
-const options = ref({
+const options: any = ref({
     dataLabels: {
         enabled: false
     },

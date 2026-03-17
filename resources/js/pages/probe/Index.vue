@@ -43,7 +43,7 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
     CubeIcon,
     ChevronRightIcon
@@ -55,9 +55,7 @@ import {
     ref,
     computed,
     onMounted,
-    onUnmounted,
-    defineProps,
-    defineOptions
+    onUnmounted
 } from 'vue';
 
 import { router } from '@inertiajs/vue3';
@@ -88,7 +86,7 @@ const links = ref([
 const filteredProbes = computed(() => {
     const words = keyword.value.trim().split(' ');
 
-    return probes.filter(probe => {
+    return (probes as any[]).filter(probe => {
         let has = true;
 
         words.forEach(word => {
