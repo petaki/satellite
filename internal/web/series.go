@@ -3,6 +3,7 @@ package web
 import (
 	"errors"
 	"net/http"
+	"slices"
 
 	"github.com/petaki/satellite/internal/models"
 )
@@ -53,7 +54,7 @@ func (a *app) cpuIndex(w http.ResponseWriter, r *http.Request) {
 		cpuAlarm = alarm.CPU
 	}
 
-	err = a.inertiaManager.Render(w, r, "cpu/Index", map[string]interface{}{
+	err = a.inertiaManager.Render(w, r, "cpu/Index", map[string]any{
 		"isCpuActive":    true,
 		"seriesType":     seriesType,
 		"chunkSize":      a.seriesRepository.ChunkSize(seriesType),
@@ -117,7 +118,7 @@ func (a *app) memoryIndex(w http.ResponseWriter, r *http.Request) {
 		memoryAlarm = alarm.Memory
 	}
 
-	err = a.inertiaManager.Render(w, r, "memory/Index", map[string]interface{}{
+	err = a.inertiaManager.Render(w, r, "memory/Index", map[string]any{
 		"isMemoryActive":  true,
 		"seriesType":      seriesType,
 		"chunkSize":       a.seriesRepository.ChunkSize(seriesType),
@@ -181,7 +182,7 @@ func (a *app) loadIndex(w http.ResponseWriter, r *http.Request) {
 		loadAlarm = alarm.Load
 	}
 
-	err = a.inertiaManager.Render(w, r, "load/Index", map[string]interface{}{
+	err = a.inertiaManager.Render(w, r, "load/Index", map[string]any{
 		"isLoadActive": true,
 		"seriesType":   seriesType,
 		"chunkSize":    a.seriesRepository.ChunkSize(seriesType),
@@ -255,7 +256,7 @@ func (a *app) diskIndex(w http.ResponseWriter, r *http.Request) {
 		diskAlarm = alarm.Disk
 	}
 
-	err = a.inertiaManager.Render(w, r, "disk/Index", map[string]interface{}{
+	err = a.inertiaManager.Render(w, r, "disk/Index", map[string]any{
 		"seriesType":    seriesType,
 		"chunkSize":     a.seriesRepository.ChunkSize(seriesType),
 		"diskPath":      diskPath,
@@ -286,13 +287,7 @@ func (a *app) seriesTypeFromRequest(r *http.Request) models.SeriesType {
 }
 
 func (a *app) diskPathExists(diskPaths []string, diskPath string) bool {
-	for _, current := range diskPaths {
-		if current == diskPath {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(diskPaths, diskPath)
 }
 
 func (a *app) seriesTypeExists(seriesType models.SeriesType) bool {

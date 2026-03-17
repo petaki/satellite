@@ -50,9 +50,9 @@ func WebServe(group *cli.Group, command *cli.Command, arguments []string) int {
 	}
 
 	var sb []models.SeriesType
-	segments := strings.Split(*seriesButtons, ",")
+	segments := strings.SplitSeq(*seriesButtons, ",")
 
-	for _, segment := range segments {
+	for segment := range segments {
 		st := models.SeriesType(segment)
 
 		for _, current := range models.SeriesTypes {

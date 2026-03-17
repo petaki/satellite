@@ -74,7 +74,7 @@ func (rpr *RedisProbeRepository) FindAll() ([]Probe, error) {
 }
 
 // FindLatestValues function.
-func (rpr *RedisProbeRepository) FindLatestValues(probe Probe, limit int) ([]interface{}, *time.Time, error) {
+func (rpr *RedisProbeRepository) FindLatestValues(probe Probe, limit int) ([]any, *time.Time, error) {
 	if limit < 1 {
 		return nil, nil, ErrInvalidLimit
 	}
@@ -113,7 +113,7 @@ func (rpr *RedisProbeRepository) FindLatestValues(probe Probe, limit int) ([]int
 		days[day] = append(days[day], strconv.FormatInt(current.Unix(), 10))
 	}
 
-	var values []interface{}
+	var values []any
 
 	for day, fields := range days {
 		dayValues, err := redis.Values(

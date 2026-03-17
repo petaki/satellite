@@ -19,7 +19,7 @@ func (a *app) probeIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := a.inertiaManager.Render(w, r, "probe/Index", map[string]interface{}{
+	err := a.inertiaManager.Render(w, r, "probe/Index", map[string]any{
 		"isProbeActive": true,
 		"probes":        r.Context().Value(contextKeyProbes).([]models.Probe),
 	})
