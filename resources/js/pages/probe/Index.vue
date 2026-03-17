@@ -32,11 +32,9 @@
                             <th class="px-6 py-3 text-left">
                                 CPU
                             </th>
-                            <th class="w-24 px-6 py-3 text-left"></th>
                             <th class="px-6 py-3 text-left">
                                 Memory
                             </th>
-                            <th class="w-24 px-6 py-3 text-left"></th>
                             <th class="px-6 py-3 text-left">
                                 Load 1
                             </th>
@@ -54,7 +52,7 @@
                     <tbody>
                         <tr v-if="!filteredProbes.length">
                             <td class="border-t border-gray-100 px-6 py-3 dark:border-slate-600"
-                                colspan="9">
+                                colspan="7">
                                 No probes.
                             </td>
                         </tr>
@@ -77,9 +75,6 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="w-24 border-t border-gray-100 px-6 py-3 dark:border-slate-600">
-                                {{ probe.cpu.toFixed(1) }}%
-                            </td>
                             <td class="border-t border-gray-100 px-6 py-3 dark:border-slate-600">
                                 <div class="min-w-52">
                                     <div class="mb-2 flex items-center justify-between gap-3 text-sm">
@@ -91,9 +86,6 @@
                                              :style="{ width: animated ? `${clamp(probe.memory)}%` : '0%' }"></div>
                                     </div>
                                 </div>
-                            </td>
-                            <td class="w-24 border-t border-gray-100 px-6 py-3 dark:border-slate-600">
-                                {{ probe.memory.toFixed(1) }}%
                             </td>
                             <td class="border-t border-gray-100 px-6 py-3 tabular-nums dark:border-slate-600">
                                 {{ probe.load1.toFixed(2) }}
