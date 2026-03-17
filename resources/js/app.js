@@ -1,4 +1,3 @@
-import { DateTime, Duration } from 'luxon';
 import { createApp, h } from 'vue';
 import { createInertiaApp, Head, Link } from '@inertiajs/vue3';
 import VueApexCharts from 'vue3-apexcharts';
@@ -80,23 +79,6 @@ createInertiaApp({
             .component('InertiaHead', Head)
             .component('InertiaLink', Link)
             .component('AppTitle', AppTitle)
-            .mixin({
-                methods: {
-                    date(value) {
-                        const date = DateTime.fromISO(value);
-
-                        if (!date.isValid) {
-                            return value;
-                        }
-
-                        return date.toLocaleString(DateTime.DATETIME_MED);
-                    },
-
-                    duration(minutes) {
-                        return Duration.fromObject({ minutes }).toFormat('hh:mm:ss');
-                    }
-                }
-            })
             .mount(el);
     }
 });

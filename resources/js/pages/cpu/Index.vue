@@ -48,7 +48,8 @@ import { router } from '@inertiajs/vue3';
 import Breadcrumb from '../../base/Breadcrumb.vue';
 import CardTitle from '../../base/CardTitle.vue';
 import Layout from '../../base/Layout.vue';
-import useAnnotation from '../../base/useAnnotation';
+import useAnnotation from '../../use/useAnnotation';
+import useDate from '../../use/useDate';
 import SeriesSelector from '../../base/SeriesSelector.vue';
 
 const {
@@ -112,6 +113,7 @@ defineOptions({
 });
 
 const { alarm, max } = useAnnotation();
+const { duration } = useDate();
 const subtitle = ref('CPU');
 const chartEl = ref();
 const reloadTimer = 60000;
