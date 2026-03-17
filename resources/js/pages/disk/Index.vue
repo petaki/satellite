@@ -28,7 +28,7 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
     CircleStackIcon
 } from '@heroicons/vue/24/outline';
@@ -39,8 +39,6 @@ import {
     onMounted,
     onUnmounted,
     nextTick,
-    defineProps,
-    defineOptions,
     watch
 } from 'vue';
 
@@ -107,7 +105,7 @@ const chartEl = ref();
 const reloadTimer = 60000;
 let reloadInterval;
 
-const options = ref({
+const options: any = ref({
     yaxis: {
         min: 0,
         max: 100,
@@ -157,7 +155,7 @@ const refreshSeries = async () => {
 
     options.value.annotations = {
         yaxis: [
-            max(Math.max(...(diskMaxSeries ?? []).map(value => value.y)))
+            max(Math.max(...(diskMaxSeries ?? []).map((value: any) => value.y)))
         ]
     };
 

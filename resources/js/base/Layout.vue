@@ -134,7 +134,7 @@
     <!-- eslint-enable max-len -->
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
     Bars3Icon,
     CpuChipIcon,

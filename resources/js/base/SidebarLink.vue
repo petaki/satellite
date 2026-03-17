@@ -13,9 +13,7 @@
     <!-- eslint-enable max-len -->
 </template>
 
-<script setup>
-import { defineProps } from 'vue';
-
+<script setup lang="ts">
 defineProps({
     isActive: {
         type: Boolean,

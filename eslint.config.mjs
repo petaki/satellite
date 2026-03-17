@@ -3,6 +3,8 @@ import pluginVue from 'eslint-plugin-vue';
 import globals from 'globals';
 import vueParser from 'vue-eslint-parser';
 import parser from '@babel/eslint-parser';
+import tsParser from '@typescript-eslint/parser';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 // eslint-disable-next-line import/no-extraneous-dependencies
@@ -36,7 +38,11 @@ export default defineConfig([
             sourceType: 'module',
 
             parserOptions: {
-                parser,
+                parser: {
+                    js: parser,
+                    ts: tsParser,
+                    '<template>': parser
+                },
                 requireConfigFile: false
             }
         },
@@ -91,6 +97,13 @@ export default defineConfig([
             }],
             'vue/multi-word-component-names': 'off',
             'vue/no-v-html': 'off'
+        }
+    },
+    {
+        files: ['**/*.ts', '**/*.vue'],
+
+        plugins: {
+            '@typescript-eslint': tsPlugin
         }
     }
 ]);

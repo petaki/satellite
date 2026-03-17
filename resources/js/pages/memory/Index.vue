@@ -28,7 +28,7 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
     DocumentDuplicateIcon
 } from '@heroicons/vue/24/outline';
@@ -39,8 +39,6 @@ import {
     onMounted,
     onUnmounted,
     nextTick,
-    defineProps,
-    defineOptions,
     watch
 } from 'vue';
 
@@ -152,7 +150,7 @@ const series = computed(() => [
     }
 ]);
 
-const options = ref({
+const options: any = ref({
     chart: {
         stacked: true
     },
@@ -163,7 +161,7 @@ const options = ref({
         y: {
             formatter(value, { seriesIndex, dataPointIndex }) {
                 if (seriesIndex > 2) {
-                    return `${series.value[seriesIndex].data[dataPointIndex].name}: ${value.toFixed(2)}%`;
+                    return `${(series.value[seriesIndex].data[dataPointIndex] as any).name}: ${value.toFixed(2)}%`;
                 }
 
                 return `${value.toFixed(2)}%`;
@@ -207,7 +205,7 @@ const refreshSeries = async () => {
 
     options.value.annotations = {
         yaxis: [
-            max(Math.max(...(memoryMaxSeries ?? []).map(value => value.y)))
+            max(Math.max(...(memoryMaxSeries ?? []).map((value: any) => value.y)))
         ]
     };
 

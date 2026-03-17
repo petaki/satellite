@@ -23,10 +23,8 @@
     </button>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
-    defineModel,
-    defineProps,
     watch
 } from 'vue';
 
@@ -46,10 +44,10 @@ const { href } = defineProps({
 
 const page = usePage();
 
-model.value = page.props.seriesType;
+model.value = page.props.seriesType as string;
 
-const createSeriesButtons = () => page.props.seriesTypes
-    .filter(type => page.props.seriesButtons.indexOf(type.value) !== -1)
+const createSeriesButtons = () => (page.props.seriesTypes as any[])
+    .filter(type => (page.props.seriesButtons as any[]).indexOf(type.value) !== -1)
     .map(type => ({
         name: type.name.split(' ').map(segment => (!Number.isNaN(Number(segment))
             ? segment

@@ -28,7 +28,7 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
     DocumentDuplicateIcon
 } from '@heroicons/vue/24/outline';
@@ -38,8 +38,7 @@ import {
     computed,
     onMounted,
     onUnmounted,
-    defineProps,
-    defineOptions, watch, nextTick
+    watch, nextTick
 } from 'vue';
 
 import { router } from '@inertiajs/vue3';
@@ -114,7 +113,7 @@ const series = computed(() => [
     }
 ]);
 
-const options = ref({
+const options: any = ref({
     dataLabels: {
         enabled: false
     },
