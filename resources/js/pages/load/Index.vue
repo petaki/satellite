@@ -33,8 +33,6 @@ import {
     DocumentDuplicateIcon
 } from '@heroicons/vue/24/outline';
 
-import type { PropType } from 'vue';
-
 import {
     ref,
     computed,
@@ -54,41 +52,19 @@ import type { SeriesDataPoint, ApexConfig } from '../../types';
 
 const {
     probe,
-    load1Series,
-    load5Series,
-    load15Series,
-    loadAlarm
-} = defineProps({
-    probe: {
-        type: String,
-        required: true
-    },
-
-    chunkSize: {
-        type: Number,
-        required: true
-    },
-
-    load1Series: {
-        type: Array as PropType<SeriesDataPoint[]>,
-        default: () => []
-    },
-
-    load5Series: {
-        type: Array as PropType<SeriesDataPoint[]>,
-        default: () => []
-    },
-
-    load15Series: {
-        type: Array as PropType<SeriesDataPoint[]>,
-        default: () => []
-    },
-
-    loadAlarm: {
-        type: Number,
-        default: 0
-    }
-});
+    chunkSize,
+    load1Series = [],
+    load5Series = [],
+    load15Series = [],
+    loadAlarm = 0
+} = defineProps<{
+    probe: string
+    chunkSize: number
+    load1Series?: SeriesDataPoint[]
+    load5Series?: SeriesDataPoint[]
+    load15Series?: SeriesDataPoint[]
+    loadAlarm?: number
+}>();
 
 defineOptions({
     layout: Layout

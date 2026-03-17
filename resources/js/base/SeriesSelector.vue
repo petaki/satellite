@@ -28,23 +28,15 @@ import {
     watch
 } from 'vue';
 
-import type { PropType } from 'vue';
 import { ArrowPathIcon } from '@heroicons/vue/20/solid';
 import { router, usePage } from '@inertiajs/vue3';
 import type { SeriesType } from '../types';
 
-const model = defineModel({
-    type: String
-});
+const model = defineModel<string>();
 
-const { href } = defineProps({
-    href: {
-        type: Function as PropType<
-            (isDefault: boolean, selectedType: string | undefined) => string
-        >,
-        required: true
-    }
-});
+const { href } = defineProps<{
+    href: (isDefault: boolean, selectedType: string | undefined) => string
+}>();
 
 const page = usePage();
 

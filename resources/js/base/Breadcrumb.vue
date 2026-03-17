@@ -27,10 +27,9 @@
 </template>
 
 <script setup lang="ts">
-defineProps({
-    links: {
-        type: Array,
-        required: true
-    }
-});
+import type { BreadcrumbLink } from '../types';
+
+defineProps<{
+    links: BreadcrumbLink[]
+}>();
 </script>

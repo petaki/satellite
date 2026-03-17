@@ -138,6 +138,96 @@ func (rsr *RedisSeriesRepository) ChunkSize(seriesType SeriesType) int {
 	return 1 // 1 minute
 }
 
+// FindLatestCPU function.
+func (rsr *RedisSeriesRepository) FindLatestCPU(probe Probe) (float64, bool, error) {
+	return rsr.findLatestMetric(probe, seriesCPUKeyPrefix, "")
+}
+
+// FindLatestMemory function.
+func (rsr *RedisSeriesRepository) FindLatestMemory(probe Probe) (float64, bool, error) {
+	return rsr.findLatestMetric(probe, seriesMemoryKeyPrefix, "")
+}
+
+// FindLatestLoad function.
+func (rsr *RedisSeriesRepository) FindLatestLoad(probe Probe) (float64, float64, float64, bool, error) {
+	load1, found1, err := rsr.findLatestMetric(probe, seriesLoadKeyPrefix, "load1")
+	if err != nil {
+		return 0, 0, 0, false, err
+	}
+
+	load5, found5, err := rsr.findLatestMetric(probe, seriesLoadKeyPrefix, "load5")
+	if err != nil {
+		return 0, 0, 0, false, err
+	}
+
+	load15, found15, err := rsr.findLatestMetric(probe, seriesLoadKeyPrefix, "load15")
+	if err != nil {
+		return 0, 0, 0, false, err
+	}
+
+	return load1, load5, load15, found1 || found5 || found15, nil
+}
+
+func (rsr *RedisSeriesRepository) findLatestMetric(probe Probe, prefix, suffix string) (float64, bool, error) {
+	conn := rsr.RedisPool.Get()
+	defer conn.Close()
+
+	todayTS := today()
+	yesterdayTS := todayTS.AddDate(0, 0, -1)
+
+	for _, ts := range []int64{todayTS.Unix(), yesterdayTS.Unix()} {
+		values, err := redis.Strings(
+			conn.Do("HGETALL", string(probe)+":"+prefix+strconv.FormatInt(ts, 10)),
+		)
+		if err != nil {
+			return 0, false, err
+		}
+
+		if len(values) == 0 {
+			continue
+		}
+
+		var maxTS int64
+		var maxVal string
+
+		for i := 0; i < len(values); i += 2 {
+			x, err := strconv.ParseInt(values[i], 10, 64)
+			if err != nil {
+				return 0, false, err
+			}
+
+			if x > maxTS {
+				maxTS = x
+				maxVal = values[i+1]
+			}
+		}
+
+		if maxTS == 0 {
+			continue
+		}
+
+		yv := maxVal
+
+		switch suffix {
+		case "load1":
+			yv = strings.SplitN(yv, ":", 3)[0]
+		case "load5":
+			yv = strings.SplitN(yv, ":", 3)[1]
+		case "load15":
+			yv = strings.SplitN(yv, ":", 3)[2]
+		}
+
+		y, err := strconv.ParseFloat(yv, 64)
+		if err != nil {
+			return 0, false, err
+		}
+
+		return y, true, nil
+	}
+
+	return 0, false, nil
+}
+
 func (rsr *RedisSeriesRepository) findAvgSeries(probe Probe, seriesType SeriesType, prefix, suffix string) (Series, error) {
 	conn := rsr.RedisPool.Get()
 	defer conn.Close()

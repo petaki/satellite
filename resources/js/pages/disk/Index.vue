@@ -33,8 +33,6 @@ import {
     CircleStackIcon
 } from '@heroicons/vue/24/outline';
 
-import type { PropType } from 'vue';
-
 import {
     ref,
     computed,
@@ -55,47 +53,21 @@ import type { SeriesDataPoint, ApexConfig } from '../../types';
 
 const {
     probe,
+    chunkSize,
     diskPath,
-    diskMinSeries,
-    diskMaxSeries,
-    diskAvgSeries,
-    diskAlarm
-} = defineProps({
-    probe: {
-        type: String,
-        required: true
-    },
-
-    chunkSize: {
-        type: Number,
-        required: true
-    },
-
-    diskPath: {
-        type: String,
-        required: true
-    },
-
-    diskMinSeries: {
-        type: Array as PropType<SeriesDataPoint[]>,
-        default: () => []
-    },
-
-    diskMaxSeries: {
-        type: Array as PropType<SeriesDataPoint[]>,
-        default: () => []
-    },
-
-    diskAvgSeries: {
-        type: Array as PropType<SeriesDataPoint[]>,
-        default: () => []
-    },
-
-    diskAlarm: {
-        type: Number,
-        default: 0
-    }
-});
+    diskMinSeries = [],
+    diskMaxSeries = [],
+    diskAvgSeries = [],
+    diskAlarm = 0
+} = defineProps<{
+    probe: string
+    chunkSize: number
+    diskPath: string
+    diskMinSeries?: SeriesDataPoint[]
+    diskMaxSeries?: SeriesDataPoint[]
+    diskAvgSeries?: SeriesDataPoint[]
+    diskAlarm?: number
+}>();
 
 defineOptions({
     layout: Layout
