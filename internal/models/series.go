@@ -38,7 +38,7 @@ const (
 	Last30Days SeriesType = "last_30_days"
 )
 
-var SeriesTypes = []map[string]interface{}{
+var SeriesTypes = []map[string]any{
 	{
 		"name":  "Last 5 minutes",
 		"value": Last5Minutes,

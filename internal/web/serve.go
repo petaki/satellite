@@ -3,7 +3,6 @@ package web
 import (
 	"context"
 	"fmt"
-	"github.com/petaki/support-go/vite"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,57 +11,37 @@ import (
 
 	"github.com/alexedwards/scs/redisstore"
 	"github.com/alexedwards/scs/v2"
-	"github.com/gomodule/redigo/redis"
 	"github.com/petaki/inertia-go"
+	"github.com/petaki/satellite/internal/config"
 	"github.com/petaki/satellite/internal/models"
+	"github.com/petaki/satellite/internal/service"
 	"github.com/petaki/satellite/resources/views"
 	"github.com/petaki/satellite/static"
 	"github.com/petaki/support-go/cli"
+	"github.com/petaki/support-go/vite"
 )
 
 // Serve function.
-func Serve(
-	debug bool,
-	name,
-	addr,
-	url string,
-	seriesButtons []models.SeriesType,
-	redisPool *redis.Pool,
-	heartbeatEnabled bool,
-	heartbeatWait, heartbeatSleep int,
-	heartbeatWebhookMethod, heartbeatWebhookURL string,
-	heartbeatWebhookHeader map[string]string,
-	heartbeatWebhookBody string,
-) {
+func Serve(appConfig *config.Config) {
+	redisPool := service.RedisPool(appConfig)
+	defer redisPool.Close()
+
 	sessionManager := scs.New()
 	sessionManager.Store = redisstore.NewWithPrefix(redisPool, "satellite:scs:session:")
 
-	viteManager, inertiaManager, err := newViteAndInertiaManager(debug, name, url)
+	viteManager, inertiaManager, err := newViteAndInertiaManager(appConfig)
 	if err != nil {
 		cli.ErrorLog.Fatal(err)
 	}
 
-	inertiaManager.Share("seriesButtons", seriesButtons)
-	inertiaManager.Share("seriesTypes", models.SeriesTypes)
-
 	webApp := &app{
-		debug:                  debug,
-		url:                    url,
-		seriesButtons:          seriesButtons,
-		infoLog:                cli.InfoLog,
-		errorLog:               cli.ErrorLog,
-		sessionManager:         sessionManager,
-		heartbeatWait:          heartbeatWait,
-		heartbeatSleep:         heartbeatSleep,
-		heartbeatWebhookMethod: heartbeatWebhookMethod,
-		heartbeatWebhookURL:    heartbeatWebhookURL,
-		heartbeatWebhookHeader: heartbeatWebhookHeader,
-		heartbeatWebhookBody:   heartbeatWebhookBody,
-		viteManager:            viteManager,
-		inertiaManager:         inertiaManager,
-		client: &http.Client{
-			Timeout: 10 * time.Second,
-		},
+		appConfig:      appConfig,
+		infoLog:        cli.InfoLog,
+		errorLog:       cli.ErrorLog,
+		sessionManager: sessionManager,
+		viteManager:    viteManager,
+		inertiaManager: inertiaManager,
+		client:         service.HTTPClient(),
 		probeRepository: &models.RedisProbeRepository{
 			RedisPool: redisPool,
 		},
@@ -75,7 +54,7 @@ func Serve(
 	}
 
 	srv := &http.Server{
-		Addr:         addr,
+		Addr:         appConfig.Addr,
 		ErrorLog:     webApp.errorLog,
 		Handler:      webApp.routes(),
 		IdleTimeout:  time.Minute,
@@ -86,7 +65,7 @@ func Serve(
 	var ticker *time.Ticker
 	var doneTicker chan bool
 
-	if heartbeatEnabled {
+	if appConfig.HeartbeatEnabled {
 		ticker = time.NewTicker(time.Minute)
 		doneTicker = make(chan bool)
 
@@ -105,7 +84,7 @@ func Serve(
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
-	webApp.infoLog.Printf("Starting server on "+cli.Green("%s"), addr)
+	webApp.infoLog.Printf("Starting server on "+cli.Green("%s"), appConfig.Addr)
 
 	go func() {
 		err = srv.ListenAndServe()
@@ -120,7 +99,7 @@ func Serve(
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer func() {
-		if heartbeatEnabled {
+		if appConfig.HeartbeatEnabled {
 			ticker.Stop()
 			doneTicker <- true
 			webApp.infoLog.Print("Ticker stopped")
@@ -137,12 +116,12 @@ func Serve(
 	webApp.infoLog.Print("Server exited properly")
 }
 
-func newViteAndInertiaManager(debug bool, name, url string) (*vite.Vite, *inertia.Inertia, error) {
+func newViteAndInertiaManager(appConfig *config.Config) (*vite.Vite, *inertia.Inertia, error) {
 	var viteManager *vite.Vite
 	var version string
 	var err error
 
-	if debug {
+	if appConfig.Debug {
 		viteManager = vite.New("static", "build")
 	} else {
 		viteManager = vite.NewWithFS("static", "build", static.Files)
@@ -153,16 +132,18 @@ func newViteAndInertiaManager(debug bool, name, url string) (*vite.Vite, *inerti
 		return nil, nil, err
 	}
 
-	inertiaManager := inertia.NewWithFS(url, "app.gohtml", version, views.Templates)
+	inertiaManager := inertia.NewWithFS(appConfig.URL, "app.gohtml", version, views.Templates)
 	inertiaManager.Share("title", "Satellite")
 
 	suffix := ""
 
-	if name != "" {
-		suffix = fmt.Sprintf(": %s", name)
+	if appConfig.Name != "" {
+		suffix = fmt.Sprintf(": %s", appConfig.Name)
 	}
 
 	inertiaManager.Share("suffix", suffix)
+	inertiaManager.Share("seriesButtons", appConfig.SeriesButtons)
+	inertiaManager.Share("seriesTypes", models.SeriesTypes)
 	inertiaManager.ShareFunc("isRunningHot", viteManager.IsRunningHot)
 	inertiaManager.ShareFunc("asset", viteManager.Asset)
 	inertiaManager.ShareFunc("css", viteManager.CSS)
