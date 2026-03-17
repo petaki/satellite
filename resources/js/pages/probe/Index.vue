@@ -51,8 +51,6 @@ import {
 
 import { ArrowPathIcon, TrashIcon } from '@heroicons/vue/20/solid';
 
-import type { PropType } from 'vue';
-
 import {
     ref,
     computed,
@@ -64,12 +62,11 @@ import { router } from '@inertiajs/vue3';
 import Breadcrumb from '../../base/Breadcrumb.vue';
 import Layout from '../../base/Layout.vue';
 
-const { probes } = defineProps({
-    probes: {
-        type: Array as PropType<string[]>,
-        default: () => []
-    }
-});
+const {
+    probes = []
+} = defineProps<{
+    probes?: string[]
+}>();
 
 defineOptions({
     layout: Layout

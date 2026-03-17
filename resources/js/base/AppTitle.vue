@@ -7,10 +7,9 @@
 </template>
 
 <script setup lang="ts">
-defineProps({
-    title: {
-        type: String,
-        default: ''
-    }
+withDefaults(defineProps<{
+    title?: string
+}>(), {
+    title: ''
 });
 </script>

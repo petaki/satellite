@@ -1,3 +1,10 @@
+import type { Ref } from 'vue';
+
+export interface BreadcrumbLink {
+    name: string | Ref<string>
+    href?: string
+}
+
 export interface SeriesDataPoint {
     x: number
     y: number

@@ -33,8 +33,6 @@ import {
     CpuChipIcon
 } from '@heroicons/vue/24/outline';
 
-import type { PropType } from 'vue';
-
 import {
     ref,
     computed,
@@ -55,59 +53,25 @@ import type { SeriesDataPoint, ApexConfig } from '../../types';
 
 const {
     probe,
-    cpuMinSeries,
-    cpuMaxSeries,
-    cpuAvgSeries,
-    process1Series,
-    process2Series,
-    process3Series,
-    cpuAlarm
-} = defineProps({
-    probe: {
-        type: String,
-        required: true
-    },
-
-    chunkSize: {
-        type: Number,
-        required: true
-    },
-
-    cpuMinSeries: {
-        type: Array as PropType<SeriesDataPoint[]>,
-        default: () => []
-    },
-
-    cpuMaxSeries: {
-        type: Array as PropType<SeriesDataPoint[]>,
-        default: () => []
-    },
-
-    cpuAvgSeries: {
-        type: Array as PropType<SeriesDataPoint[]>,
-        default: () => []
-    },
-
-    process1Series: {
-        type: Array as PropType<SeriesDataPoint[]>,
-        default: () => []
-    },
-
-    process2Series: {
-        type: Array as PropType<SeriesDataPoint[]>,
-        default: () => []
-    },
-
-    process3Series: {
-        type: Array as PropType<SeriesDataPoint[]>,
-        default: () => []
-    },
-
-    cpuAlarm: {
-        type: Number,
-        default: 0
-    }
-});
+    chunkSize,
+    cpuMinSeries = [],
+    cpuMaxSeries = [],
+    cpuAvgSeries = [],
+    process1Series = [],
+    process2Series = [],
+    process3Series = [],
+    cpuAlarm = 0
+} = defineProps<{
+    probe: string
+    chunkSize: number
+    cpuMinSeries?: SeriesDataPoint[]
+    cpuMaxSeries?: SeriesDataPoint[]
+    cpuAvgSeries?: SeriesDataPoint[]
+    process1Series?: SeriesDataPoint[]
+    process2Series?: SeriesDataPoint[]
+    process3Series?: SeriesDataPoint[]
+    cpuAlarm?: number
+}>();
 
 defineOptions({
     layout: Layout

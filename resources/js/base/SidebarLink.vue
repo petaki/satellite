@@ -14,25 +14,14 @@
 </template>
 
 <script setup lang="ts">
-defineProps({
-    isActive: {
-        type: Boolean,
-        default: false
-    },
-
-    isHighlight: {
-        type: Boolean,
-        default: false
-    },
-
-    href: {
-        type: String,
-        required: true
-    },
-
-    method: {
-        type: String,
-        default: 'get'
-    }
+withDefaults(defineProps<{
+    isActive?: boolean
+    isHighlight?: boolean
+    href: string
+    method?: string
+}>(), {
+    isActive: false,
+    isHighlight: false,
+    method: 'get'
 });
 </script>

@@ -33,8 +33,6 @@ import {
     DocumentDuplicateIcon
 } from '@heroicons/vue/24/outline';
 
-import type { PropType } from 'vue';
-
 import {
     ref,
     computed,
@@ -55,59 +53,25 @@ import type { SeriesDataPoint, ApexConfig } from '../../types';
 
 const {
     probe,
-    memoryMinSeries,
-    memoryMaxSeries,
-    memoryAvgSeries,
-    process1Series,
-    process2Series,
-    process3Series,
-    memoryAlarm
-} = defineProps({
-    probe: {
-        type: String,
-        required: true
-    },
-
-    chunkSize: {
-        type: Number,
-        required: true
-    },
-
-    memoryMinSeries: {
-        type: Array as PropType<SeriesDataPoint[]>,
-        default: () => []
-    },
-
-    memoryMaxSeries: {
-        type: Array as PropType<SeriesDataPoint[]>,
-        default: () => []
-    },
-
-    memoryAvgSeries: {
-        type: Array as PropType<SeriesDataPoint[]>,
-        default: () => []
-    },
-
-    process1Series: {
-        type: Array as PropType<SeriesDataPoint[]>,
-        default: () => []
-    },
-
-    process2Series: {
-        type: Array as PropType<SeriesDataPoint[]>,
-        default: () => []
-    },
-
-    process3Series: {
-        type: Array as PropType<SeriesDataPoint[]>,
-        default: () => []
-    },
-
-    memoryAlarm: {
-        type: Number,
-        default: 0
-    }
-});
+    chunkSize,
+    memoryMinSeries = [],
+    memoryMaxSeries = [],
+    memoryAvgSeries = [],
+    process1Series = [],
+    process2Series = [],
+    process3Series = [],
+    memoryAlarm = 0
+} = defineProps<{
+    probe: string
+    chunkSize: number
+    memoryMinSeries?: SeriesDataPoint[]
+    memoryMaxSeries?: SeriesDataPoint[]
+    memoryAvgSeries?: SeriesDataPoint[]
+    process1Series?: SeriesDataPoint[]
+    process2Series?: SeriesDataPoint[]
+    process3Series?: SeriesDataPoint[]
+    memoryAlarm?: number
+}>();
 
 defineOptions({
     layout: Layout

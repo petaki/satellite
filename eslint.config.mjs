@@ -104,6 +104,11 @@ export default defineConfig([
 
         plugins: {
             '@typescript-eslint': tsPlugin
+        },
+
+        rules: {
+            'func-call-spacing': 'off',
+            'no-spaced-func': 'off'
         }
     }
 ]);
