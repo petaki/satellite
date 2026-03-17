@@ -33,6 +33,8 @@ import {
     CircleStackIcon
 } from '@heroicons/vue/24/outline';
 
+import type { PropType } from 'vue';
+
 import {
     ref,
     computed,
@@ -49,6 +51,7 @@ import Layout from '../../base/Layout.vue';
 import useAnnotation from '../../use/useAnnotation';
 import useDate from '../../use/useDate';
 import SeriesSelector from '../../base/SeriesSelector.vue';
+import type { SeriesDataPoint, ApexConfig } from '../../types';
 
 const {
     probe,
@@ -74,17 +77,17 @@ const {
     },
 
     diskMinSeries: {
-        type: Array,
+        type: Array as PropType<SeriesDataPoint[]>,
         default: () => []
     },
 
     diskMaxSeries: {
-        type: Array,
+        type: Array as PropType<SeriesDataPoint[]>,
         default: () => []
     },
 
     diskAvgSeries: {
-        type: Array,
+        type: Array as PropType<SeriesDataPoint[]>,
         default: () => []
     },
 
@@ -103,14 +106,14 @@ const { duration } = useDate();
 const subtitle = ref(`Disk - ${diskPath}`);
 const chartEl = ref();
 const reloadTimer = 60000;
-let reloadInterval;
+let reloadInterval: ReturnType<typeof setInterval>;
 
-const options: any = ref({
+const options = ref<ApexConfig>({
     yaxis: {
         min: 0,
         max: 100,
         labels: {
-            formatter(val) {
+            formatter(val: number) {
                 if (val) {
                     return `${val.toFixed(2)}%`;
                 }
@@ -140,7 +143,7 @@ const series = computed(() => [
     }
 ]);
 
-const seriesHref = (isDefault, selectedType) => (isDefault
+const seriesHref = (isDefault: boolean, selectedType: string | undefined) => (isDefault
     ? `/disk?probe=${probe}&path=${diskPath}`
     : `/disk?probe=${probe}&path=${diskPath}&type=${selectedType}`);
 
@@ -155,7 +158,7 @@ const refreshSeries = async () => {
 
     options.value.annotations = {
         yaxis: [
-            max(Math.max(...(diskMaxSeries ?? []).map((value: any) => value.y)))
+            max(Math.max(...(diskMaxSeries ?? []).map(value => value.y)))
         ]
     };
 

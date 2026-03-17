@@ -1,5 +1,7 @@
+import type { YAxisAnnotation } from '../types';
+
 export default () => {
-    const alarm = (value, suffix = '%') => ({
+    const alarm = (value: number, suffix = '%'): YAxisAnnotation => ({
         y: value,
         borderColor: '#ef4444',
         label: {
@@ -15,7 +17,7 @@ export default () => {
         }
     });
 
-    const max = value => ({
+    const max = (value: number): YAxisAnnotation => ({
         y: value,
         borderColor: '#f6d757',
         label: {

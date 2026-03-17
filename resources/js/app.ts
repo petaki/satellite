@@ -2,6 +2,7 @@ import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import { createInertiaApp, Head, Link } from '@inertiajs/vue3';
 import VueApexCharts from 'vue3-apexcharts';
+import type { ApexConfig } from './types';
 import AppTitle from './base/AppTitle.vue';
 
 import '../css/app.css';
@@ -10,7 +11,7 @@ window.isDark = () => localStorage.theme === 'dark'
     || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
 window.createApex = () => {
-    const apex: any = {
+    const apex: ApexConfig = {
         chart: {
             animations: {
                 enabled: false

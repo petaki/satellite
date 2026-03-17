@@ -28,8 +28,10 @@ import {
     watch
 } from 'vue';
 
+import type { PropType } from 'vue';
 import { ArrowPathIcon } from '@heroicons/vue/20/solid';
 import { router, usePage } from '@inertiajs/vue3';
+import type { SeriesType } from '../types';
 
 const model = defineModel({
     type: String
@@ -37,7 +39,9 @@ const model = defineModel({
 
 const { href } = defineProps({
     href: {
-        type: Function,
+        type: Function as PropType<
+            (isDefault: boolean, selectedType: string | undefined) => string
+        >,
         required: true
     }
 });
@@ -46,8 +50,8 @@ const page = usePage();
 
 model.value = page.props.seriesType as string;
 
-const createSeriesButtons = () => (page.props.seriesTypes as any[])
-    .filter(type => (page.props.seriesButtons as any[]).indexOf(type.value) !== -1)
+const createSeriesButtons = () => (page.props.seriesTypes as SeriesType[])
+    .filter(type => (page.props.seriesButtons as string[]).indexOf(type.value) !== -1)
     .map(type => ({
         name: type.name.split(' ').map(segment => (!Number.isNaN(Number(segment))
             ? segment
