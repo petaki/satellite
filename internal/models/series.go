@@ -111,5 +111,8 @@ type SeriesRepository interface {
 	FindLoad(Probe, SeriesType) (Series, Series, Series, error)
 	FindDisk(Probe, SeriesType, string) (Series, Series, Series, error)
 	FindDiskPaths(Probe) ([]string, error)
+	FindLatestCPU(Probe) (float64, bool, error)
+	FindLatestMemory(Probe) (float64, bool, error)
+	FindLatestLoad(Probe) (float64, float64, float64, bool, error)
 	ChunkSize(seriesType SeriesType) int
 }

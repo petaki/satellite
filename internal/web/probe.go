@@ -1,6 +1,7 @@
 package web
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/petaki/satellite/internal/models"
@@ -19,9 +20,69 @@ func (a *app) probeIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	probes := r.Context().Value(contextKeyProbes).([]models.Probe)
+
+	summaries := make([]models.ProbeSummary, 0, len(probes))
+
+	for _, probe := range probes {
+		summary := models.ProbeSummary{
+			Name: string(probe),
+		}
+
+		cpu, cpuFound, err := a.seriesRepository.FindLatestCPU(probe)
+		if err != nil {
+			a.serverError(w, err)
+
+			return
+		}
+
+		if cpuFound {
+			summary.CPU = cpu
+		}
+
+		mem, memFound, err := a.seriesRepository.FindLatestMemory(probe)
+		if err != nil {
+			a.serverError(w, err)
+
+			return
+		}
+
+		if memFound {
+			summary.Memory = mem
+		}
+
+		load1, load5, load15, _, err := a.seriesRepository.FindLatestLoad(probe)
+		if err != nil {
+			a.serverError(w, err)
+
+			return
+		}
+
+		summary.Load1 = load1
+		summary.Load5 = load5
+		summary.Load15 = load15
+
+		summary.HasBeat = cpuFound || memFound
+
+		alarm, err := a.alarmRepository.Find(probe)
+		if err != nil && !errors.Is(err, models.ErrNoRecord) {
+			a.serverError(w, err)
+
+			return
+		}
+
+		if alarm != nil {
+			summary.CPUAlarm = alarm.CPU
+			summary.MemAlarm = alarm.Memory
+			summary.LoadAlarm = alarm.Load
+		}
+
+		summaries = append(summaries, summary)
+	}
+
 	err := a.inertiaManager.Render(w, r, "probe/Index", map[string]any{
 		"isProbeActive": true,
-		"probes":        r.Context().Value(contextKeyProbes).([]models.Probe),
+		"probes":        summaries,
 	})
 	if err != nil {
 		a.serverError(w, err)
