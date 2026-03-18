@@ -39,7 +39,7 @@ export interface ProbeSummary {
     load1: number
     load5: number
     load15: number
-    hasBeat: boolean
+    isActive: boolean
     cpuAlarm: number
     memAlarm: number
     loadAlarm: number

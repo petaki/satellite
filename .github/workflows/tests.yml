@@ -36,6 +36,9 @@ jobs:
       - name: Lint UI code
         run: yarn lint
 
+      - name: Typecheck UI code
+        run: yarn typecheck
+
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
