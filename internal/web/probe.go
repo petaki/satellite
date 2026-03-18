@@ -62,7 +62,20 @@ func (a *app) probeIndex(w http.ResponseWriter, r *http.Request) {
 		summary.Load5 = load5
 		summary.Load15 = load15
 
-		summary.HasBeat = cpuFound || memFound
+		values, _, err := a.probeRepository.FindLatestValues(probe, 2)
+		if err != nil {
+			a.serverError(w, err)
+
+			return
+		}
+
+		for _, value := range values {
+			if value != nil {
+				summary.IsActive = true
+
+				break
+			}
+		}
 
 		alarm, err := a.alarmRepository.Find(probe)
 		if err != nil && !errors.Is(err, models.ErrNoRecord) {

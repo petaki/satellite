@@ -35,7 +35,7 @@ import type { SeriesType } from '../types';
 const model = defineModel<string>();
 
 const { href } = defineProps<{
-    href: (isDefault: boolean, selectedType: string | undefined) => string
+    href:(isDefault: boolean, selectedType: string | undefined) => string
 }>();
 
 const page = usePage();

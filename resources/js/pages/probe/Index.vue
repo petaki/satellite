@@ -98,7 +98,7 @@
                             </td>
                             <td class="border-t border-gray-100 px-6 py-3 dark:border-slate-600">
                                 <span class="inline-flex h-3 w-3 rounded-full"
-                                      :class="probe.hasBeat ? 'bg-emerald-500' : 'bg-red-500'">
+                                      :class="probe.isActive ? 'bg-emerald-500' : 'bg-red-500'">
                                 </span>
                             </td>
                         </tr>

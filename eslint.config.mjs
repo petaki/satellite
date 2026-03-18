@@ -98,17 +98,5 @@ export default defineConfig([
             'vue/multi-word-component-names': 'off',
             'vue/no-v-html': 'off'
         }
-    },
-    {
-        files: ['**/*.ts', '**/*.vue'],
-
-        plugins: {
-            '@typescript-eslint': tsPlugin
-        },
-
-        rules: {
-            'func-call-spacing': 'off',
-            'no-spaced-func': 'off'
-        }
     }
 ]);
