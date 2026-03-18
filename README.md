@@ -5,9 +5,20 @@
 [![Build Status](https://github.com/petaki/satellite/workflows/tests/badge.svg)](https://github.com/petaki/satellite/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](LICENSE.md)
 
+## Features
+
+- **CPU** - overall and per-process CPU usage charts
+- **Memory** - overall and per-process memory usage charts
+- **Load** - system load averages (1, 5, 15 min) charts
+- **Disk** - per-partition disk usage charts with path selector
+- **Log Viewer** - browse log tail entries collected by Probe
+- **Dark Mode** - full dark mode support
+- **Heartbeat** - webhook notifications when a probe goes offline
+- **Series Filtering** - configurable time range buttons (5 min to 30 days)
+
 ## Getting Started
 
-Before you start, you need to install the prerequisites.
+Follow the steps below to install and configure Satellite.
 
 ### Prerequisites
 
@@ -15,9 +26,9 @@ Before you start, you need to install the prerequisites.
 
 ### Run with Docker
 
-Image can be found at package page on [GitHub](https://github.com/petaki/satellite/pkgs/container/satellite).
+Image can be found at the package page on [GitHub](https://github.com/petaki/satellite/pkgs/container/satellite).
 
-```
+```bash
 docker run --rm \
 -e APP_URL=http://127.0.0.1:4000 \
 -e REDIS_URL=redis://192.168.0.200:6379/0 \
@@ -25,79 +36,73 @@ docker run --rm \
 ghcr.io/petaki/satellite
 ```
 
-### Install from binary
+### Install from Binary
 
-Downloads can be found at releases page on [GitHub](https://github.com/petaki/satellite/releases).
+Download the latest release for your platform from the [GitHub Releases](https://github.com/petaki/satellite/releases) page.
 
 ---
 
-### Install from source
+### Install from Source
 
-#### Prerequisites for building
+#### Prerequisites
 
-- GO: `Version >= 1.25`
+- Go: `Version >= 1.26`
 - Node.js: `Version >= 22.0`
 - Yarn or NPM
 
-#### 1. Clone the repository:
+#### Steps
 
-```
+1. Clone the repository:
+
+```bash
 git clone git@github.com:petaki/satellite.git
 ```
 
-#### 2. Open the folder:
+2. Install UI dependencies and build:
 
-```
+```bash
 cd satellite
-```
-
-#### 3. Install the UI dependencies
-
-```
 yarn install
-```
-
-#### 4. Build the UI
-
-```
 yarn build
 ```
 
-#### 5. Build the Satellite:
+3. Build the binary:
 
-```
+```bash
 go build
 ```
 
-#### 6. Copy the example configuration:
+4. Copy and edit the configuration:
 
-```
+```bash
 cp .env.example .env
 ```
 
 ## Configuration
 
-The configruation is stored in the `.env` file.
+All configuration is done through environment variables in the `.env` file.
 
-### Application Name
+### General
+
+#### Application Name
 
 ```
 APP_NAME=
 ```
 
-### Application Address
+#### Application Address
 
 ```
 APP_ADDR=:4000
 ```
 
-### Application URL
+#### Application URL
 
 ```
 APP_URL=http://127.0.0.1:4000
 ```
 
-### Application Series Buttons
+#### Application Series Buttons
 
 - Maximum `4` items.
 - The first item is the `default`.
@@ -109,23 +114,25 @@ APP_SERIES_BUTTONS=last_5_minutes,last_1_hour,last_24_hours,last_7_days
 
 Available options:
 
-```
-last_5_minutes
-last_15_minutes
-last_30_minutes
-last_1_hour
-last_3_hours
-last_6_hours
-last_12_hours
-last_24_hours
-last_2_days
-last_7_days
-last_30_days
-```
+| Option | Description |
+|--------|-------------|
+| `last_5_minutes` | Last 5 minutes |
+| `last_15_minutes` | Last 15 minutes |
+| `last_30_minutes` | Last 30 minutes |
+| `last_1_hour` | Last 1 hour |
+| `last_3_hours` | Last 3 hours |
+| `last_6_hours` | Last 6 hours |
+| `last_12_hours` | Last 12 hours |
+| `last_24_hours` | Last 24 hours |
+| `last_2_days` | Last 2 days |
+| `last_7_days` | Last 7 days |
+| `last_30_days` | Last 30 days |
 
 ---
 
-### Redis URL
+### Redis
+
+#### Redis URL
 
 ```
 REDIS_URL=redis://127.0.0.1:6379/0
@@ -133,50 +140,62 @@ REDIS_URL=redis://127.0.0.1:6379/0
 
 ---
 
-### Heartbeat Enabled
+### Heartbeat
+
+Sends webhook notifications when a probe stops reporting. Requires Redis to be configured.
+
+#### Heartbeat Enabled
 
 ```
 HEARTBEAT_ENABLED=false
 ```
 
-### Heartbeat Wait (in minutes before first notification)
+#### Heartbeat Wait (in minutes before first notification)
 
 ```
 HEARTBEAT_WAIT=5
 ```
 
-### Heartbeat Sleep (in seconds between notifications)
+#### Heartbeat Sleep (in seconds between notifications)
 
-- `0` - Disabled
+Set to `0` to disable.
 
 ```
 HEARTBEAT_SLEEP=300
 ```
 
-### Heartbeat Webhook Method
+---
+
+### Heartbeat Webhook
+
+#### Heartbeat Webhook Method
 
 ```
 HEARTBEAT_WEBHOOK_METHOD=POST
 ```
 
-### Heartbeat Webhook URL
+#### Heartbeat Webhook URL
 
 ```
 HEARTBEAT_WEBHOOK_URL=http://127.0.0.1:4000/heartbeat
 ```
 
-### Heartbeat Webhook Header
+#### Heartbeat Webhook Header
 
 ```
 HEARTBEAT_WEBHOOK_HEADER='{"Authorization": "Bearer TOKEN", "Accept": "application/json"}'
 ```
 
-### Heartbeat Webhook Body
+#### Heartbeat Webhook Body
 
-- `%p` - Probe
-- `%t` - Start timestamp of current heartbeat period in `RFC3339` format
-- `%x` - Start timestamp of current heartbeat period in `Unix` format
-- `%l` - Satellite link (relative)
+The body supports the following placeholders:
+
+| Placeholder | Description |
+|-------------|-------------|
+| `%p` | Probe name |
+| `%t` | Timestamp (`RFC3339`) |
+| `%x` | Timestamp (`Unix`) |
+| `%l` | Satellite link (relative) |
 
 ```
 HEARTBEAT_WEBHOOK_BODY='{"probe": "%p", "timestamp_rfc3339": "%t", "timestamp_unix": %x, "link": "%l"}'
@@ -184,19 +203,17 @@ HEARTBEAT_WEBHOOK_BODY='{"probe": "%p", "timestamp_rfc3339": "%t", "timestamp_un
 
 ## Usage
 
-Run the app using the following command:
-
-```
+```bash
 ./satellite web serve
 ```
 
 ## Data Collection
 
-You can gather the necessary data with the [Probe](https://github.com/petaki/probe).
+Collected data is provided by [Probe](https://github.com/petaki/probe).
 
 ## Contributors
 
-- [@dyipon](https://github.com/dyipon) for development ideas, bug reports and testing
+- [@dyipon](https://github.com/dyipon) - development ideas, bug reports and testing
 
 ## Reporting Issues
 
