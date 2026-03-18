@@ -34,6 +34,13 @@ func (a *app) cpuIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	logPaths, err := a.logRepository.FindLogPaths(probe)
+	if err != nil {
+		a.serverError(w, err)
+
+		return
+	}
+
 	cpuMinSeries, cpuMaxSeries, cpuAvgSeries, process1Series, process2Series, process3Series, err := a.seriesRepository.FindCPU(probe, seriesType)
 	if err != nil {
 		a.serverError(w, err)
@@ -59,6 +66,7 @@ func (a *app) cpuIndex(w http.ResponseWriter, r *http.Request) {
 		"seriesType":     seriesType,
 		"chunkSize":      a.seriesRepository.ChunkSize(seriesType),
 		"diskPaths":      diskPaths,
+		"logPaths":       logPaths,
 		"cpuMinSeries":   cpuMinSeries,
 		"cpuMaxSeries":   cpuMaxSeries,
 		"cpuAvgSeries":   cpuAvgSeries,
@@ -98,6 +106,13 @@ func (a *app) memoryIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	logPaths, err := a.logRepository.FindLogPaths(probe)
+	if err != nil {
+		a.serverError(w, err)
+
+		return
+	}
+
 	memoryMinSeries, memoryMaxSeries, memoryAvgSeries, process1Series, process2Series, process3Series, err := a.seriesRepository.FindMemory(probe, seriesType)
 	if err != nil {
 		a.serverError(w, err)
@@ -123,6 +138,7 @@ func (a *app) memoryIndex(w http.ResponseWriter, r *http.Request) {
 		"seriesType":      seriesType,
 		"chunkSize":       a.seriesRepository.ChunkSize(seriesType),
 		"diskPaths":       diskPaths,
+		"logPaths":        logPaths,
 		"memoryMinSeries": memoryMinSeries,
 		"memoryMaxSeries": memoryMaxSeries,
 		"memoryAvgSeries": memoryAvgSeries,
@@ -162,6 +178,13 @@ func (a *app) loadIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	logPaths, err := a.logRepository.FindLogPaths(probe)
+	if err != nil {
+		a.serverError(w, err)
+
+		return
+	}
+
 	load1Series, load5Series, load15Series, err := a.seriesRepository.FindLoad(probe, seriesType)
 	if err != nil {
 		a.serverError(w, err)
@@ -187,6 +210,7 @@ func (a *app) loadIndex(w http.ResponseWriter, r *http.Request) {
 		"seriesType":   seriesType,
 		"chunkSize":    a.seriesRepository.ChunkSize(seriesType),
 		"diskPaths":    diskPaths,
+		"logPaths":     logPaths,
 		"load1Series":  load1Series,
 		"load5Series":  load5Series,
 		"load15Series": load15Series,
@@ -212,13 +236,6 @@ func (a *app) diskIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	diskPath := r.URL.Query().Get("path")
-	if diskPath == "" {
-		a.notFound(w)
-
-		return
-	}
-
 	a.sessionManager.Put(r.Context(), sessionKeySeriesType, string(seriesType))
 
 	probe := r.Context().Value(contextKeyProbe).(models.Probe)
@@ -230,8 +247,30 @@ func (a *app) diskIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !a.diskPathExists(diskPaths, diskPath) {
-		a.notFound(w)
+	logPaths, err := a.logRepository.FindLogPaths(probe)
+	if err != nil {
+		a.serverError(w, err)
+
+		return
+	}
+
+	diskPath := r.URL.Query().Get("path")
+
+	if diskPath == "" && len(diskPaths) > 0 {
+		diskPath = diskPaths[0]
+	}
+
+	if diskPath == "" || !a.diskPathExists(diskPaths, diskPath) {
+		err = a.inertiaManager.Render(w, r, "disk/Index", map[string]any{
+			"isDiskActive": true,
+			"seriesType":   seriesType,
+			"chunkSize":    a.seriesRepository.ChunkSize(seriesType),
+			"diskPaths":    diskPaths,
+			"logPaths":     logPaths,
+		})
+		if err != nil {
+			a.serverError(w, err)
+		}
 
 		return
 	}
@@ -257,10 +296,12 @@ func (a *app) diskIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = a.inertiaManager.Render(w, r, "disk/Index", map[string]any{
+		"isDiskActive":  true,
 		"seriesType":    seriesType,
 		"chunkSize":     a.seriesRepository.ChunkSize(seriesType),
 		"diskPath":      diskPath,
 		"diskPaths":     diskPaths,
+		"logPaths":      logPaths,
 		"diskMinSeries": diskMinSeries,
 		"diskMaxSeries": diskMaxSeries,
 		"diskAvgSeries": diskAvgSeries,

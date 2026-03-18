@@ -4,16 +4,11 @@
         <breadcrumb :links="links" />
         <div class="bg-white p-8 dark:bg-slate-700">
             <card-title>
-                <cpu-chip-icon class="h-6 w-6 sm:mr-2" />
+                <cpu-chip-icon class="h-6 w-6 shrink-0 sm:mr-2" />
                 <span>
                     {{ subtitle }}
                 </span>
-                <span class="text-slate-600 sm:mx-auto dark:text-slate-500">
-                    Point Interval:
-                    <span class="text-cyan-500">
-                        {{ duration(chunkSize) }}
-                    </span>
-                </span>
+                <PointInterval :chunk-size="chunkSize" />
                 <SeriesSelector :href="seriesHref" />
             </card-title>
             <div class="chart">
@@ -47,7 +42,7 @@ import Breadcrumb from '../../base/Breadcrumb.vue';
 import CardTitle from '../../base/CardTitle.vue';
 import Layout from '../../base/Layout.vue';
 import useAnnotation from '../../use/useAnnotation';
-import useDate from '../../use/useDate';
+import PointInterval from '../../base/PointInterval.vue';
 import SeriesSelector from '../../base/SeriesSelector.vue';
 import type { SeriesDataPoint, ApexConfig } from '../../types';
 
@@ -78,7 +73,6 @@ defineOptions({
 });
 
 const { alarm, max } = useAnnotation();
-const { duration } = useDate();
 const subtitle = ref('CPU');
 const chartEl = ref();
 const reloadTimer = 60000;

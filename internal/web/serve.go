@@ -51,6 +51,9 @@ func Serve(appConfig *config.Config) {
 		seriesRepository: &models.RedisSeriesRepository{
 			RedisPool: redisPool,
 		},
+		logRepository: &models.RedisLogRepository{
+			RedisPool: redisPool,
+		},
 	}
 
 	srv := &http.Server{

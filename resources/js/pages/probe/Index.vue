@@ -5,7 +5,7 @@
         <!-- eslint-disable max-len vue/attribute-hyphenation -->
         <div class="bg-white p-8 dark:bg-slate-700 dark:text-slate-300">
             <card-title>
-                <cube-icon class="h-6 w-6" />
+                <cube-icon class="h-6 w-6 shrink-0" />
                 <input v-model="keyword"
                        class="form-input flex-1 sm:mx-2"
                        placeholder="Search">
