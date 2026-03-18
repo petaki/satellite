@@ -33,9 +33,6 @@
                 </sidebar-link>
             </div>
             <div v-if="!!$page.props.probe" class="bg-black/20 pb-7">
-                <sidebar-title>
-                    Performance
-                </sidebar-title>
                 <sidebar-link :is-active="!!$page.props.isCpuActive"
                               :href="`/cpu?probe=${$page.props.probe}`">
                     <cpu-chip-icon class="h-5 w-5 mr-2" />
@@ -57,9 +54,6 @@
                         Load
                     </span>
                 </sidebar-link>
-                <sidebar-title>
-                    Resources
-                </sidebar-title>
                 <sidebar-link :is-active="!!$page.props.isDiskActive"
                               :href="`/disk?probe=${$page.props.probe}`">
                     <circle-stack-icon class="h-5 w-5 mr-2" />
@@ -75,9 +69,6 @@
                         Log
                     </span>
                 </sidebar-link>
-                <sidebar-title>
-                    Delete
-                </sidebar-title>
                 <!-- eslint-disable vue/attribute-hyphenation -->
                 <sidebar-link :is-highlight="true"
                               :href="`/probe/delete?probe=${$page.props.probe}`"

@@ -68,7 +68,7 @@ defineOptions({
     layout: Layout
 });
 
-const subtitle = ref(logPath ? `Log - ${logPath}` : 'Log');
+const subtitle = ref('Log');
 const reloadTimer = 60000;
 let reloadInterval: ReturnType<typeof setInterval>;
 

@@ -79,7 +79,7 @@ defineOptions({
 });
 
 const { alarm, max } = useAnnotation();
-const subtitle = ref(diskPath ? `Disk - ${diskPath}` : 'Disk');
+const subtitle = ref('Disk');
 
 const onPathChange = (event: Event) => {
     const target = event.target as HTMLSelectElement;
