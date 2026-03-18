@@ -4,19 +4,22 @@
         <breadcrumb :links="links" />
         <div class="bg-white p-8 dark:bg-slate-700">
             <card-title>
-                <circle-stack-icon class="h-6 w-6 sm:mr-2" />
-                <span>
-                    {{ subtitle }}
-                </span>
-                <span class="text-slate-600 sm:mx-auto dark:text-slate-500">
-                    Point Interval:
-                    <span class="text-cyan-500">
-                        {{ duration(chunkSize) }}
-                    </span>
-                </span>
-                <SeriesSelector :href="seriesHref" />
+                <circle-stack-icon class="h-6 w-6 shrink-0" />
+                <!-- eslint-disable max-len -->
+                <select class="form-select flex-1 sm:mx-2"
+                        :value="diskPath || ''"
+                        @change="onPathChange">
+                    <option v-for="path in diskPaths"
+                            :key="path"
+                            :value="path">
+                        {{ path }}
+                    </option>
+                </select>
+                <!-- eslint-enable max-len -->
+                <PointInterval v-if="diskPath" :chunk-size="chunkSize" />
+                <SeriesSelector v-if="diskPath" :href="seriesHref" />
             </card-title>
-            <div class="chart">
+            <div v-if="diskPath" class="chart">
                 <apexchart v-if="diskMinSeries"
                            ref="chartEl"
                            type="line"
@@ -47,14 +50,15 @@ import Breadcrumb from '../../base/Breadcrumb.vue';
 import CardTitle from '../../base/CardTitle.vue';
 import Layout from '../../base/Layout.vue';
 import useAnnotation from '../../use/useAnnotation';
-import useDate from '../../use/useDate';
+import PointInterval from '../../base/PointInterval.vue';
 import SeriesSelector from '../../base/SeriesSelector.vue';
 import type { SeriesDataPoint, ApexConfig } from '../../types';
 
 const {
     probe,
     chunkSize,
-    diskPath,
+    diskPath = '',
+    diskPaths = [],
     diskMinSeries = [],
     diskMaxSeries = [],
     diskAvgSeries = [],
@@ -62,7 +66,8 @@ const {
 } = defineProps<{
     probe: string
     chunkSize: number
-    diskPath: string
+    diskPath?: string
+    diskPaths?: string[]
     diskMinSeries?: SeriesDataPoint[]
     diskMaxSeries?: SeriesDataPoint[]
     diskAvgSeries?: SeriesDataPoint[]
@@ -74,8 +79,13 @@ defineOptions({
 });
 
 const { alarm, max } = useAnnotation();
-const { duration } = useDate();
-const subtitle = ref(`Disk - ${diskPath}`);
+const subtitle = ref(diskPath ? `Disk - ${diskPath}` : 'Disk');
+
+const onPathChange = (event: Event) => {
+    const target = event.target as HTMLSelectElement;
+
+    router.visit(`/disk?probe=${probe}&path=${target.value}`);
+};
 const chartEl = ref();
 const reloadTimer = 60000;
 let reloadInterval: ReturnType<typeof setInterval>;

@@ -26,4 +26,5 @@ type app struct {
 	probeRepository  models.ProbeRepository
 	alarmRepository  models.AlarmRepository
 	seriesRepository models.SeriesRepository
+	logRepository    models.LogRepository
 }

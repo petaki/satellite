@@ -58,22 +58,22 @@
                     </span>
                 </sidebar-link>
                 <sidebar-title>
-                    Disks
+                    Resources
                 </sidebar-title>
-                <div v-if="!$page.props.diskPaths" class="px-5 py-3.5 text-slate-500">
-                    No data found.
-                </div>
-                <sidebar-link v-for="diskPath in $page.props.diskPaths"
-                              :key="diskPath"
-                              :is-active="$page.props.diskPath === diskPath"
-                              :href="`/disk?probe=${$page.props.probe}&path=${diskPath}`">
+                <sidebar-link :is-active="!!$page.props.isDiskActive"
+                              :href="`/disk?probe=${$page.props.probe}`">
                     <circle-stack-icon class="h-5 w-5 mr-2" />
-                    <div class="flex-1">
+                    <span>
                         Disk
-                        <div class="text-xs break-all">
-                            {{ diskPath }}
-                        </div>
-                    </div>
+                    </span>
+                </sidebar-link>
+                <sidebar-link v-if="$page.props.logPaths && $page.props.logPaths.length"
+                              :is-active="!!$page.props.isLogActive"
+                              :href="`/log?probe=${$page.props.probe}`">
+                    <document-text-icon class="h-5 w-5 mr-2" />
+                    <span>
+                        Log
+                    </span>
                 </sidebar-link>
                 <sidebar-title>
                     Delete
@@ -144,6 +144,7 @@ import {
     CubeIcon,
     CubeTransparentIcon,
     DocumentDuplicateIcon,
+    DocumentTextIcon,
     MoonIcon,
     PaperAirplaneIcon,
     SunIcon,

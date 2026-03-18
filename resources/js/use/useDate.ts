@@ -13,8 +13,19 @@ export default () => {
 
     const duration = (minutes: number) => Duration.fromObject({ minutes }).toFormat('hh:mm:ss');
 
+    const timestamp = (value: number) => {
+        const d = DateTime.fromSeconds(value);
+
+        if (!d.isValid) {
+            return String(value);
+        }
+
+        return d.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS);
+    };
+
     return {
         date,
-        duration
+        duration,
+        timestamp
     };
 };
