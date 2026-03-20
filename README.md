@@ -1,4 +1,4 @@
-![Satellite](https://user-images.githubusercontent.com/1419087/133525370-79b6afe5-e54f-4eb2-b988-9b872322d89a.png)
+![Satellite](https://github.com/user-attachments/assets/66196992-98c9-4376-992f-a0612a931cdc)
 
 ## Badges
 
