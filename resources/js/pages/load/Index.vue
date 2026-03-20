@@ -2,7 +2,10 @@
     <app-title :title="subtitle" />
     <div class="p-5">
         <breadcrumb :links="links">
-            <live-indicator v-model="isLive" />
+            <div class="flex items-center gap-2">
+                <refresh-button />
+                <live-indicator v-model="isLive" />
+            </div>
         </breadcrumb>
         <div class="bg-white p-8 dark:bg-slate-700">
             <card-title>
@@ -42,6 +45,7 @@ import Breadcrumb from '../../base/Breadcrumb.vue';
 import CardTitle from '../../base/CardTitle.vue';
 import Layout from '../../base/Layout.vue';
 import LiveIndicator from '../../base/LiveIndicator.vue';
+import RefreshButton from '../../base/RefreshButton.vue';
 import useAnnotation from '../../use/useAnnotation';
 import useLiveReload from '../../use/useLiveReload';
 import PointInterval from '../../base/PointInterval.vue';

@@ -17,10 +17,6 @@
             {{ type.name }}
         </option>
     </select>
-    <button class="btn-white py-0 px-3 h-11 md:border-l-0 md:rounded-l-none"
-            @click="loadSeries()">
-        <arrow-path-icon class="h-5 w-5" />
-    </button>
 </template>
 
 <script setup lang="ts">
@@ -28,7 +24,6 @@ import {
     watch
 } from 'vue';
 
-import { ArrowPathIcon } from '@heroicons/vue/20/solid';
 import { router, usePage } from '@inertiajs/vue3';
 import type { SeriesType } from '../types';
 
