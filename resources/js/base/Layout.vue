@@ -32,7 +32,7 @@
                     <chevron-right-icon class="h-5 w-5 ml-auto" />
                 </sidebar-link>
             </div>
-            <div v-if="!!$page.props.probe" class="bg-black/20 pb-7">
+            <div v-if="!!$page.props.probe" class="bg-black/20">
                 <sidebar-link :is-active="!!$page.props.isCpuActive"
                               :href="`/cpu?probe=${$page.props.probe}`">
                     <cpu-chip-icon class="h-5 w-5 mr-2" />
