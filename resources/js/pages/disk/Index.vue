@@ -1,7 +1,9 @@
 <template>
     <app-title :title="subtitle" />
     <div class="p-5">
-        <breadcrumb :links="links" />
+        <breadcrumb :links="links">
+            <live-indicator v-model="isLive" />
+        </breadcrumb>
         <div class="bg-white p-8 dark:bg-slate-700">
             <card-title>
                 <circle-stack-icon class="h-6 w-6 shrink-0" />
@@ -49,7 +51,9 @@ import { router } from '@inertiajs/vue3';
 import Breadcrumb from '../../base/Breadcrumb.vue';
 import CardTitle from '../../base/CardTitle.vue';
 import Layout from '../../base/Layout.vue';
+import LiveIndicator from '../../base/LiveIndicator.vue';
 import useAnnotation from '../../use/useAnnotation';
+import useLiveReload from '../../use/useLiveReload';
 import PointInterval from '../../base/PointInterval.vue';
 import SeriesSelector from '../../base/SeriesSelector.vue';
 import type { SeriesDataPoint, ApexConfig } from '../../types';
@@ -79,6 +83,7 @@ defineOptions({
 });
 
 const { alarm, max } = useAnnotation();
+const { isLive } = useLiveReload();
 const subtitle = ref('Disk');
 
 const onPathChange = (event: Event) => {
@@ -87,8 +92,6 @@ const onPathChange = (event: Event) => {
     router.visit(`/disk?probe=${probe}&path=${target.value}`);
 };
 const chartEl = ref();
-const reloadTimer = 60000;
-let reloadInterval: ReturnType<typeof setInterval>;
 
 const options = ref<ApexConfig>({
     yaxis: {
@@ -161,16 +164,12 @@ const refreshSeries = async () => {
 watch(series, refreshSeries);
 
 onMounted(() => {
-    reloadInterval = setInterval(() => { router.reload(); }, reloadTimer);
-
     refreshSeries();
 
     document.addEventListener('set-theme', onSetTheme);
 });
 
 onUnmounted(() => {
-    clearInterval(reloadInterval);
-
     document.removeEventListener('set-theme', onSetTheme);
 });
 </script>

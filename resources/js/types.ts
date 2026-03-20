@@ -98,3 +98,30 @@ export interface ApexConfig {
         yaxis: YAxisAnnotation[]
     }
 }
+
+export interface LogEntry {
+    timestamp: number
+    content: string
+}
+
+export type LogStatus = 'unchanged' | 'changed' | 'minor' | 'warning' | 'error'
+export type LogViewMode = 'raw' | 'changes' | 'summary'
+
+export interface LineDiff {
+    added: string[]
+    removed: string[]
+    unchangedCount: number
+}
+
+export interface GroupedSnapshot {
+    id: string
+    startMinute: number
+    endMinute: number
+    repeatCount: number
+    lineCount: number
+    status: LogStatus
+    preview: string
+    lines: string[]
+    fingerprint: string
+    diff?: LineDiff
+}

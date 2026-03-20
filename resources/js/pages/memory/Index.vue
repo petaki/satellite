@@ -1,7 +1,9 @@
 <template>
     <app-title :title="subtitle" />
     <div class="p-5">
-        <breadcrumb :links="links" />
+        <breadcrumb :links="links">
+            <live-indicator v-model="isLive" />
+        </breadcrumb>
         <div class="bg-white p-8 dark:bg-slate-700">
             <card-title>
                 <document-duplicate-icon class="h-6 w-6 shrink-0 sm:mr-2" />
@@ -37,11 +39,12 @@ import {
     watch
 } from 'vue';
 
-import { router } from '@inertiajs/vue3';
 import Breadcrumb from '../../base/Breadcrumb.vue';
 import CardTitle from '../../base/CardTitle.vue';
 import Layout from '../../base/Layout.vue';
+import LiveIndicator from '../../base/LiveIndicator.vue';
 import useAnnotation from '../../use/useAnnotation';
+import useLiveReload from '../../use/useLiveReload';
 import PointInterval from '../../base/PointInterval.vue';
 import SeriesSelector from '../../base/SeriesSelector.vue';
 import type { SeriesDataPoint, ApexConfig } from '../../types';
@@ -73,10 +76,9 @@ defineOptions({
 });
 
 const { alarm, max } = useAnnotation();
+const { isLive } = useLiveReload();
 const subtitle = ref('Memory');
 const chartEl = ref();
-const reloadTimer = 60000;
-let reloadInterval: ReturnType<typeof setInterval>;
 
 const series = computed(() => [
     {
@@ -187,16 +189,12 @@ const refreshSeries = async () => {
 watch(series, refreshSeries);
 
 onMounted(() => {
-    reloadInterval = setInterval(() => router.reload(), reloadTimer);
-
     refreshSeries();
 
     document.addEventListener('set-theme', onSetTheme);
 });
 
 onUnmounted(() => {
-    clearInterval(reloadInterval);
-
     document.removeEventListener('set-theme', onSetTheme);
 });
 </script>

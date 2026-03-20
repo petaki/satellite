@@ -1,5 +1,5 @@
 <template>
-    <div class="flex mb-5">
+    <div class="flex items-center mb-5">
         <inertia-link class="text-cyan-500 hover:text-cyan-600"
                       href="/">
             Home
@@ -23,6 +23,9 @@
                 /
             </div>
         </template>
+        <div class="ml-auto">
+            <slot></slot>
+        </div>
     </div>
 </template>
 
