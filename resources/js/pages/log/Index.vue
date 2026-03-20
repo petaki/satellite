@@ -25,12 +25,11 @@
                        class="form-input flex-1 sm:ml-2"
                        placeholder="Search">
                 <template v-if="logPath && logEntries && logEntries.length">
-                    <button class="btn-white py-0 px-3 h-11 sm:ml-2 md:rounded-r-none md:border-r-0 text-sm font-semibold"
-                            type="button"
-                            @click="cycleViewMode">
-                        {{ viewModeLabel }}
-                    </button>
-                    <button class="btn-white py-0 px-3 h-11 md:rounded-l-none text-sm font-semibold"
+                    <toggle-button-group v-model="viewMode"
+                                         :options="viewModes"
+                                         button-class="rounded-none border-r-0"
+                                         first-button-class="sm:ml-2 rounded-l-sm" />
+                    <button class="btn-white py-0 px-3 h-11 rounded-l-none text-sm font-semibold"
                             type="button"
                             @click="jumpToLatest">
                         Latest
@@ -158,6 +157,7 @@ import Layout from '../../base/Layout.vue';
 import LiveIndicator from '../../base/LiveIndicator.vue';
 import RefreshButton from '../../base/RefreshButton.vue';
 import LogStatusBadge from '../../base/LogStatusBadge.vue';
+import ToggleButtonGroup from '../../base/ToggleButtonGroup.vue';
 import type { GroupedSnapshot, LogEntry, LogViewMode } from '../../types';
 import useCopy from '../../use/useCopy';
 import useDate from '../../use/useDate';
@@ -213,13 +213,11 @@ const filteredGroups = computed(() => filterSnapshots(
 
 const selectedGroup = computed(() => groups.value.find(g => g.id === selectedId.value) || null);
 
-const viewModeLabels: Record<LogViewMode, string> = {
-    raw: 'Raw',
-    changes: 'Changes',
-    summary: 'Summary'
-};
-
-const viewModeLabel = computed(() => viewModeLabels[viewMode.value]);
+const viewModes: { value: LogViewMode, label: string }[] = [
+    { value: 'raw', label: 'Raw' },
+    { value: 'changes', label: 'Changes' },
+    { value: 'summary', label: 'Summary' }
+];
 
 const formatRowTime = (group: { repeatCount: number, startMinute: number, endMinute: number }) => {
     if (group.repeatCount > 1) {
@@ -248,13 +246,6 @@ const summary = computed(() => {
 
     return generateSummary(selectedGroup.value);
 });
-
-const cycleViewMode = () => {
-    const modes: LogViewMode[] = ['raw', 'changes', 'summary'];
-    const currentIndex = modes.indexOf(viewMode.value);
-
-    viewMode.value = modes[(currentIndex + 1) % modes.length];
-};
 
 // Auto-select newest when live
 watch([groups, isLive], () => {
