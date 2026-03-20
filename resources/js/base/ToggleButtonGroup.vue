@@ -5,6 +5,7 @@
             :class="[
                 buttonClass,
                 index === 0 ? firstButtonClass : '',
+                index === options.length - 1 ? lastButtonClass : '',
                 modelValue === option.value ? 'bg-gray-100 dark:bg-slate-800' : ''
             ]"
             type="button"
@@ -19,6 +20,7 @@ defineProps<{
     modelValue: string
     buttonClass?: string
     firstButtonClass?: string
+    lastButtonClass?: string
 }>();
 
 defineEmits<{
