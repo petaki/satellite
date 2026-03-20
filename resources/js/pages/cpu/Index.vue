@@ -23,6 +23,7 @@
                            :series="series"
                            height="100%"
                            :options="options" />
+                <chart-empty v-else />
             </div>
         </div>
     </div>
@@ -43,6 +44,7 @@ import {
 } from 'vue';
 
 import Breadcrumb from '../../base/Breadcrumb.vue';
+import ChartEmpty from '../../base/ChartEmpty.vue';
 import CardTitle from '../../base/CardTitle.vue';
 import Layout from '../../base/Layout.vue';
 import LiveIndicator from '../../base/LiveIndicator.vue';
