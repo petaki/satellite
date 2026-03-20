@@ -1,7 +1,9 @@
 <template>
     <app-title :title="subtitle" />
     <div class="p-5">
-        <breadcrumb :links="links" />
+        <breadcrumb :links="links">
+            <live-indicator v-model="isLive" />
+        </breadcrumb>
         <!-- eslint-disable max-len vue/attribute-hyphenation -->
         <div class="bg-white p-8 dark:bg-slate-700 dark:text-slate-300">
             <card-title>
@@ -118,7 +120,6 @@ import {
     ref,
     computed,
     onMounted,
-    onUnmounted,
     watch
 } from 'vue';
 
@@ -127,6 +128,8 @@ import type { ProbeSummary } from '../../types';
 import Breadcrumb from '../../base/Breadcrumb.vue';
 import CardTitle from '../../base/CardTitle.vue';
 import Layout from '../../base/Layout.vue';
+import LiveIndicator from '../../base/LiveIndicator.vue';
+import useLiveReload from '../../use/useLiveReload';
 
 const {
     probes = []
@@ -139,11 +142,9 @@ defineOptions({
 });
 
 const keyword = ref('');
+const { isLive } = useLiveReload();
 const subtitle = ref('Probes');
-const reloadTimer = 60000;
 const animated = ref(false);
-
-let reloadInterval: ReturnType<typeof setInterval>;
 
 const links = ref([
     { name: subtitle }
@@ -195,11 +196,6 @@ const confirmDelete = () => window.confirm('Are you sure you want to delete all 
 
 onMounted(() => {
     animateBars();
-    reloadInterval = setInterval(() => router.reload(), reloadTimer);
-});
-
-onUnmounted(() => {
-    clearInterval(reloadInterval);
 });
 
 watch(() => probes, animateBars);

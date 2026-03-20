@@ -1,6 +1,6 @@
 <template>
     <!-- eslint-disable max-len -->
-    <span class="lg:ml-auto mr-2 flex items-center h-11 px-3 border border-gray-300 rounded-sm text-sm font-semibold text-cyan-500 dark:border-slate-600">
+    <span class="lg:ml-auto mr-2 flex items-center h-11 px-3 border border-gray-300 rounded-sm text-sm font-semibold text-cyan-500 dark:border-cyan-500">
         <clock-icon class="h-4 w-4 mr-1.5" />
         {{ duration(chunkSize) }}
     </span>
