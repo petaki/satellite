@@ -2,7 +2,10 @@
     <app-title :title="subtitle" />
     <div class="p-5">
         <breadcrumb :links="links">
-            <live-indicator v-model="isLive" />
+            <div class="flex items-center gap-2">
+                <refresh-button />
+                <live-indicator v-model="isLive" />
+            </div>
         </breadcrumb>
         <!-- eslint-disable max-len -->
         <div class="bg-white p-8 dark:bg-slate-700">
@@ -35,9 +38,9 @@
                 </template>
             </card-title>
             <template v-if="logPath && logEntries && logEntries.length">
-                <div class="flex gap-4 mt-4 chart">
+                <div class="flex flex-col lg:flex-row gap-4 mt-4 lg:h-[calc(100vh-17.5rem)]">
                     <!-- Snapshot list (sidebar) -->
-                    <div class="w-80 shrink-0 overflow-y-auto bg-gray-900">
+                    <div class="w-full lg:w-80 shrink-0 overflow-y-auto bg-gray-900 max-h-40 lg:max-h-none">
                         <button v-for="group in filteredGroups"
                                 :key="group.id"
                                 class="w-full text-left px-3 py-2"
@@ -64,7 +67,7 @@
                         </button>
                     </div>
                     <!-- Detail pane -->
-                    <div class="flex-1 bg-gray-900 flex flex-col overflow-hidden">
+                    <div class="flex flex-1 bg-gray-900 flex-col overflow-hidden min-h-64 lg:min-h-0">
                         <template v-if="selectedGroup">
                             <div class="flex items-center justify-between px-4 py-2
                                         border-b border-slate-700">
@@ -153,6 +156,7 @@ import Breadcrumb from '../../base/Breadcrumb.vue';
 import CardTitle from '../../base/CardTitle.vue';
 import Layout from '../../base/Layout.vue';
 import LiveIndicator from '../../base/LiveIndicator.vue';
+import RefreshButton from '../../base/RefreshButton.vue';
 import LogStatusBadge from '../../base/LogStatusBadge.vue';
 import type { GroupedSnapshot, LogEntry, LogViewMode } from '../../types';
 import useCopy from '../../use/useCopy';

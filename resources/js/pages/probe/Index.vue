@@ -2,7 +2,10 @@
     <app-title :title="subtitle" />
     <div class="p-5">
         <breadcrumb :links="links">
-            <live-indicator v-model="isLive" />
+            <div class="flex items-center gap-2">
+                <refresh-button />
+                <live-indicator v-model="isLive" />
+            </div>
         </breadcrumb>
         <!-- eslint-disable max-len vue/attribute-hyphenation -->
         <div class="bg-white p-8 dark:bg-slate-700 dark:text-slate-300">
@@ -11,11 +14,6 @@
                 <input v-model="keyword"
                        class="form-input flex-1 sm:mx-2"
                        placeholder="Search">
-                <button class="btn-white"
-                        type="button"
-                        @click="router.reload()">
-                    <arrow-path-icon class="h-6 w-6" />
-                </button>
                 <inertia-link class="btn-red sm:ml-2"
                               href="/probe/delete-all"
                               method="delete"
@@ -114,7 +112,7 @@
 
 <script setup lang="ts">
 import { CubeIcon } from '@heroicons/vue/24/outline';
-import { ArrowPathIcon, TrashIcon } from '@heroicons/vue/20/solid';
+import { TrashIcon } from '@heroicons/vue/20/solid';
 
 import {
     ref,
@@ -129,6 +127,7 @@ import Breadcrumb from '../../base/Breadcrumb.vue';
 import CardTitle from '../../base/CardTitle.vue';
 import Layout from '../../base/Layout.vue';
 import LiveIndicator from '../../base/LiveIndicator.vue';
+import RefreshButton from '../../base/RefreshButton.vue';
 import useLiveReload from '../../use/useLiveReload';
 
 const {
