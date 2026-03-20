@@ -19,6 +19,7 @@ type Config struct {
 	URL                    string
 	SeriesButtons          []models.SeriesType
 	RedisURL               string
+	MCPEnabled             bool
 	HeartbeatEnabled       bool
 	HeartbeatWait          int
 	HeartbeatSleep         int
@@ -37,6 +38,11 @@ func NewConfig(command *cli.Command, arguments []string) (*Config, error) {
 	seriesButtons := command.FlagSet().String("series-buttons", os.Getenv("APP_SERIES_BUTTONS"), "Application Series Buttons")
 	redisURL := command.FlagSet().String("redis-url", os.Getenv("REDIS_URL"), "Redis URL")
 
+	envMCPEnabled, err := strconv.ParseBool(os.Getenv("MCP_ENABLED"))
+	if err != nil {
+		envMCPEnabled = false
+	}
+
 	envHeartbeatEnabled, err := strconv.ParseBool(os.Getenv("HEARTBEAT_ENABLED"))
 	if err != nil {
 		envHeartbeatEnabled = false
@@ -52,6 +58,7 @@ func NewConfig(command *cli.Command, arguments []string) (*Config, error) {
 		envHeartbeatSleep = 300
 	}
 
+	mcpEnabled := command.FlagSet().Bool("mcp-enabled", envMCPEnabled, "MCP Enabled")
 	heartbeatEnabled := command.FlagSet().Bool("heartbeat-enabled", envHeartbeatEnabled, "Heartbeat Enabled")
 	heartbeatWait := command.FlagSet().Int("heartbeat-wait", envHeartbeatWait, "Heartbeat Wait")
 	heartbeatSleep := command.FlagSet().Int("heartbeat-sleep", envHeartbeatSleep, "Heartbeat Sleep")
@@ -84,6 +91,7 @@ func NewConfig(command *cli.Command, arguments []string) (*Config, error) {
 		URL:                    *url,
 		SeriesButtons:          sb,
 		RedisURL:               *redisURL,
+		MCPEnabled:             *mcpEnabled,
 		HeartbeatEnabled:       *heartbeatEnabled,
 		HeartbeatWait:          *heartbeatWait,
 		HeartbeatSleep:         *heartbeatSleep,

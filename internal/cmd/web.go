@@ -6,6 +6,9 @@ import (
 	"github.com/petaki/support-go/cli"
 )
 
+// App is the CLI application instance.
+var App *cli.App
+
 // WebServe command.
 func WebServe(group *cli.Group, command *cli.Command, arguments []string) int {
 	appConfig, err := config.NewConfig(command, arguments)
@@ -15,7 +18,7 @@ func WebServe(group *cli.Group, command *cli.Command, arguments []string) int {
 		return command.PrintHelp(group)
 	}
 
-	web.Serve(appConfig)
+	web.Serve(App, appConfig)
 
 	return cli.Success
 }

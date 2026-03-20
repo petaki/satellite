@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	(&cli.App{
+	cmd.App = &cli.App{
 		Name:    "Satellite",
 		Version: "master",
 		Groups: []*cli.Group{
@@ -23,5 +23,7 @@ func main() {
 				},
 			},
 		},
-	}).Execute()
+	}
+
+	cmd.App.Execute()
 }

@@ -22,7 +22,7 @@ import (
 )
 
 // Serve function.
-func Serve(appConfig *config.Config) {
+func Serve(cliApp *cli.App, appConfig *config.Config) {
 	redisPool := service.RedisPool(appConfig)
 	defer redisPool.Close()
 
@@ -35,6 +35,7 @@ func Serve(appConfig *config.Config) {
 	}
 
 	webApp := &app{
+		cliApp:         cliApp,
 		appConfig:      appConfig,
 		infoLog:        cli.InfoLog,
 		errorLog:       cli.ErrorLog,

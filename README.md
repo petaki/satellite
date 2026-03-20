@@ -5,8 +5,36 @@
 [![Build Status](https://github.com/petaki/satellite/workflows/tests/badge.svg)](https://github.com/petaki/satellite/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](LICENSE.md)
 
+## MCP Server
+
+Satellite includes a built-in [MCP](https://modelcontextprotocol.io) (Model Context Protocol) server that lets AI agents query your monitoring data directly. When enabled, it exposes a Streamable HTTP endpoint with tools for listing probes, querying CPU/memory/load/disk metrics, reading logs, checking alerts, and managing probes.
+
+Add it to your MCP client:
+
+```bash
+# Claude Code
+claude mcp add --transport http satellite http://127.0.0.1:4000/mcp
+
+# Codex
+codex mcp add satellite --url http://127.0.0.1:4000/mcp
+```
+
+| Tool | Description |
+|------|-------------|
+| `list_probes` | List all probes with status, latest metrics, and alarm thresholds |
+| `get_cpu` | CPU usage time series with top 3 processes |
+| `get_memory` | Memory usage time series with top 3 processes |
+| `get_load` | Load average time series (1m, 5m, 15m) |
+| `get_disk` | Disk usage time series with path selector |
+| `get_logs` | Log entries with log file path selector |
+| `get_alerts` | Alarm thresholds and current metric values |
+| `delete_probe` | Delete a probe and all its data |
+
+Enable it by setting `MCP_ENABLED=true` in your `.env` file.
+
 ## Features
 
+- **MCP Server** - AI agent access to all monitoring data via Model Context Protocol
 - **CPU** - overall and per-process CPU usage charts
 - **Memory** - overall and per-process memory usage charts
 - **Load** - system load averages (1, 5, 15 min) charts
@@ -136,6 +164,18 @@ Available options:
 
 ```
 REDIS_URL=redis://127.0.0.1:6379/0
+```
+
+---
+
+### MCP
+
+Exposes monitoring data to AI agents via the Model Context Protocol. No authentication is included — control access at the network level.
+
+#### MCP Enabled
+
+```
+MCP_ENABLED=false
 ```
 
 ---
