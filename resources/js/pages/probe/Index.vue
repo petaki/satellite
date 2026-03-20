@@ -15,7 +15,7 @@
                        class="form-input flex-1 sm:mx-2"
                        placeholder="Search">
                 <inertia-link class="btn-red sm:ml-2"
-                              href="/probe/delete-all"
+                              :href="probeDeleteAllPath()"
                               method="delete"
                               as="button"
                               :onBefore="confirmDelete">
@@ -59,7 +59,7 @@
                         <tr v-for="probe in filteredProbes"
                             :key="probe.name"
                             class="cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800/50"
-                            @click="router.visit(`/cpu?probe=${probe.name}`)">
+                            @click="router.visit(cpuPath(probe.name))">
                             <td class="border-t border-gray-100 px-6 py-3 dark:border-slate-600">
                                 {{ probe.name }}
                             </td>
@@ -129,6 +129,9 @@ import Layout from '../../base/Layout.vue';
 import LiveIndicator from '../../base/LiveIndicator.vue';
 import RefreshButton from '../../base/RefreshButton.vue';
 import useLiveReload from '../../use/useLiveReload';
+import usePaths from '../../use/usePaths';
+
+const { cpuPath, probeDeleteAllPath } = usePaths();
 
 const {
     probes = []

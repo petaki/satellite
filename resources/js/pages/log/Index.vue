@@ -167,6 +167,7 @@ import type { GroupedSnapshot, LogEntry, LogViewMode } from '../../types';
 import useCopy from '../../use/useCopy';
 import useDate from '../../use/useDate';
 import useLiveReload from '../../use/useLiveReload';
+import usePaths from '../../use/usePaths';
 import {
     groupSnapshots, filterSnapshots, generateSummary
 } from '../../use/useLogGrouping';
@@ -190,6 +191,7 @@ defineOptions({
 const { copied, copy } = useCopy();
 const { timestamp, shortTime } = useDate();
 const { isLive } = useLiveReload();
+const { logPath: logPathFn } = usePaths();
 const subtitle = ref('Log');
 
 const links = ref([
@@ -272,7 +274,7 @@ const jumpToLatest = () => {
 const onPathChange = (event: Event) => {
     const target = event.target as HTMLSelectElement;
 
-    router.visit(`/log?probe=${probe}&path=${target.value}`);
+    router.visit(logPathFn(probe, target.value));
 };
 
 const copyContent = () => {
