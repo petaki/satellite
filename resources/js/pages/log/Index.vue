@@ -28,12 +28,8 @@
                     <toggle-button-group v-model="viewMode"
                                          :options="viewModes"
                                          button-class="rounded-none border-r-0"
-                                         first-button-class="sm:ml-2 rounded-l-sm" />
-                    <button class="btn-white py-0 px-3 h-11 rounded-l-none text-sm font-semibold"
-                            type="button"
-                            @click="jumpToLatest">
-                        Latest
-                    </button>
+                                         first-button-class="sm:ml-2 rounded-l-sm"
+                                         last-button-class="rounded-r-sm border-r" />
                 </template>
             </card-title>
             <template v-if="logPath && logEntries && logEntries.length">
@@ -77,15 +73,23 @@
                                         x{{ selectedGroup.repeatCount }}
                                     </span>
                                 </div>
-                                <button class="text-slate-400 hover:text-slate-200
-                                               transition-colors p-1"
-                                        :title="copied ? 'Copied!' : 'Copy to clipboard'"
-                                        @click="copyContent">
-                                    <clipboard-document-check-icon v-if="copied"
-                                                                   class="h-4 w-4" />
-                                    <clipboard-document-icon v-else
-                                                             class="h-4 w-4" />
-                                </button>
+                                <div class="flex items-center gap-1">
+                                    <button class="text-slate-400 hover:text-slate-200
+                                                   transition-colors p-1"
+                                            title="Jump to latest"
+                                            @click="jumpToLatest">
+                                        <arrow-up-icon class="h-4 w-4" />
+                                    </button>
+                                    <button class="text-slate-400 hover:text-slate-200
+                                                   transition-colors p-1"
+                                            :title="copied ? 'Copied!' : 'Copy to clipboard'"
+                                            @click="copyContent">
+                                        <clipboard-document-check-icon v-if="copied"
+                                                                       class="h-4 w-4" />
+                                        <clipboard-document-icon v-else
+                                                                 class="h-4 w-4" />
+                                    </button>
+                                </div>
                             </div>
                             <div ref="contentEl"
                                  class="flex-1 overflow-y-auto p-4">
@@ -137,6 +141,7 @@
 
 <script setup lang="ts">
 import {
+    ArrowUpIcon,
     ClipboardDocumentIcon,
     ClipboardDocumentCheckIcon,
     DocumentTextIcon
