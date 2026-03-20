@@ -7,7 +7,7 @@
          :class="{'translate-x-0': isSidebarOpen, '-translate-x-full': !isSidebarOpen}">
         <div class="flex h-20 bg-gray-900">
             <inertia-link class="flex items-center m-auto text-white text-xl"
-                          href="/">
+                          :href="probePath()">
                 <paper-airplane-icon class="h-7 w-7 mr-2" />
                 <span class="break-all">
                     {{ $page.props.title }}
@@ -20,7 +20,7 @@
                     Probe
                 </sidebar-title>
                 <sidebar-link :is-active="!!$page.props.isProbeActive"
-                              href="/">
+                              :href="probePath()">
                     <cube-icon v-if="!!$page.props.probe" class="h-5 w-5 mr-2" />
                     <cube-transparent-icon v-else class="h-5 w-5 mr-2" />
                     <span v-if="!!$page.props.probe">
@@ -34,28 +34,28 @@
             </div>
             <div v-if="!!$page.props.probe" class="bg-black/20">
                 <sidebar-link :is-active="!!$page.props.isCpuActive"
-                              :href="`/cpu?probe=${$page.props.probe}`">
+                              :href="cpuPath(String($page.props.probe))">
                     <cpu-chip-icon class="h-5 w-5 mr-2" />
                     <span>
                         CPU
                     </span>
                 </sidebar-link>
                 <sidebar-link :is-active="!!$page.props.isMemoryActive"
-                              :href="`/memory?probe=${$page.props.probe}`">
+                              :href="memoryPath(String($page.props.probe))">
                     <document-duplicate-icon class="h-5 w-5 mr-2" />
                     <span>
                         Memory
                     </span>
                 </sidebar-link>
                 <sidebar-link :is-active="!!$page.props.isLoadActive"
-                              :href="`/load?probe=${$page.props.probe}`">
+                              :href="loadPath(String($page.props.probe))">
                     <chart-bar-icon class="h-5 w-5 mr-2" />
                     <span>
                         Load
                     </span>
                 </sidebar-link>
                 <sidebar-link :is-active="!!$page.props.isDiskActive"
-                              :href="`/disk?probe=${$page.props.probe}`">
+                              :href="diskPath(String($page.props.probe))">
                     <circle-stack-icon class="h-5 w-5 mr-2" />
                     <span>
                         Disk
@@ -63,7 +63,7 @@
                 </sidebar-link>
                 <sidebar-link v-if="$page.props.logPaths && $page.props.logPaths.length"
                               :is-active="!!$page.props.isLogActive"
-                              :href="`/log?probe=${$page.props.probe}`">
+                              :href="logPath(String($page.props.probe))">
                     <document-text-icon class="h-5 w-5 mr-2" />
                     <span>
                         Log
@@ -71,7 +71,7 @@
                 </sidebar-link>
                 <!-- eslint-disable vue/attribute-hyphenation -->
                 <sidebar-link :is-highlight="true"
-                              :href="`/probe/delete?probe=${$page.props.probe}`"
+                              :href="probeDeletePath(String($page.props.probe))"
                               method="delete"
                               as="button"
                               :onBefore="confirmDelete">
@@ -150,6 +150,11 @@ import { ref, onUnmounted, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 import SidebarTitle from './SidebarTitle.vue';
 import SidebarLink from './SidebarLink.vue';
+import usePaths from '../use/usePaths';
+
+const {
+    probePath, cpuPath, memoryPath, loadPath, diskPath, logPath, probeDeletePath
+} = usePaths();
 
 const theme = ref(!('theme' in localStorage)
     ? 'system'

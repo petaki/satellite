@@ -50,6 +50,7 @@ import LiveIndicator from '../../base/LiveIndicator.vue';
 import RefreshButton from '../../base/RefreshButton.vue';
 import useAnnotation from '../../use/useAnnotation';
 import useLiveReload from '../../use/useLiveReload';
+import usePaths from '../../use/usePaths';
 import PointInterval from '../../base/PointInterval.vue';
 import SeriesSelector from '../../base/SeriesSelector.vue';
 import type { SeriesDataPoint, ApexConfig } from '../../types';
@@ -76,6 +77,7 @@ defineOptions({
 
 const { alarm, max } = useAnnotation();
 const { isLive } = useLiveReload();
+const { loadPath } = usePaths();
 const subtitle = ref('Load');
 const chartEl = ref();
 
@@ -117,8 +119,8 @@ const links = ref([
 ]);
 
 const seriesHref = (isDefault: boolean, selectedType: string | undefined) => (isDefault
-    ? `/load?probe=${probe}`
-    : `/load?probe=${probe}&type=${selectedType}`);
+    ? loadPath(probe)
+    : loadPath(probe, selectedType));
 
 const onSetTheme = () => {
     chartEl.value.refresh();

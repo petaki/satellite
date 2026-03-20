@@ -60,6 +60,7 @@ import LiveIndicator from '../../base/LiveIndicator.vue';
 import RefreshButton from '../../base/RefreshButton.vue';
 import useAnnotation from '../../use/useAnnotation';
 import useLiveReload from '../../use/useLiveReload';
+import usePaths from '../../use/usePaths';
 import PointInterval from '../../base/PointInterval.vue';
 import SeriesSelector from '../../base/SeriesSelector.vue';
 import type { SeriesDataPoint, ApexConfig } from '../../types';
@@ -90,12 +91,13 @@ defineOptions({
 
 const { alarm, max } = useAnnotation();
 const { isLive } = useLiveReload();
+const { diskPath: diskPathFn } = usePaths();
 const subtitle = ref('Disk');
 
 const onPathChange = (event: Event) => {
     const target = event.target as HTMLSelectElement;
 
-    router.visit(`/disk?probe=${probe}&path=${target.value}`);
+    router.visit(diskPathFn(probe, target.value));
 };
 const chartEl = ref();
 
@@ -135,8 +137,8 @@ const series = computed(() => [
 ]);
 
 const seriesHref = (isDefault: boolean, selectedType: string | undefined) => (isDefault
-    ? `/disk?probe=${probe}&path=${diskPath}`
-    : `/disk?probe=${probe}&path=${diskPath}&type=${selectedType}`);
+    ? diskPathFn(probe, diskPath)
+    : diskPathFn(probe, diskPath, selectedType));
 
 const onSetTheme = () => {
     chartEl.value.refresh();
