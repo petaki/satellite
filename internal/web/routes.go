@@ -2,8 +2,10 @@ package web
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/justinas/alice"
+	satellitemcp "github.com/petaki/satellite/internal/mcp"
 	"github.com/petaki/satellite/static"
 )
 
@@ -36,6 +38,25 @@ func (a *app) routes() http.Handler {
 
 	mux.Handle("/build/", fileServer)
 	mux.Handle("/favicon.ico", fileServer)
+
+	if a.appConfig.MCPEnabled {
+		mcpHandler := satellitemcp.NewHandler(
+			a.cliApp,
+			a.appConfig,
+			a.probeRepository,
+			a.alarmRepository,
+			a.seriesRepository,
+			a.logRepository,
+		)
+		mux.Handle("/mcp", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodGet {
+				rc := http.NewResponseController(w)
+				_ = rc.SetWriteDeadline(time.Time{})
+			}
+
+			mcpHandler.ServeHTTP(w, r)
+		}))
+	}
 
 	return baseMiddleware.Then(mux)
 }
