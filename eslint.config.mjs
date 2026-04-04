@@ -6,9 +6,7 @@ import tsParser from '@typescript-eslint/parser';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import js from '@eslint/js';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { FlatCompat } from '@eslint/eslintrc';
 
 const __filename = fileURLToPath(import.meta.url);
