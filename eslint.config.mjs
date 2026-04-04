@@ -2,7 +2,6 @@ import { defineConfig } from 'eslint/config';
 import pluginVue from 'eslint-plugin-vue';
 import globals from 'globals';
 import vueParser from 'vue-eslint-parser';
-import parser from '@babel/eslint-parser';
 import tsParser from '@typescript-eslint/parser';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import path from 'node:path';
@@ -24,6 +23,32 @@ const compat = new FlatCompat({
 export default defineConfig([
     ...pluginVue.configs['flat/recommended'],
     {
+        files: ['**/*.ts'],
+        plugins: {
+            '@typescript-eslint': tsPlugin
+        },
+        languageOptions: {
+            parser: tsParser,
+            parserOptions: {
+                sourceType: 'module'
+            }
+        }
+    },
+    {
+        files: ['**/*.vue'],
+        plugins: {
+            '@typescript-eslint': tsPlugin
+        },
+        languageOptions: {
+            parser: vueParser,
+            sourceType: 'module',
+
+            parserOptions: {
+                parser: tsParser
+            }
+        }
+    },
+    {
         extends: compat.extends('airbnb-base'),
 
         languageOptions: {
@@ -32,18 +57,6 @@ export default defineConfig([
                 ...globals.commonjs,
                 ...globals.jquery,
                 ...globals.node
-            },
-
-            parser: vueParser,
-            sourceType: 'module',
-
-            parserOptions: {
-                parser: {
-                    js: parser,
-                    ts: tsParser,
-                    '<template>': parser
-                },
-                requireConfigFile: false
             }
         },
 
@@ -96,6 +109,7 @@ export default defineConfig([
                 singleline: 2
             }],
             'vue/multi-word-component-names': 'off',
+            'vue/valid-v-for': 'off',
             'vue/no-v-html': 'off'
         }
     }
