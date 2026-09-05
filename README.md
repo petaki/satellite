@@ -74,7 +74,7 @@ Download the latest release for your platform from the [GitHub Releases](https:/
 
 #### Prerequisites
 
-- Go: `Version >= 1.26`
+- Go: `Version >= 1.27`
 - Node.js: `Version >= 22.0`
 - Yarn or NPM
 
@@ -177,6 +177,14 @@ Exposes monitoring data to AI agents via the Model Context Protocol. No authenti
 ```
 MCP_ENABLED=false
 ```
+
+#### MCP Allow Any Host
+
+```
+MCP_ALLOW_ANY_HOST=false
+```
+
+By default the MCP endpoint rejects requests that arrive over a loopback connection with a non-loopback `Host` header, which protects local installs against DNS rebinding attacks. Set this to `true` only when a reverse proxy on the same host forwards to Satellite via `127.0.0.1` while preserving the original `Host` header. Rewriting the `Host` header to `localhost` in the proxy is the safer alternative.
 
 ---
 

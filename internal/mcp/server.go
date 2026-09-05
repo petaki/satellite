@@ -117,7 +117,13 @@ func NewHandler(
 		h.deleteProbe,
 	)
 
-	httpServer := server.NewStreamableHTTPServer(mcpServer)
+	var options []server.StreamableHTTPOption
+
+	if appConfig.MCPAllowAnyHost {
+		options = append(options, server.WithDisableLocalhostProtection(true))
+	}
+
+	httpServer := server.NewStreamableHTTPServer(mcpServer, options...)
 
 	return httpServer
 }
