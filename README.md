@@ -7,9 +7,7 @@
 
 ## MCP Server
 
-Satellite includes a built-in [MCP](https://modelcontextprotocol.io) (Model Context Protocol) server that lets AI agents query your monitoring data directly. When enabled, it exposes a Streamable HTTP endpoint with tools for listing probes, querying CPU/memory/load/disk metrics, reading logs, checking alerts, and managing probes.
-
-Add it to your MCP client:
+Satellite includes a built-in MCP server that lets AI agents query your monitoring data. Add the Streamable HTTP endpoint to your client:
 
 ```bash
 # Claude Code
@@ -170,7 +168,7 @@ REDIS_URL=redis://127.0.0.1:6379/0
 
 ### MCP
 
-Exposes monitoring data to AI agents via the Model Context Protocol. No authentication is included — control access at the network level.
+Exposes monitoring data to AI agents. No authentication is included — control access at the network level.
 
 #### MCP Enabled
 
@@ -184,7 +182,7 @@ MCP_ENABLED=false
 MCP_ALLOW_ANY_HOST=false
 ```
 
-By default the MCP endpoint rejects requests that arrive over a loopback connection with a non-loopback `Host` header, which protects it against DNS rebinding attacks. The guard covers `/mcp` only — the web routes carry no authentication either way, so keep controlling access at the network level. Set this to `true` only when a reverse proxy on the same host forwards to Satellite via `127.0.0.1` while preserving the original `Host` header. Rewriting the `Host` header to `localhost` in the proxy is the safer alternative.
+Disables the DNS rebinding guard on `/mcp`, which rejects requests that reach Satellite over loopback with a non-loopback `Host` header. Set it to `true` when a same-host reverse proxy forwards to `127.0.0.1` and preserves the original `Host`; having the proxy rewrite `Host` to `localhost` is the safer alternative.
 
 ---
 
