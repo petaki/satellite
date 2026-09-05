@@ -184,7 +184,7 @@ MCP_ENABLED=false
 MCP_ALLOW_ANY_HOST=false
 ```
 
-By default the MCP endpoint rejects requests that arrive over a loopback connection with a non-loopback `Host` header, which protects local installs against DNS rebinding attacks. Set this to `true` only when a reverse proxy on the same host forwards to Satellite via `127.0.0.1` while preserving the original `Host` header. Rewriting the `Host` header to `localhost` in the proxy is the safer alternative.
+By default the MCP endpoint rejects requests that arrive over a loopback connection with a non-loopback `Host` header, which protects it against DNS rebinding attacks. The guard covers `/mcp` only — the web routes carry no authentication either way, so keep controlling access at the network level. Set this to `true` only when a reverse proxy on the same host forwards to Satellite via `127.0.0.1` while preserving the original `Host` header. Rewriting the `Host` header to `localhost` in the proxy is the safer alternative.
 
 ---
 
