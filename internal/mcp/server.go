@@ -10,7 +10,7 @@ import (
 	"github.com/petaki/support-go/cli"
 )
 
-// NewHandler creates an MCP HTTP handler supporting both SSE and Streamable HTTP transports.
+// NewHandler creates an MCP HTTP handler using the Streamable HTTP transport.
 func NewHandler(
 	cliApp *cli.App,
 	appConfig *config.Config,
