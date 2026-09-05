@@ -7,7 +7,7 @@
 
 ## MCP Server
 
-Satellite includes a built-in MCP server that lets AI agents query your monitoring data. Add the Streamable HTTP endpoint to your client:
+Satellite includes a built-in MCP server that lets AI agents query your monitoring data. When enabled, it exposes a Streamable HTTP endpoint with tools for metrics, logs and alerts. Add it to your MCP client:
 
 ```bash
 # Claude Code
