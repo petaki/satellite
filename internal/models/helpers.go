@@ -1,6 +1,26 @@
 package models
 
-import "time"
+import (
+	"strings"
+	"time"
+)
+
+func escapeGlob(value string) string {
+	var builder strings.Builder
+
+	builder.Grow(len(value))
+
+	for _, r := range value {
+		switch r {
+		case '*', '?', '[', ']', '\\':
+			builder.WriteRune('\\')
+		}
+
+		builder.WriteRune(r)
+	}
+
+	return builder.String()
+}
 
 func between(start, end time.Time, timestamp int64) bool {
 	t := time.Unix(timestamp, 0)

@@ -396,7 +396,18 @@ func (h *handler) requireProbe(request mcp.CallToolRequest) (models.Probe, error
 		return "", fmt.Errorf("mcp: probe parameter is required")
 	}
 
-	return models.Probe(probeName), nil
+	probes, err := h.probeRepository.FindAll()
+	if err != nil {
+		return "", fmt.Errorf("mcp: failed to find probes: %w", err)
+	}
+
+	probe := models.Probe(probeName)
+
+	if !slices.Contains(probes, probe) {
+		return "", fmt.Errorf("mcp: unknown probe: %s", probeName)
+	}
+
+	return probe, nil
 }
 
 func (h *handler) resolveSeriesType(request mcp.CallToolRequest) models.SeriesType {

@@ -177,9 +177,11 @@ func (rpr *RedisProbeRepository) Delete(probe Probe) error {
 	cursor := 0
 	var keys []string
 
+	match := escapeGlob(string(probe)) + ":*"
+
 	for {
 		values, err := redis.Values(
-			conn.Do("SCAN", cursor, "MATCH", string(probe)+":*"),
+			conn.Do("SCAN", cursor, "MATCH", match),
 		)
 		if err != nil {
 			return err

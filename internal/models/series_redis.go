@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/base64"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -68,9 +69,9 @@ func (rsr *RedisSeriesRepository) FindDiskPaths(probe Probe) ([]string, error) {
 	var paths []string
 	timestamps := rsr.timestamps(Last30Days)
 
-	for i := len(timestamps) - 1; i >= 0; i-- {
+	for _, timestamp := range slices.Backward(timestamps) {
 		cursor := 0
-		prefix := string(probe) + ":" + seriesDiskKeyPrefix + strconv.FormatInt(timestamps[i], 10) + ":"
+		prefix := string(probe) + ":" + seriesDiskKeyPrefix + strconv.FormatInt(timestamp, 10) + ":"
 
 		for {
 			values, err := redis.Values(
@@ -577,9 +578,9 @@ func (rsr *RedisSeriesRepository) timestamps(seriesType SeriesType) []int64 {
 	case Last2Days:
 		start = end.AddDate(0, 0, -2)
 	case Last7Days:
-		start = end.AddDate(0, 0, -6)
+		start = end.AddDate(0, 0, -7)
 	case Last30Days:
-		start = end.AddDate(0, 0, -29)
+		start = end.AddDate(0, 0, -30)
 	default:
 		start = end.AddDate(0, 0, -1)
 	}
