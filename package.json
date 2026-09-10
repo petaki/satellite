@@ -4,7 +4,7 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build",
-        "lint": "yarn eslint --ext .js,.ts,.vue ./resources/js",
+        "lint": "yarn eslint --max-warnings 0 --ext .js,.ts,.vue ./resources/js",
         "typecheck": "vue-tsc --noEmit"
     },
     "devDependencies": {
