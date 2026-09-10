@@ -22,7 +22,7 @@ type handler struct {
 func (h *handler) listProbes(_ context.Context, _ mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	probes, err := h.probeRepository.FindAll()
 	if err != nil {
-		return mcp.NewToolResultError(fmt.Sprintf("mcp: failed to find probes: %v", err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: probes: %v", ErrFind, err)), nil
 	}
 
 	summaries := make([]models.ProbeSummary, 0, len(probes))
@@ -34,7 +34,7 @@ func (h *handler) listProbes(_ context.Context, _ mcp.CallToolRequest) (*mcp.Cal
 
 		cpu, cpuFound, err := h.seriesRepository.FindLatestCPU(probe)
 		if err != nil {
-			return mcp.NewToolResultError(fmt.Sprintf("mcp: failed to find CPU for %s: %v", probe, err)), nil
+			return mcp.NewToolResultError(fmt.Sprintf("%v: cpu, %s: %v", ErrFind, probe, err)), nil
 		}
 
 		if cpuFound {
@@ -43,7 +43,7 @@ func (h *handler) listProbes(_ context.Context, _ mcp.CallToolRequest) (*mcp.Cal
 
 		mem, memFound, err := h.seriesRepository.FindLatestMemory(probe)
 		if err != nil {
-			return mcp.NewToolResultError(fmt.Sprintf("mcp: failed to find memory for %s: %v", probe, err)), nil
+			return mcp.NewToolResultError(fmt.Sprintf("%v: memory, %s: %v", ErrFind, probe, err)), nil
 		}
 
 		if memFound {
@@ -52,7 +52,7 @@ func (h *handler) listProbes(_ context.Context, _ mcp.CallToolRequest) (*mcp.Cal
 
 		load1, load5, load15, _, err := h.seriesRepository.FindLatestLoad(probe)
 		if err != nil {
-			return mcp.NewToolResultError(fmt.Sprintf("mcp: failed to find load for %s: %v", probe, err)), nil
+			return mcp.NewToolResultError(fmt.Sprintf("%v: load, %s: %v", ErrFind, probe, err)), nil
 		}
 
 		summary.Load1 = load1
@@ -61,7 +61,7 @@ func (h *handler) listProbes(_ context.Context, _ mcp.CallToolRequest) (*mcp.Cal
 
 		values, _, err := h.probeRepository.FindLatestValues(probe, 2)
 		if err != nil {
-			return mcp.NewToolResultError(fmt.Sprintf("mcp: failed to find latest values for %s: %v", probe, err)), nil
+			return mcp.NewToolResultError(fmt.Sprintf("%v: latest values, %s: %v", ErrFind, probe, err)), nil
 		}
 
 		for _, value := range values {
@@ -74,7 +74,7 @@ func (h *handler) listProbes(_ context.Context, _ mcp.CallToolRequest) (*mcp.Cal
 
 		alarm, err := h.alarmRepository.Find(probe)
 		if err != nil && !errors.Is(err, models.ErrNoRecord) {
-			return mcp.NewToolResultError(fmt.Sprintf("mcp: failed to find alarm for %s: %v", probe, err)), nil
+			return mcp.NewToolResultError(fmt.Sprintf("%v: alarm, %s: %v", ErrFind, probe, err)), nil
 		}
 
 		if alarm != nil {
@@ -97,19 +97,19 @@ func (h *handler) getCPU(_ context.Context, request mcp.CallToolRequest) (*mcp.C
 
 	seriesType := h.resolveSeriesType(request)
 	if !h.seriesTypeExists(seriesType) {
-		return mcp.NewToolResultError(fmt.Sprintf("mcp: invalid series type: %s", seriesType)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: series type, %s", ErrInvalid, seriesType)), nil
 	}
 
 	cpuMin, cpuMax, cpuAvg, proc1, proc2, proc3, err := h.seriesRepository.FindCPU(probe, seriesType)
 	if err != nil {
-		return mcp.NewToolResultError(fmt.Sprintf("mcp: failed to find CPU data: %v", err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: cpu, %s, %s: %v", ErrFind, probe, seriesType, err)), nil
 	}
 
 	var cpuAlarm float64
 
 	alarm, err := h.alarmRepository.Find(probe)
 	if err != nil && !errors.Is(err, models.ErrNoRecord) {
-		return mcp.NewToolResultError(fmt.Sprintf("mcp: failed to find alarm: %v", err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: alarm, %s: %v", ErrFind, probe, err)), nil
 	}
 
 	if alarm != nil {
@@ -139,19 +139,19 @@ func (h *handler) getMemory(_ context.Context, request mcp.CallToolRequest) (*mc
 
 	seriesType := h.resolveSeriesType(request)
 	if !h.seriesTypeExists(seriesType) {
-		return mcp.NewToolResultError(fmt.Sprintf("mcp: invalid series type: %s", seriesType)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: series type, %s", ErrInvalid, seriesType)), nil
 	}
 
 	memMin, memMax, memAvg, proc1, proc2, proc3, err := h.seriesRepository.FindMemory(probe, seriesType)
 	if err != nil {
-		return mcp.NewToolResultError(fmt.Sprintf("mcp: failed to find memory data: %v", err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: memory, %s, %s: %v", ErrFind, probe, seriesType, err)), nil
 	}
 
 	var memoryAlarm float64
 
 	alarm, err := h.alarmRepository.Find(probe)
 	if err != nil && !errors.Is(err, models.ErrNoRecord) {
-		return mcp.NewToolResultError(fmt.Sprintf("mcp: failed to find alarm: %v", err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: alarm, %s: %v", ErrFind, probe, err)), nil
 	}
 
 	if alarm != nil {
@@ -181,19 +181,19 @@ func (h *handler) getLoad(_ context.Context, request mcp.CallToolRequest) (*mcp.
 
 	seriesType := h.resolveSeriesType(request)
 	if !h.seriesTypeExists(seriesType) {
-		return mcp.NewToolResultError(fmt.Sprintf("mcp: invalid series type: %s", seriesType)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: series type, %s", ErrInvalid, seriesType)), nil
 	}
 
 	load1, load5, load15, err := h.seriesRepository.FindLoad(probe, seriesType)
 	if err != nil {
-		return mcp.NewToolResultError(fmt.Sprintf("mcp: failed to find load data: %v", err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: load, %s, %s: %v", ErrFind, probe, seriesType, err)), nil
 	}
 
 	var loadAlarm float64
 
 	alarm, err := h.alarmRepository.Find(probe)
 	if err != nil && !errors.Is(err, models.ErrNoRecord) {
-		return mcp.NewToolResultError(fmt.Sprintf("mcp: failed to find alarm: %v", err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: alarm, %s: %v", ErrFind, probe, err)), nil
 	}
 
 	if alarm != nil {
@@ -220,41 +220,38 @@ func (h *handler) getDisk(_ context.Context, request mcp.CallToolRequest) (*mcp.
 
 	seriesType := h.resolveSeriesType(request)
 	if !h.seriesTypeExists(seriesType) {
-		return mcp.NewToolResultError(fmt.Sprintf("mcp: invalid series type: %s", seriesType)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: series type, %s", ErrInvalid, seriesType)), nil
 	}
 
 	diskPaths, err := h.seriesRepository.FindDiskPaths(probe)
 	if err != nil {
-		return mcp.NewToolResultError(fmt.Sprintf("mcp: failed to find disk paths: %v", err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: disk paths, %s: %v", ErrFind, probe, err)), nil
 	}
 
 	diskPath := request.GetString("path", "")
+
+	if diskPath != "" && !slices.Contains(diskPaths, diskPath) {
+		return mcp.NewToolResultError(fmt.Sprintf("%v: disk path, %s, available: %v", ErrInvalid, diskPath, diskPaths)), nil
+	}
 
 	if diskPath == "" && len(diskPaths) > 0 {
 		diskPath = diskPaths[0]
 	}
 
-	if diskPath == "" || !slices.Contains(diskPaths, diskPath) {
-		result := map[string]any{
-			"probe":     string(probe),
-			"series":    string(seriesType),
-			"diskPaths": diskPaths,
-			"error":     "mcp: no valid disk path available",
+	diskMin, diskMax, diskAvg := models.Series{}, models.Series{}, models.Series{}
+
+	if diskPath != "" {
+		diskMin, diskMax, diskAvg, err = h.seriesRepository.FindDisk(probe, seriesType, diskPath)
+		if err != nil {
+			return mcp.NewToolResultError(fmt.Sprintf("%v: disk, %s, %s: %v", ErrFind, probe, diskPath, err)), nil
 		}
-
-		return marshalResult(result)
-	}
-
-	diskMin, diskMax, diskAvg, err := h.seriesRepository.FindDisk(probe, seriesType, diskPath)
-	if err != nil {
-		return mcp.NewToolResultError(fmt.Sprintf("mcp: failed to find disk data: %v", err)), nil
 	}
 
 	var diskAlarm float64
 
 	alarm, err := h.alarmRepository.Find(probe)
 	if err != nil && !errors.Is(err, models.ErrNoRecord) {
-		return mcp.NewToolResultError(fmt.Sprintf("mcp: failed to find alarm: %v", err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: alarm, %s: %v", ErrFind, probe, err)), nil
 	}
 
 	if alarm != nil {
@@ -283,24 +280,26 @@ func (h *handler) getLogs(_ context.Context, request mcp.CallToolRequest) (*mcp.
 
 	logPaths, err := h.logRepository.FindLogPaths(probe)
 	if err != nil {
-		return mcp.NewToolResultError(fmt.Sprintf("mcp: failed to find log paths: %v", err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: log paths, %s: %v", ErrFind, probe, err)), nil
 	}
 
 	logPath := request.GetString("path", "")
+
+	if logPath != "" && !slices.Contains(logPaths, logPath) {
+		return mcp.NewToolResultError(fmt.Sprintf("%v: log path, %s, available: %v", ErrInvalid, logPath, logPaths)), nil
+	}
 
 	if logPath == "" && len(logPaths) > 0 {
 		logPath = logPaths[0]
 	}
 
-	var logEntries []models.LogEntry
+	logEntries := []models.LogEntry{}
 
-	if logPath != "" && slices.Contains(logPaths, logPath) {
+	if logPath != "" {
 		logEntries, err = h.logRepository.FindLog(probe, logPath)
 		if err != nil {
-			return mcp.NewToolResultError(fmt.Sprintf("mcp: failed to find log entries: %v", err)), nil
+			return mcp.NewToolResultError(fmt.Sprintf("%v: log, %s, %s: %v", ErrFind, probe, logPath, err)), nil
 		}
-	} else {
-		logPath = ""
 	}
 
 	result := map[string]any{
@@ -321,10 +320,10 @@ func (h *handler) getAlerts(_ context.Context, request mcp.CallToolRequest) (*mc
 
 	alarm, err := h.alarmRepository.Find(probe)
 	if err != nil && !errors.Is(err, models.ErrNoRecord) {
-		return mcp.NewToolResultError(fmt.Sprintf("mcp: failed to find alarm: %v", err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: alarm, %s: %v", ErrFind, probe, err)), nil
 	}
 
-	var alarms map[string]float64
+	alarms := map[string]float64{}
 
 	if alarm != nil {
 		alarms = map[string]float64{
@@ -337,17 +336,17 @@ func (h *handler) getAlerts(_ context.Context, request mcp.CallToolRequest) (*mc
 
 	cpu, cpuFound, err := h.seriesRepository.FindLatestCPU(probe)
 	if err != nil {
-		return mcp.NewToolResultError(fmt.Sprintf("mcp: failed to find latest CPU: %v", err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: cpu, %s: %v", ErrFind, probe, err)), nil
 	}
 
 	mem, memFound, err := h.seriesRepository.FindLatestMemory(probe)
 	if err != nil {
-		return mcp.NewToolResultError(fmt.Sprintf("mcp: failed to find latest memory: %v", err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: memory, %s: %v", ErrFind, probe, err)), nil
 	}
 
 	load1, load5, load15, loadFound, err := h.seriesRepository.FindLatestLoad(probe)
 	if err != nil {
-		return mcp.NewToolResultError(fmt.Sprintf("mcp: failed to find latest load: %v", err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: load, %s: %v", ErrFind, probe, err)), nil
 	}
 
 	latest := map[string]any{}
@@ -383,7 +382,7 @@ func (h *handler) deleteProbe(_ context.Context, request mcp.CallToolRequest) (*
 
 	err = h.probeRepository.Delete(probe)
 	if err != nil {
-		return mcp.NewToolResultError(fmt.Sprintf("mcp: failed to delete probe: %v", err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: probe, %s: %v", ErrDelete, probe, err)), nil
 	}
 
 	return mcp.NewToolResultText(fmt.Sprintf("probe %q deleted successfully", string(probe))), nil
@@ -392,18 +391,18 @@ func (h *handler) deleteProbe(_ context.Context, request mcp.CallToolRequest) (*
 func (h *handler) requireProbe(request mcp.CallToolRequest) (models.Probe, error) {
 	probeName := request.GetString("probe", "")
 	if probeName == "" {
-		return "", fmt.Errorf("mcp: probe parameter is required")
+		return "", fmt.Errorf("%w: probe", ErrRequired)
 	}
 
 	probes, err := h.probeRepository.FindAll()
 	if err != nil {
-		return "", fmt.Errorf("mcp: failed to find probes: %w", err)
+		return "", fmt.Errorf("%w: probes: %v", ErrFind, err)
 	}
 
 	probe := models.Probe(probeName)
 
 	if !slices.Contains(probes, probe) {
-		return "", fmt.Errorf("mcp: unknown probe: %s", probeName)
+		return "", fmt.Errorf("%w: probe, %s", ErrNotFound, probeName)
 	}
 
 	return probe, nil
