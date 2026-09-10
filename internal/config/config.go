@@ -2,9 +2,10 @@ package config
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/petaki/satellite/internal/models"
 	"github.com/petaki/support-go/cli"
@@ -78,11 +79,6 @@ func NewConfig(command *cli.Command, arguments []string) (*Config, error) {
 		return nil, err
 	}
 
-	sb := parseSeriesButtons(*seriesButtons)
-	if len(sb) == 0 {
-		return nil, errors.New("config: invalid series buttons")
-	}
-
 	var webhookHeader map[string]string
 
 	if *heartbeatWebhookHeader != "" {
@@ -92,12 +88,11 @@ func NewConfig(command *cli.Command, arguments []string) (*Config, error) {
 		}
 	}
 
-	return &Config{
+	appConfig := &Config{
 		Debug:                  *debug,
 		Name:                   *name,
 		Addr:                   *addr,
 		URL:                    *url,
-		SeriesButtons:          sb,
 		RedisURL:               *redisURL,
 		MCPEnabled:             *mcpEnabled,
 		MCPAllowAnyHost:        *mcpAllowAnyHost,
@@ -108,5 +103,38 @@ func NewConfig(command *cli.Command, arguments []string) (*Config, error) {
 		HeartbeatWebhookURL:    *heartbeatWebhookURL,
 		HeartbeatWebhookHeader: webhookHeader,
 		HeartbeatWebhookBody:   *heartbeatWebhookBody,
-	}, nil
+	}
+
+	err = appConfig.parseSeriesButtons(*seriesButtons)
+	if err != nil {
+		return nil, err
+	}
+
+	return appConfig, nil
+}
+
+func (c *Config) parseSeriesButtons(value string) error {
+	var sb []models.SeriesType
+
+	segments := strings.SplitSeq(value, ",")
+
+	for segment := range segments {
+		st := models.SeriesType(strings.TrimSpace(segment))
+
+		for _, current := range models.SeriesTypes {
+			if st == current["value"].(models.SeriesType) {
+				sb = append(sb, st)
+
+				break
+			}
+		}
+	}
+
+	if len(sb) == 0 {
+		return fmt.Errorf("%w: series buttons, %q", ErrInvalid, value)
+	}
+
+	c.SeriesButtons = sb[:min(4, len(sb))]
+
+	return nil
 }
