@@ -2,16 +2,6 @@ import type {
     LogEntry, GroupedSnapshot, LineDiff, LogStatus
 } from '../types';
 
-export async function hashContent(content: string): Promise<string> {
-    const data = new TextEncoder().encode(content.trim());
-    const buffer = await crypto.subtle.digest('SHA-1', data);
-
-    return Array.from(new Uint8Array(buffer))
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('')
-        .slice(0, 12);
-}
-
 export function computeDiff(prevLines: string[], currentLines: string[]): LineDiff {
     const prevSet = new Set(prevLines);
     const currentSet = new Set(currentLines);
@@ -37,23 +27,26 @@ export function computeDiff(prevLines: string[], currentLines: string[]): LineDi
     return { added, removed, unchangedCount };
 }
 
+const errorPattern = /\b(?:fatal|error(?:s|ed|ing)?|panic(?:s|ked|king)?|exceptions?|fail(?:s|ed|ing|ure|ures)?)\b/;
+const warningPattern = /\b(?:warn(?:s|ed|ing|ings)?|deprecat(?:ed|ing|ion|ions))\b/;
+
 export function detectStatus(
     lines: string[],
     diff: LineDiff | undefined,
-    fingerprint: string,
-    prevFingerprint: string | null
+    content: string,
+    prevContent: string | null
 ): LogStatus {
     const joined = lines.join('\n').toLowerCase();
 
-    if (/\b(error|fatal|panic|exception|fail)\b/.test(joined)) {
+    if (errorPattern.test(joined)) {
         return 'error';
     }
 
-    if (/\b(warn|warning|deprecated)\b/.test(joined)) {
+    if (warningPattern.test(joined)) {
         return 'warning';
     }
 
-    if (prevFingerprint !== null && fingerprint === prevFingerprint) {
+    if (prevContent !== null && content === prevContent) {
         return 'unchanged';
     }
 
@@ -64,31 +57,27 @@ export function detectStatus(
     return 'changed';
 }
 
-export async function groupSnapshots(entries: LogEntry[]): Promise<GroupedSnapshot[]> {
+export function groupSnapshots(entries: LogEntry[]): GroupedSnapshot[] {
     if (!entries.length) {
         return [];
     }
 
-    const fingerprints = await Promise.all(
-        entries.map(entry => hashContent(entry.content))
-    );
-
-    const withFingerprints = entries.map((entry, index) => ({
+    const snapshots = entries.map(entry => ({
         entry,
-        fingerprint: fingerprints[index],
+        content: (entry.content || '').trim(),
         lines: (entry.content || '').split('\n')
     }));
 
     const groups: GroupedSnapshot[] = [];
     let i = 0;
 
-    while (i < withFingerprints.length) {
-        const current = withFingerprints[i];
+    while (i < snapshots.length) {
+        const current = snapshots[i];
         let endIndex = i;
 
         while (
-            endIndex + 1 < withFingerprints.length
-            && withFingerprints[endIndex + 1].fingerprint === current.fingerprint
+            endIndex + 1 < snapshots.length
+            && snapshots[endIndex + 1].content === current.content
         ) {
             endIndex += 1;
         }
@@ -96,32 +85,31 @@ export async function groupSnapshots(entries: LogEntry[]): Promise<GroupedSnapsh
         const repeatCount = endIndex - i + 1;
 
         // Chronological predecessor is the next item in the array (entries are newest-first)
-        const chronologicalPredecessor = endIndex + 1 < withFingerprints.length
-            ? withFingerprints[endIndex + 1]
+        const chronologicalPredecessor = endIndex + 1 < snapshots.length
+            ? snapshots[endIndex + 1]
             : null;
 
         const diff = chronologicalPredecessor
             ? computeDiff(chronologicalPredecessor.lines, current.lines)
             : undefined;
 
-        const prevFingerprint = chronologicalPredecessor
-            ? chronologicalPredecessor.fingerprint
+        const prevContent = chronologicalPredecessor
+            ? chronologicalPredecessor.content
             : null;
 
-        const status = detectStatus(current.lines, diff, current.fingerprint, prevFingerprint);
+        const status = detectStatus(current.lines, diff, current.content, prevContent);
 
         const preview = current.lines.find(l => l.trim().length > 0) || '';
 
         groups.push({
-            id: `${current.entry.timestamp}-${current.fingerprint}`,
-            startMinute: withFingerprints[endIndex].entry.timestamp,
+            id: String(current.entry.timestamp),
+            startMinute: snapshots[endIndex].entry.timestamp,
             endMinute: current.entry.timestamp,
             repeatCount,
             lineCount: current.lines.length,
             status,
             preview: preview.length > 80 ? `${preview.slice(0, 80)}...` : preview,
             lines: current.lines,
-            fingerprint: current.fingerprint,
             diff
         });
 

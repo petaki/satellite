@@ -103,7 +103,7 @@ func (a *app) handleProbe(probe models.Probe, wg *sync.WaitGroup) {
 
 	defer resp.Body.Close()
 
-	if resp.StatusCode > 400 {
+	if resp.StatusCode >= 400 {
 		a.errorLog.Print(errors.New("heartbeat: bad status code"))
 
 		return

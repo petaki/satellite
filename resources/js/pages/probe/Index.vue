@@ -171,21 +171,7 @@ const barColor = (value: number, alarm: number, color: string) => {
 const filteredProbes = computed(() => {
     const words = keyword.value.trim().split(' ');
 
-    return probes.filter(probe => {
-        let has = true;
-
-        words.forEach(word => {
-            if (probe.name.includes(word)) {
-                return true;
-            }
-
-            has = false;
-
-            return false;
-        });
-
-        return has;
-    });
+    return probes.filter(probe => words.every(word => probe.name.includes(word)));
 });
 
 const animateBars = () => {

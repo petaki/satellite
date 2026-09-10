@@ -5,7 +5,16 @@ export default (timeout = 2000) => {
     let copiedTimeout: ReturnType<typeof setTimeout>;
 
     const copy = async (text: string) => {
-        await navigator.clipboard.writeText(text);
+        if (!navigator.clipboard) {
+            return;
+        }
+
+        try {
+            await navigator.clipboard.writeText(text);
+        } catch {
+            return;
+        }
+
         copied.value = true;
         clearTimeout(copiedTimeout);
         copiedTimeout = setTimeout(() => {

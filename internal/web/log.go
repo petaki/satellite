@@ -36,7 +36,7 @@ func (a *app) logIndex(w http.ResponseWriter, r *http.Request) {
 		logPath = logPaths[0]
 	}
 
-	var logEntries []models.LogEntry
+	logEntries := []models.LogEntry{}
 
 	if logPath != "" && slices.Contains(logPaths, logPath) {
 		logEntries, err = a.logRepository.FindLog(probe, logPath)

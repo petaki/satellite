@@ -13,7 +13,12 @@ func RedisPool(appConfig *config.Config) *redis.Pool {
 		MaxIdle:     3,
 		IdleTimeout: 240 * time.Second,
 		Dial: func() (redis.Conn, error) {
-			return redis.DialURL(appConfig.RedisURL)
+			return redis.DialURL(
+				appConfig.RedisURL,
+				redis.DialConnectTimeout(5*time.Second),
+				redis.DialReadTimeout(5*time.Second),
+				redis.DialWriteTimeout(5*time.Second),
+			)
 		},
 	}
 }

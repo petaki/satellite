@@ -11,7 +11,6 @@ require (
 	github.com/mark3labs/mcp-go v1.0.0
 	github.com/petaki/inertia-go v1.16.0
 	github.com/petaki/support-go v1.15.0
-	golang.org/x/exp v0.0.0-20260824195058-e88cd73687aa
 )
 
 require (
@@ -21,4 +20,7 @@ require (
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	golang.org/x/text v0.41.0 // indirect
+	golang.org/x/tools v0.49.0 // indirect
 )
+
+ignore ./node_modules

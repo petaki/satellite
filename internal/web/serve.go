@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -91,9 +92,9 @@ func Serve(cliApp *cli.App, appConfig *config.Config) {
 	webApp.infoLog.Printf("Starting server on "+cli.Green("%s"), appConfig.Addr)
 
 	go func() {
-		err = srv.ListenAndServe()
+		err := srv.ListenAndServe()
 
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			webApp.errorLog.Fatal(err)
 		}
 	}()

@@ -46,6 +46,11 @@ export interface ProbeSummary {
 }
 
 export interface ApexConfig {
+    plotOptions?: {
+        bar: {
+            columnWidth: string
+        }
+    }
     chart?: {
         animations?: {
             enabled: boolean
@@ -122,6 +127,5 @@ export interface GroupedSnapshot {
     status: LogStatus
     preview: string
     lines: string[]
-    fingerprint: string
     diff?: LineDiff
 }

@@ -86,9 +86,11 @@ func NewConfig(command *cli.Command, arguments []string) (*Config, error) {
 
 	var webhookHeader map[string]string
 
-	err = json.Unmarshal([]byte(*heartbeatWebhookHeader), &webhookHeader)
-	if err != nil {
-		return nil, err
+	if *heartbeatWebhookHeader != "" {
+		err = json.Unmarshal([]byte(*heartbeatWebhookHeader), &webhookHeader)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &Config{
