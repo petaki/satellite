@@ -70,7 +70,7 @@ createInertiaApp({
     pages: './pages',
     withApp(app) {
         app
-            .component('apexchart', defineAsyncComponent(() => import('vue3-apexcharts')))
+            .component('Apexchart', defineAsyncComponent(() => import('vue3-apexcharts')))
             .component('InertiaHead', Head)
             .component('InertiaLink', Link)
             .component('AppTitle', AppTitle);
