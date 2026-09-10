@@ -2,7 +2,6 @@ package web
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -104,7 +103,7 @@ func (a *app) handleProbe(probe models.Probe, wg *sync.WaitGroup) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
-		a.errorLog.Print(errors.New("heartbeat: bad status code"))
+		a.errorLog.Print(fmt.Errorf("%w: %s, %d", ErrBadStatusCode, probe, resp.StatusCode))
 
 		return
 	}

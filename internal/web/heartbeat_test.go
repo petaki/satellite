@@ -1,10 +1,13 @@
 package web
 
 import (
+	"bytes"
 	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -48,6 +51,8 @@ func TestHeartbeatTreatsFourHundredAsFailure(t *testing.T) {
 
 		repo := &stubHeartbeatRepo{}
 
+		var errorLog bytes.Buffer
+
 		webApp := &app{
 			appConfig: &config.Config{
 				HeartbeatWait:          2,
@@ -57,7 +62,7 @@ func TestHeartbeatTreatsFourHundredAsFailure(t *testing.T) {
 				HeartbeatWebhookBody:   `{"probe": "%p"}`,
 			},
 			infoLog:         log.New(io.Discard, "", 0),
-			errorLog:        log.New(io.Discard, "", 0),
+			errorLog:        log.New(&errorLog, "", 0),
 			client:          server.Client(),
 			probeRepository: repo,
 		}
@@ -72,6 +77,22 @@ func TestHeartbeatTreatsFourHundredAsFailure(t *testing.T) {
 
 		if repo.setHeartbeat != wantNotified {
 			t.Errorf("status %d: notification recorded = %v, want %v", status, repo.setHeartbeat, wantNotified)
+		}
+
+		logged := errorLog.String()
+
+		if wantNotified {
+			if logged != "" {
+				t.Errorf("status %d: logged %q, want nothing", status, logged)
+			}
+
+			continue
+		}
+
+		for _, want := range []string{ErrBadStatusCode.Error(), "web-01", strconv.Itoa(status)} {
+			if !strings.Contains(logged, want) {
+				t.Errorf("status %d: logged %q, want it to name %q", status, logged, want)
+			}
 		}
 	}
 }
