@@ -13,7 +13,6 @@ import (
 type Redis struct {
 	mu     sync.Mutex
 	hashes map[string]map[string]string
-	values map[string]string
 	calls  map[string]int
 }
 
@@ -21,7 +20,6 @@ type Redis struct {
 func NewRedis() *Redis {
 	return &Redis{
 		hashes: map[string]map[string]string{},
-		values: map[string]string{},
 		calls:  map[string]int{},
 	}
 }
@@ -36,22 +34,6 @@ func (f *Redis) HSet(key, field, value string) {
 	}
 
 	f.hashes[key][field] = value
-}
-
-// Set function.
-func (f *Redis) Set(key, value string) {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-
-	f.values[key] = value
-}
-
-// Keys function.
-func (f *Redis) Keys() []string {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-
-	return f.keys()
 }
 
 // Calls returns how many times a command was issued.
@@ -73,13 +55,9 @@ func (f *Redis) Pool() *redis.Pool {
 }
 
 func (f *Redis) keys() []string {
-	keys := make([]string, 0, len(f.hashes)+len(f.values))
+	keys := make([]string, 0, len(f.hashes))
 
 	for key := range f.hashes {
-		keys = append(keys, key)
-	}
-
-	for key := range f.values {
 		keys = append(keys, key)
 	}
 
@@ -101,18 +79,6 @@ func (f *Redis) do(command string, args []any) (any, error) {
 		return f.hgetall(args)
 	case "HMGET":
 		return f.hmget(args)
-	case "HSET":
-		return f.hset(args)
-	case "EXISTS":
-		return f.exists(args)
-	case "DEL":
-		return f.del(args)
-	case "SET":
-		f.values[arg(args, 0)] = arg(args, 1)
-
-		return "OK", nil
-	case "EXPIRE", "MULTI", "EXEC":
-		return "OK", nil
 	case "SCAN":
 		return f.scan(args)
 	}
@@ -157,43 +123,6 @@ func (f *Redis) hmget(args []any) (any, error) {
 	return reply, nil
 }
 
-func (f *Redis) hset(args []any) (any, error) {
-	key := arg(args, 0)
-
-	if f.hashes[key] == nil {
-		f.hashes[key] = map[string]string{}
-	}
-
-	for i := 1; i+1 < len(args); i += 2 {
-		f.hashes[key][toString(args[i])] = toString(args[i+1])
-	}
-
-	return int64(1), nil
-}
-
-func (f *Redis) exists(args []any) (any, error) {
-	key := arg(args, 0)
-
-	if _, ok := f.hashes[key]; ok {
-		return int64(1), nil
-	}
-
-	if _, ok := f.values[key]; ok {
-		return int64(1), nil
-	}
-
-	return int64(0), nil
-}
-
-func (f *Redis) del(args []any) (any, error) {
-	for _, key := range args {
-		delete(f.hashes, toString(key))
-		delete(f.values, toString(key))
-	}
-
-	return int64(len(args)), nil
-}
-
 func (f *Redis) scan(args []any) (any, error) {
 	cursor, _ := strconv.Atoi(arg(args, 0))
 	match := "*"
@@ -233,8 +162,7 @@ func (f *Redis) scan(args []any) (any, error) {
 }
 
 type redisConn struct {
-	redis  *Redis
-	queued [][]any
+	redis *Redis
 }
 
 func (c *redisConn) Close() error { return nil }
@@ -242,31 +170,11 @@ func (c *redisConn) Close() error { return nil }
 func (c *redisConn) Err() error { return nil }
 
 func (c *redisConn) Do(command string, args ...any) (any, error) {
-	if strings.ToUpper(command) == "EXEC" {
-		for _, queued := range c.queued {
-			if _, err := c.redis.do(toString(queued[0]), queued[1:]); err != nil {
-				return nil, err
-			}
-		}
-
-		c.queued = nil
-
-		return []any{}, nil
-	}
-
 	return c.redis.do(strings.ToUpper(command), args)
 }
 
-func (c *redisConn) Send(command string, args ...any) error {
-	if strings.ToUpper(command) == "MULTI" {
-		c.queued = nil
-
-		return nil
-	}
-
-	c.queued = append(c.queued, append([]any{command}, args...))
-
-	return nil
+func (c *redisConn) Send(string, ...any) error {
+	return ErrUnknownCommand
 }
 
 func (c *redisConn) Flush() error { return nil }
