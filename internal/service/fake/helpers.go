@@ -43,6 +43,8 @@ func toString(value any) string {
 	switch v := value.(type) {
 	case string:
 		return v
+	case bool:
+		return strconv.FormatBool(v)
 	case []byte:
 		return string(v)
 	case int:

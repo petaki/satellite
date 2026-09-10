@@ -1,6 +1,8 @@
 package models
 
 import (
+	"encoding/base64"
+	"slices"
 	"strconv"
 	"testing"
 	"time"
@@ -169,5 +171,209 @@ func TestFindCPUKeepsOnlyTheTopProcesses(t *testing.T) {
 
 	if p1[0].Name != "a" || p2[0].Name != "b" || p3[0].Name != "c" {
 		t.Errorf("kept %q/%q/%q, want the first three a/b/c", p1[0].Name, p2[0].Name, p3[0].Name)
+	}
+}
+
+func TestFindDiskPathsDecodesAndSortsPaths(t *testing.T) {
+	server := fake.NewRedis()
+
+	dayKey := strconv.FormatInt(today().Unix(), 10)
+
+	for _, path := range []string{"/var", "/"} {
+		server.HSet(
+			"web-01:"+seriesDiskKeyPrefix+dayKey+":"+base64.StdEncoding.EncodeToString([]byte(path)),
+			strconv.FormatInt(today().Unix(), 10), "50",
+		)
+	}
+
+	rsr := &RedisSeriesRepository{RedisPool: server.Pool()}
+
+	paths, err := rsr.FindDiskPaths("web-01")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := []string{"/", "/var"}
+
+	if !slices.Equal(paths, want) {
+		t.Errorf("FindDiskPaths() = %v, want %v", paths, want)
+	}
+}
+
+func TestFindDiskPathsWithoutDataReturnsEmptyNotNil(t *testing.T) {
+	rsr := &RedisSeriesRepository{RedisPool: fake.NewRedis().Pool()}
+
+	paths, err := rsr.FindDiskPaths("web-01")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if paths == nil {
+		t.Fatal("FindDiskPaths() = nil, want an empty slice")
+	}
+
+	if len(paths) != 0 {
+		t.Errorf("FindDiskPaths() = %v, want no paths", paths)
+	}
+}
+
+func TestFindLatestCPUTakesTheNewestField(t *testing.T) {
+	server := fake.NewRedis()
+
+	key := "web-01:" + seriesCPUKeyPrefix + strconv.FormatInt(today().Unix(), 10)
+	server.HSet(key, strconv.FormatInt(today().Unix()+60, 10), "11")
+	server.HSet(key, strconv.FormatInt(today().Unix()+180, 10), "33")
+	server.HSet(key, strconv.FormatInt(today().Unix()+120, 10), "22")
+
+	rsr := &RedisSeriesRepository{RedisPool: server.Pool()}
+
+	value, found, err := rsr.FindLatestCPU("web-01")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !found {
+		t.Fatal("found = false, want the newest sample")
+	}
+
+	if value != 33 {
+		t.Errorf("FindLatestCPU() = %v, want 33", value)
+	}
+}
+
+func TestFindLatestMemoryFallsBackToYesterday(t *testing.T) {
+	server := fake.NewRedis()
+
+	yesterday := today().AddDate(0, 0, -1)
+	key := "web-01:" + seriesMemoryKeyPrefix + strconv.FormatInt(yesterday.Unix(), 10)
+	server.HSet(key, strconv.FormatInt(yesterday.Unix()+60, 10), "64")
+
+	rsr := &RedisSeriesRepository{RedisPool: server.Pool()}
+
+	value, found, err := rsr.FindLatestMemory("web-01")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !found || value != 64 {
+		t.Errorf("FindLatestMemory() = %v, %v, want 64, true — yesterday was not consulted", value, found)
+	}
+}
+
+func TestFindLatestMetricWithoutDataIsNotFound(t *testing.T) {
+	rsr := &RedisSeriesRepository{RedisPool: fake.NewRedis().Pool()}
+
+	_, found, err := rsr.FindLatestCPU("web-01")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if found {
+		t.Error("found = true for a probe with no samples")
+	}
+}
+
+func TestFindLatestMetricWithMalformedValueIsNotFound(t *testing.T) {
+	server := fake.NewRedis()
+
+	key := "web-01:" + seriesCPUKeyPrefix + strconv.FormatInt(today().Unix(), 10)
+	server.HSet(key, strconv.FormatInt(today().Unix()+60, 10), "not a number")
+
+	rsr := &RedisSeriesRepository{RedisPool: server.Pool()}
+
+	_, found, err := rsr.FindLatestCPU("web-01")
+	if err != nil {
+		t.Fatalf("a malformed sample must not surface as an error: %v", err)
+	}
+
+	if found {
+		t.Error("found = true for an unparseable sample")
+	}
+}
+
+func TestFindLatestLoadSplitsTheSegments(t *testing.T) {
+	server := fake.NewRedis()
+
+	key := "web-01:" + seriesLoadKeyPrefix + strconv.FormatInt(today().Unix(), 10)
+	server.HSet(key, strconv.FormatInt(today().Unix()+60, 10), "1.5:2.5:3.5")
+
+	rsr := &RedisSeriesRepository{RedisPool: server.Pool()}
+
+	load1, load5, load15, found, err := rsr.FindLatestLoad("web-01")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !found || load1 != 1.5 || load5 != 2.5 || load15 != 3.5 {
+		t.Errorf("FindLatestLoad() = %v, %v, %v, %v, want 1.5, 2.5, 3.5, true", load1, load5, load15, found)
+	}
+}
+
+func TestFindLatestLoadWithMalformedValueIsNotFound(t *testing.T) {
+	server := fake.NewRedis()
+
+	key := "web-01:" + seriesLoadKeyPrefix + strconv.FormatInt(today().Unix(), 10)
+	server.HSet(key, strconv.FormatInt(today().Unix()+60, 10), "1.5:nope:3.5")
+
+	rsr := &RedisSeriesRepository{RedisPool: server.Pool()}
+
+	load1, _, _, found, err := rsr.FindLatestLoad("web-01")
+	if err != nil {
+		t.Fatalf("a malformed sample must not surface as an error: %v", err)
+	}
+
+	if found || load1 != 0 {
+		t.Errorf("FindLatestLoad() = %v, %v, want 0, false — a partial parse leaked", load1, found)
+	}
+}
+
+func TestChunkSizeGrowsWithTheWindow(t *testing.T) {
+	rsr := &RedisSeriesRepository{}
+
+	cases := map[SeriesType]int{
+		Last5Minutes: 1,
+		Last1Hour:    1,
+		Last6Hours:   60,
+		Last12Hours:  60,
+		Last24Hours:  60,
+		Last2Days:    60,
+		Last7Days:    60 * 24,
+		Last30Days:   60 * 24 * 4,
+	}
+
+	for seriesType, want := range cases {
+		if got := rsr.ChunkSize(seriesType); got != want {
+			t.Errorf("ChunkSize(%s) = %d, want %d", seriesType, got, want)
+		}
+	}
+}
+
+func TestFindMemoryWithoutDataReturnsEmptyNotNil(t *testing.T) {
+	rsr := &RedisSeriesRepository{RedisPool: fake.NewRedis().Pool()}
+
+	minSeries, maxSeries, avg, p1, p2, p3, err := rsr.FindMemory("web-01", Last5Minutes)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if minSeries == nil || maxSeries == nil || avg == nil {
+		t.Error("a nil series renders as null, want empty")
+	}
+
+	if p1 == nil || p2 == nil || p3 == nil {
+		t.Error("a nil process series renders as null, want empty")
+	}
+}
+
+func TestFindDiskWithoutDataReturnsEmptyNotNil(t *testing.T) {
+	rsr := &RedisSeriesRepository{RedisPool: fake.NewRedis().Pool()}
+
+	minSeries, maxSeries, avg, err := rsr.FindDisk("web-01", Last5Minutes, "/")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if minSeries == nil || maxSeries == nil || avg == nil {
+		t.Error("a nil series renders as null, want empty")
 	}
 }
