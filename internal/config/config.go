@@ -5,7 +5,6 @@ import (
 	"errors"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/petaki/satellite/internal/models"
 	"github.com/petaki/support-go/cli"
@@ -110,25 +109,4 @@ func NewConfig(command *cli.Command, arguments []string) (*Config, error) {
 		HeartbeatWebhookHeader: webhookHeader,
 		HeartbeatWebhookBody:   *heartbeatWebhookBody,
 	}, nil
-}
-
-func parseSeriesButtons(value string) []models.SeriesType {
-	var sb []models.SeriesType
-	segments := strings.SplitSeq(value, ",")
-
-	for segment := range segments {
-		st := models.SeriesType(segment)
-
-		for _, current := range models.SeriesTypes {
-			if st == current["value"].(models.SeriesType) {
-				sb = append(sb, st)
-
-				break
-			}
-		}
-	}
-
-	sb = sb[:min(4, len(sb))]
-
-	return sb
 }

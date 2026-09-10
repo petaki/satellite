@@ -454,27 +454,6 @@ func (rsr *RedisSeriesRepository) findProcessSeries(probe Probe, seriesType Seri
 	return minSeries, maxSeries, avgSeries, process1Series, process2Series, process3Series, nil
 }
 
-func parseLoads(value string) ([seriesLoadSegmentCount]float64, bool) {
-	var loads [seriesLoadSegmentCount]float64
-
-	segments := strings.SplitN(value, ":", seriesLoadSegmentCount)
-
-	if len(segments) != seriesLoadSegmentCount {
-		return loads, false
-	}
-
-	for i, segment := range segments {
-		load, err := strconv.ParseFloat(segment, 64)
-		if err != nil {
-			return loads, false
-		}
-
-		loads[i] = load
-	}
-
-	return loads, true
-}
-
 func (rsr *RedisSeriesRepository) end(start time.Time, seriesType SeriesType) time.Time {
 	switch seriesType {
 	case Last15Minutes:
