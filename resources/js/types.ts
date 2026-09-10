@@ -46,6 +46,11 @@ export interface ProbeSummary {
 }
 
 export interface ApexConfig {
+    plotOptions?: {
+        bar: {
+            columnWidth: string
+        }
+    }
     chart?: {
         animations?: {
             enabled: boolean

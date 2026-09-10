@@ -122,6 +122,11 @@ const series = computed(() => [
 ]);
 
 const options = ref<ApexConfig>({
+    plotOptions: {
+        bar: {
+            columnWidth: `${70 / Math.max(1, (cpuMaxSeries ?? []).length - 1)}%`
+        }
+    },
     chart: {
         stacked: true
     },
