@@ -261,6 +261,56 @@ func TestNow(t *testing.T) {
 	}
 }
 
+func TestParseLoads(t *testing.T) {
+	valid := map[string][seriesLoadSegmentCount]float64{
+		"1.500000:2.500000:3.500000": {1.5, 2.5, 3.5},
+		"1:2:3":                      {1, 2, 3},
+		"0:0:0":                      {0, 0, 0},
+		"-1.5:0:2":                   {-1.5, 0, 2},
+	}
+
+	for value, want := range valid {
+		loads, ok := parseLoads(value)
+
+		if !ok {
+			t.Errorf("parseLoads(%q) was rejected", value)
+
+			continue
+		}
+
+		if loads != want {
+			t.Errorf("parseLoads(%q) = %v, want %v", value, loads, want)
+		}
+	}
+
+	invalid := []string{"1.5:2.5", "1.5", "", "a:b:c", "1.5:b:3.5", "1:2:3:4", "1 : 2 : 3"}
+
+	for _, value := range invalid {
+		loads, ok := parseLoads(value)
+
+		if ok {
+			t.Errorf("parseLoads(%q) was accepted", value)
+
+			continue
+		}
+
+		if loads != ([seriesLoadSegmentCount]float64{}) {
+			t.Errorf("parseLoads(%q) rejected the value but returned %v, want zeroes", value, loads)
+		}
+	}
+}
+
+func TestParseLoadsKeepsSegmentOrder(t *testing.T) {
+	loads, ok := parseLoads("1:5:15")
+	if !ok {
+		t.Fatal("parseLoads rejected a well-formed value")
+	}
+
+	if loads[0] != 1 || loads[1] != 5 || loads[2] != 15 {
+		t.Errorf("loads = %v, want [1 5 15]; load1/load5/load15 are swapped", loads)
+	}
+}
+
 func TestTimestampsCoverTheWholeWindow(t *testing.T) {
 	rsr := &RedisSeriesRepository{}
 	start := now()

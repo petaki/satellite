@@ -127,6 +127,27 @@ func now() time.Time {
 	)
 }
 
+func parseLoads(value string) ([seriesLoadSegmentCount]float64, bool) {
+	var loads [seriesLoadSegmentCount]float64
+
+	segments := strings.SplitN(value, ":", seriesLoadSegmentCount)
+
+	if len(segments) != seriesLoadSegmentCount {
+		return loads, false
+	}
+
+	for i, segment := range segments {
+		load, err := strconv.ParseFloat(segment, 64)
+		if err != nil {
+			return [seriesLoadSegmentCount]float64{}, false
+		}
+
+		loads[i] = load
+	}
+
+	return loads, true
+}
+
 func today() time.Time {
 	now := time.Now()
 
