@@ -1,7 +1,7 @@
 import {
     createInertiaApp, Head, Link
 } from '@inertiajs/vue3';
-import VueApexCharts from 'vue3-apexcharts';
+import { defineAsyncComponent } from 'vue';
 import type { ApexConfig } from './types';
 import AppTitle from './base/AppTitle.vue';
 
@@ -70,7 +70,7 @@ createInertiaApp({
     pages: './pages',
     withApp(app) {
         app
-            .use(VueApexCharts)
+            .component('apexchart', defineAsyncComponent(() => import('vue3-apexcharts')))
             .component('InertiaHead', Head)
             .component('InertiaLink', Link)
             .component('AppTitle', AppTitle);

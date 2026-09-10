@@ -18,8 +18,17 @@ const (
 	seriesProcessMemoryKeyPrefix = "process:memory:"
 	seriesLoadKeyPrefix          = "load:"
 	seriesDiskKeyPrefix          = "disk:"
+	seriesLoadSegmentCount       = 3
+	seriesProcessCount           = 3
+	seriesProcessSegmentCount    = 2
+	seriesScanCount              = 1000
 	timestampMultiplier          = 1000
 )
+
+type loadSample struct {
+	x     int64
+	loads [seriesLoadSegmentCount]float64
+}
 
 // RedisSeriesRepository type.
 type RedisSeriesRepository struct {
@@ -38,22 +47,7 @@ func (rsr *RedisSeriesRepository) FindMemory(probe Probe, seriesType SeriesType)
 
 // FindLoad function.
 func (rsr *RedisSeriesRepository) FindLoad(probe Probe, seriesType SeriesType) (Series, Series, Series, error) {
-	load1Series, err := rsr.findAvgSeries(probe, seriesType, seriesLoadKeyPrefix, "load1")
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	load5Series, err := rsr.findAvgSeries(probe, seriesType, seriesLoadKeyPrefix, "load5")
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	load15Series, err := rsr.findAvgSeries(probe, seriesType, seriesLoadKeyPrefix, "load15")
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	return load1Series, load5Series, load15Series, nil
+	return rsr.findLoadSeries(probe, seriesType)
 }
 
 // FindDisk function.
@@ -75,7 +69,7 @@ func (rsr *RedisSeriesRepository) FindDiskPaths(probe Probe) ([]string, error) {
 
 		for {
 			values, err := redis.Values(
-				conn.Do("SCAN", cursor, "MATCH", prefix+"*"),
+				conn.Do("SCAN", cursor, "MATCH", prefix+"*", "COUNT", seriesScanCount),
 			)
 			if err != nil {
 				return nil, err
@@ -103,7 +97,7 @@ func (rsr *RedisSeriesRepository) FindDiskPaths(probe Probe) ([]string, error) {
 		}
 
 		for key, value := range paths {
-			path, err := base64.StdEncoding.DecodeString(strings.ReplaceAll(value, prefix, ""))
+			path, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(value, prefix))
 			if err != nil {
 				return nil, err
 			}
@@ -141,35 +135,44 @@ func (rsr *RedisSeriesRepository) ChunkSize(seriesType SeriesType) int {
 
 // FindLatestCPU function.
 func (rsr *RedisSeriesRepository) FindLatestCPU(probe Probe) (float64, bool, error) {
-	return rsr.findLatestMetric(probe, seriesCPUKeyPrefix, "")
+	return rsr.findLatestMetric(probe, seriesCPUKeyPrefix)
 }
 
 // FindLatestMemory function.
 func (rsr *RedisSeriesRepository) FindLatestMemory(probe Probe) (float64, bool, error) {
-	return rsr.findLatestMetric(probe, seriesMemoryKeyPrefix, "")
+	return rsr.findLatestMetric(probe, seriesMemoryKeyPrefix)
 }
 
 // FindLatestLoad function.
 func (rsr *RedisSeriesRepository) FindLatestLoad(probe Probe) (float64, float64, float64, bool, error) {
-	load1, found1, err := rsr.findLatestMetric(probe, seriesLoadKeyPrefix, "load1")
-	if err != nil {
+	value, found, err := rsr.findLatestValue(probe, seriesLoadKeyPrefix)
+	if err != nil || !found {
 		return 0, 0, 0, false, err
 	}
 
-	load5, found5, err := rsr.findLatestMetric(probe, seriesLoadKeyPrefix, "load5")
-	if err != nil {
-		return 0, 0, 0, false, err
+	loads, ok := parseLoads(value)
+	if !ok {
+		return 0, 0, 0, false, nil
 	}
 
-	load15, found15, err := rsr.findLatestMetric(probe, seriesLoadKeyPrefix, "load15")
-	if err != nil {
-		return 0, 0, 0, false, err
-	}
-
-	return load1, load5, load15, found1 || found5 || found15, nil
+	return loads[0], loads[1], loads[2], true, nil
 }
 
-func (rsr *RedisSeriesRepository) findLatestMetric(probe Probe, prefix, suffix string) (float64, bool, error) {
+func (rsr *RedisSeriesRepository) findLatestMetric(probe Probe, prefix string) (float64, bool, error) {
+	value, found, err := rsr.findLatestValue(probe, prefix)
+	if err != nil || !found {
+		return 0, false, err
+	}
+
+	y, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		return 0, false, nil
+	}
+
+	return y, true, nil
+}
+
+func (rsr *RedisSeriesRepository) findLatestValue(probe Probe, prefix string) (string, bool, error) {
 	conn := rsr.RedisPool.Get()
 	defer conn.Close()
 
@@ -181,7 +184,7 @@ func (rsr *RedisSeriesRepository) findLatestMetric(probe Probe, prefix, suffix s
 			conn.Do("HGETALL", string(probe)+":"+prefix+strconv.FormatInt(ts, 10)),
 		)
 		if err != nil {
-			return 0, false, err
+			return "", false, err
 		}
 
 		if len(values) == 0 {
@@ -189,17 +192,17 @@ func (rsr *RedisSeriesRepository) findLatestMetric(probe Probe, prefix, suffix s
 		}
 
 		var maxTS int64
-		var maxVal string
+		var maxValue string
 
 		for i := 0; i < len(values); i += 2 {
 			x, err := strconv.ParseInt(values[i], 10, 64)
 			if err != nil {
-				return 0, false, err
+				return "", false, err
 			}
 
 			if x > maxTS {
 				maxTS = x
-				maxVal = values[i+1]
+				maxValue = values[i+1]
 			}
 		}
 
@@ -207,117 +210,85 @@ func (rsr *RedisSeriesRepository) findLatestMetric(probe Probe, prefix, suffix s
 			continue
 		}
 
-		yv := maxVal
-
-		switch suffix {
-		case "load1":
-			yv = strings.SplitN(yv, ":", 3)[0]
-		case "load5":
-			yv = strings.SplitN(yv, ":", 3)[1]
-		case "load15":
-			yv = strings.SplitN(yv, ":", 3)[2]
-		}
-
-		y, err := strconv.ParseFloat(yv, 64)
-		if err != nil {
-			return 0, false, err
-		}
-
-		return y, true, nil
+		return maxValue, true, nil
 	}
 
-	return 0, false, nil
+	return "", false, nil
 }
 
-func (rsr *RedisSeriesRepository) findAvgSeries(probe Probe, seriesType SeriesType, prefix, suffix string) (Series, error) {
+func (rsr *RedisSeriesRepository) findLoadSeries(probe Probe, seriesType SeriesType) (Series, Series, Series, error) {
 	conn := rsr.RedisPool.Get()
 	defer conn.Close()
 
-	var avgSeries, rawSeries Series
+	var samples []loadSample
 
 	chunkSize := rsr.ChunkSize(seriesType)
 	start := now()
 	end := rsr.end(start, seriesType)
 
 	for _, timestamp := range rsr.timestamps(seriesType) {
-		rawSeries = nil
-
 		values, err := redis.Strings(
-			conn.Do("HGETALL", string(probe)+":"+prefix+strconv.FormatInt(timestamp, 10)),
+			conn.Do("HGETALL", string(probe)+":"+seriesLoadKeyPrefix+strconv.FormatInt(timestamp, 10)),
 		)
 		if err != nil {
-			return nil, err
+			return nil, nil, nil, err
 		}
 
 		for i := 0; i < len(values); i += 2 {
 			x, err := strconv.ParseInt(values[i], 10, 64)
 			if err != nil {
-				return nil, err
+				return nil, nil, nil, err
 			}
 
 			if !between(start, end, x) {
 				continue
 			}
 
-			yv := values[i+1]
-
-			if suffix == "load1" {
-				yv = strings.SplitN(yv, ":", 3)[0]
-			} else if suffix == "load5" {
-				yv = strings.SplitN(yv, ":", 3)[1]
-			} else if suffix == "load15" {
-				yv = strings.SplitN(yv, ":", 3)[2]
+			loads, ok := parseLoads(values[i+1])
+			if !ok {
+				continue
 			}
 
-			y, err := strconv.ParseFloat(yv, 64)
-			if err != nil {
-				return nil, err
-			}
-
-			rawSeries = append(rawSeries, Value{
-				X: x,
-				Y: y,
+			samples = append(samples, loadSample{
+				x:     x,
+				loads: loads,
 			})
-		}
-
-		if len(rawSeries) == 0 {
-			continue
-		}
-
-		sort.SliceStable(rawSeries, func(i, j int) bool {
-			return rawSeries[i].X > rawSeries[j].X
-		})
-
-		for _, chunk := range rsr.chunks(chunkSize, rawSeries) {
-			avgValue := Value{
-				X: 0,
-				Y: 0,
-			}
-
-			var x int64 = 0
-
-			for index, value := range chunk {
-				if index == len(chunk)/2 {
-					x = value.X
-				}
-
-				avgValue.Y += value.Y
-			}
-
-			x *= timestampMultiplier
-
-			avgValue.X = x
-			avgValue.Y = avgValue.Y / float64(len(chunk))
-
-			avgSeries = append(avgSeries, avgValue)
 		}
 	}
 
-	sort.SliceStable(avgSeries, func(i, j int) bool {
-		return avgSeries[i].X > avgSeries[j].X
+	if len(samples) == 0 {
+		return nil, nil, nil, nil
+	}
+
+	sort.SliceStable(samples, func(i, j int) bool {
+		return samples[i].x > samples[j].x
 	})
 
-	return avgSeries, nil
+	var series [seriesLoadSegmentCount]Series
+
+	for _, chunk := range chunkSlice(chunkSize, samples) {
+		var sums [seriesLoadSegmentCount]float64
+		var x int64
+
+		for index, sample := range chunk {
+			if index == len(chunk)/2 {
+				x = sample.x
+			}
+
+			for j, load := range sample.loads {
+				sums[j] += load
+			}
+		}
+
+		for j := range series {
+			series[j] = append(series[j], Value{
+				X: x * timestampMultiplier,
+				Y: sums[j] / float64(len(chunk)),
+			})
+		}
+	}
+
+	return series[0], series[1], series[2], nil
 }
 
 func (rsr *RedisSeriesRepository) findThresholdSeries(probe Probe, seriesType SeriesType, prefix, suffix string) (Series, Series, Series, error) {
@@ -331,8 +302,6 @@ func (rsr *RedisSeriesRepository) findThresholdSeries(probe Probe, seriesType Se
 	end := rsr.end(start, seriesType)
 
 	for _, timestamp := range rsr.timestamps(seriesType) {
-		rawSeries = nil
-
 		values, err := redis.Strings(
 			conn.Do("HGETALL", string(probe)+":"+prefix+strconv.FormatInt(timestamp, 10)+suffix),
 		)
@@ -352,7 +321,7 @@ func (rsr *RedisSeriesRepository) findThresholdSeries(probe Probe, seriesType Se
 
 			y, err := strconv.ParseFloat(values[i+1], 64)
 			if err != nil {
-				return nil, nil, nil, err
+				continue
 			}
 
 			rawSeries = append(rawSeries, Value{
@@ -360,79 +329,67 @@ func (rsr *RedisSeriesRepository) findThresholdSeries(probe Probe, seriesType Se
 				Y: y,
 			})
 		}
-
-		if len(rawSeries) == 0 {
-			continue
-		}
-
-		sort.SliceStable(rawSeries, func(i, j int) bool {
-			return rawSeries[i].X > rawSeries[j].X
-		})
-
-		for _, chunk := range rsr.chunks(chunkSize, rawSeries) {
-			minValue := Value{
-				X: 0,
-				Y: 0,
-			}
-
-			maxValue := Value{
-				X: 0,
-				Y: 0,
-			}
-
-			avgValue := Value{
-				X: 0,
-				Y: 0,
-			}
-
-			var x int64 = 0
-
-			for index, value := range chunk {
-				if index == len(chunk)/2 {
-					x = value.X
-				}
-
-				if index == 0 {
-					minValue.Y = value.Y
-					maxValue.Y = value.Y
-				} else {
-					if minValue.Y > value.Y {
-						minValue.Y = value.Y
-					}
-
-					if maxValue.Y < value.Y {
-						maxValue.Y = value.Y
-					}
-				}
-
-				avgValue.Y += value.Y
-			}
-
-			x *= timestampMultiplier
-
-			minValue.X = x
-			maxValue.X = x
-			avgValue.X = x
-
-			avgValue.Y = avgValue.Y / float64(len(chunk))
-
-			minSeries = append(minSeries, minValue)
-			maxSeries = append(maxSeries, maxValue)
-			avgSeries = append(avgSeries, avgValue)
-		}
 	}
 
-	sort.SliceStable(minSeries, func(i, j int) bool {
-		return minSeries[i].X > minSeries[j].X
+	if len(rawSeries) == 0 {
+		return nil, nil, nil, nil
+	}
+
+	sort.SliceStable(rawSeries, func(i, j int) bool {
+		return rawSeries[i].X > rawSeries[j].X
 	})
 
-	sort.SliceStable(maxSeries, func(i, j int) bool {
-		return maxSeries[i].X > maxSeries[j].X
-	})
+	for _, chunk := range chunkSlice(chunkSize, rawSeries) {
+		minValue := Value{
+			X: 0,
+			Y: 0,
+		}
 
-	sort.SliceStable(avgSeries, func(i, j int) bool {
-		return avgSeries[i].X > avgSeries[j].X
-	})
+		maxValue := Value{
+			X: 0,
+			Y: 0,
+		}
+
+		avgValue := Value{
+			X: 0,
+			Y: 0,
+		}
+
+		var x int64 = 0
+
+		for index, value := range chunk {
+			if index == len(chunk)/2 {
+				x = value.X
+			}
+
+			if index == 0 {
+				minValue.Y = value.Y
+				maxValue.Y = value.Y
+			} else {
+				if minValue.Y > value.Y {
+					minValue.Y = value.Y
+				}
+
+				if maxValue.Y < value.Y {
+					maxValue.Y = value.Y
+				}
+			}
+
+			avgValue.Y += value.Y
+		}
+
+		x *= timestampMultiplier
+
+		minValue.X = x
+		maxValue.X = x
+		avgValue.X = x
+
+		avgValue.Y = avgValue.Y / float64(len(chunk))
+
+		minSeries = append(minSeries, minValue)
+		maxSeries = append(maxSeries, maxValue)
+		avgSeries = append(avgSeries, avgValue)
+	}
 
 	return minSeries, maxSeries, avgSeries, nil
 }
@@ -450,63 +407,79 @@ func (rsr *RedisSeriesRepository) findProcessSeries(probe Probe, seriesType Seri
 	process2Series := make(ProcessSeries, len(avgSeries))
 	process3Series := make(ProcessSeries, len(avgSeries))
 
-	for k, v := range avgSeries {
-		timestamp := v.X / timestampMultiplier
-		date := day(timestamp)
+	days := map[int64][]int64{}
 
-		values, err := redis.Strings(
-			conn.Do("HGETALL", string(probe)+":"+processPrefix+strconv.FormatInt(date.Unix(), 10)),
+	for _, v := range avgSeries {
+		timestamp := v.X / timestampMultiplier
+		date := day(timestamp).Unix()
+
+		days[date] = append(days[date], timestamp)
+	}
+
+	processValues := make(map[int64]string, len(avgSeries))
+
+	for date, timestamps := range days {
+		fields := make([]string, len(timestamps))
+
+		for i, timestamp := range timestamps {
+			fields[i] = strconv.FormatInt(timestamp, 10)
+		}
+
+		values, err := redis.Values(
+			conn.Do("HMGET", redis.Args{}.Add(string(probe)+":"+processPrefix+strconv.FormatInt(date, 10)).AddFlat(fields)...),
 		)
 		if err != nil {
 			return nil, nil, nil, nil, nil, nil, err
 		}
 
-		column := ProcessSeries{
-			ProcessValue{
-				Name: "Not Set",
-				X:    now().UnixMilli(),
-				Y:    0,
-			},
-			ProcessValue{
-				Name: "Not Set",
-				X:    now().UnixMilli(),
-				Y:    0,
-			},
-			ProcessValue{
-				Name: "Not Set",
-				X:    now().UnixMilli(),
-				Y:    0,
-			},
-		}
-
-		for i := 0; i < len(values); i += 2 {
-			x, err := strconv.ParseInt(values[i], 10, 64)
-			if err != nil {
-				return nil, nil, nil, nil, nil, nil, err
+		for i, value := range values {
+			if i >= len(timestamps) {
+				break
 			}
 
-			if x != timestamp {
+			raw, err := redis.String(value, nil)
+			if err != nil {
 				continue
 			}
 
-			processes := strings.Split(values[i+1], "|")
+			processValues[timestamps[i]] = raw
+		}
+	}
 
-			for j, p := range processes {
-				segments := strings.SplitN(p, ":", 2)
+	placeholder := now().UnixMilli()
 
-				py, err := strconv.ParseFloat(segments[1], 64)
-				if err != nil {
-					continue
-				}
+	for k, v := range avgSeries {
+		column := make(ProcessSeries, seriesProcessCount)
 
-				column[j] = ProcessValue{
-					Name: segments[0],
-					X:    v.X,
-					Y:    py,
-				}
+		for i := range column {
+			column[i] = ProcessValue{
+				Name: "Not Set",
+				X:    placeholder,
+				Y:    0,
+			}
+		}
+
+		for j, process := range strings.Split(processValues[v.X/timestampMultiplier], "|") {
+			if j >= len(column) {
+				break
 			}
 
-			break
+			segments := strings.SplitN(process, ":", seriesProcessSegmentCount)
+
+			if len(segments) != seriesProcessSegmentCount {
+				continue
+			}
+
+			py, err := strconv.ParseFloat(segments[1], 64)
+			if err != nil {
+				continue
+			}
+
+			column[j] = ProcessValue{
+				Name: segments[0],
+				X:    v.X,
+				Y:    py,
+			}
 		}
 
 		process1Series[k] = column[0]
@@ -529,16 +502,35 @@ func (rsr *RedisSeriesRepository) findProcessSeries(probe Probe, seriesType Seri
 	return minSeries, maxSeries, avgSeries, process1Series, process2Series, process3Series, nil
 }
 
-func (rsr *RedisSeriesRepository) chunks(chunkSize int, series Series) []Series {
-	var chunks []Series
+func parseLoads(value string) ([seriesLoadSegmentCount]float64, bool) {
+	var loads [seriesLoadSegmentCount]float64
 
-	for chunkSize < len(series) {
-		series, chunks = series[chunkSize:], append(chunks, series[0:chunkSize:chunkSize])
+	segments := strings.SplitN(value, ":", seriesLoadSegmentCount)
+
+	if len(segments) != seriesLoadSegmentCount {
+		return loads, false
 	}
 
-	chunks = append(chunks, series)
+	for i, segment := range segments {
+		load, err := strconv.ParseFloat(segment, 64)
+		if err != nil {
+			return loads, false
+		}
 
-	return chunks
+		loads[i] = load
+	}
+
+	return loads, true
+}
+
+func chunkSlice[T any](chunkSize int, values []T) [][]T {
+	var chunks [][]T
+
+	for chunkSize < len(values) {
+		values, chunks = values[chunkSize:], append(chunks, values[0:chunkSize:chunkSize])
+	}
+
+	return append(chunks, values)
 }
 
 func (rsr *RedisSeriesRepository) end(start time.Time, seriesType SeriesType) time.Time {

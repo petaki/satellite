@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func escapeGlob(value string) string {
+func escape(value string) string {
 	var builder strings.Builder
 
 	builder.Grow(len(value))

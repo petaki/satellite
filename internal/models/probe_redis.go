@@ -1,17 +1,18 @@
 package models
 
 import (
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gomodule/redigo/redis"
-	"golang.org/x/exp/slices"
 )
 
 const (
 	heartbeatKeySuffix = ":heartbeat"
+	probeScanCount     = 1000
 )
 
 // RedisProbeRepository type.
@@ -29,7 +30,7 @@ func (rpr *RedisProbeRepository) FindAll() ([]Probe, error) {
 
 	for {
 		values, err := redis.Values(
-			conn.Do("SCAN", cursor, "MATCH", "*"+seriesCPUKeyPrefix+"*"),
+			conn.Do("SCAN", cursor, "MATCH", "*"+seriesCPUKeyPrefix+"*", "COUNT", probeScanCount),
 		)
 		if err != nil {
 			return nil, err
@@ -177,11 +178,11 @@ func (rpr *RedisProbeRepository) Delete(probe Probe) error {
 	cursor := 0
 	var keys []string
 
-	match := escapeGlob(string(probe)) + ":*"
+	match := escape(string(probe)) + ":*"
 
 	for {
 		values, err := redis.Values(
-			conn.Do("SCAN", cursor, "MATCH", match),
+			conn.Do("SCAN", cursor, "MATCH", match, "COUNT", probeScanCount),
 		)
 		if err != nil {
 			return err

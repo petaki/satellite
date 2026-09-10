@@ -151,7 +151,6 @@ import {
     ref,
     computed,
     watch,
-    watchEffect,
     nextTick
 } from 'vue';
 
@@ -163,7 +162,7 @@ import LiveIndicator from '../../base/LiveIndicator.vue';
 import RefreshButton from '../../base/RefreshButton.vue';
 import LogStatusBadge from '../../base/LogStatusBadge.vue';
 import ToggleButtonGroup from '../../base/ToggleButtonGroup.vue';
-import type { GroupedSnapshot, LogEntry, LogViewMode } from '../../types';
+import type { LogEntry, LogViewMode } from '../../types';
 import useCopy from '../../use/useCopy';
 import useDate from '../../use/useDate';
 import useLiveReload from '../../use/useLiveReload';
@@ -207,11 +206,7 @@ const selectedId = ref<string | null>(null);
 const contentEl = ref<HTMLElement | null>(null);
 
 // Computed
-const groups = ref<GroupedSnapshot[]>([]);
-
-watchEffect(async () => {
-    groups.value = await groupSnapshots(logEntries);
-});
+const groups = computed(() => groupSnapshots(logEntries));
 
 const filteredGroups = computed(() => filterSnapshots(
     groups.value,

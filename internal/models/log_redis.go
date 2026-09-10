@@ -11,6 +11,7 @@ import (
 
 const (
 	logKeyPrefix = "log:"
+	logScanCount = 1000
 )
 
 // RedisLogRepository type.
@@ -34,7 +35,7 @@ func (rlr *RedisLogRepository) FindLogPaths(probe Probe) ([]string, error) {
 
 		for {
 			values, err := redis.Values(
-				conn.Do("SCAN", cursor, "MATCH", prefix+"*"),
+				conn.Do("SCAN", cursor, "MATCH", prefix+"*", "COUNT", logScanCount),
 			)
 			if err != nil {
 				return nil, err
@@ -62,7 +63,7 @@ func (rlr *RedisLogRepository) FindLogPaths(probe Probe) ([]string, error) {
 		}
 
 		for key, value := range paths {
-			path, err := base64.StdEncoding.DecodeString(strings.ReplaceAll(value, prefix, ""))
+			path, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(value, prefix))
 			if err != nil {
 				return nil, err
 			}

@@ -122,6 +122,5 @@ export interface GroupedSnapshot {
     status: LogStatus
     preview: string
     lines: string[]
-    fingerprint: string
     diff?: LineDiff
 }

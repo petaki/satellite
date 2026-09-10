@@ -229,7 +229,7 @@ HEARTBEAT_WEBHOOK_URL=http://127.0.0.1:4000/heartbeat
 #### Heartbeat Webhook Header
 
 ```
-HEARTBEAT_WEBHOOK_HEADER='{"Authorization": "Bearer TOKEN", "Accept": "application/json"}'
+HEARTBEAT_WEBHOOK_HEADER='{"Authorization": "Bearer TOKEN", "Content-Type": "application/json", "Accept": "application/json"}'
 ```
 
 #### Heartbeat Webhook Body

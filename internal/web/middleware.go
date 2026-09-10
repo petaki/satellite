@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"slices"
 
 	"github.com/petaki/satellite/internal/models"
-	"golang.org/x/exp/slices"
 )
 
 func (a *app) recoverPanic(next http.Handler) http.Handler {
