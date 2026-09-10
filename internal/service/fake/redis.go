@@ -13,6 +13,8 @@ import (
 type Redis struct {
 	mu     sync.Mutex
 	hashes map[string]map[string]string
+	values map[string]string
+	ttls   map[string]int
 	calls  map[string]int
 }
 
@@ -20,6 +22,8 @@ type Redis struct {
 func NewRedis() *Redis {
 	return &Redis{
 		hashes: map[string]map[string]string{},
+		values: map[string]string{},
+		ttls:   map[string]int{},
 		calls:  map[string]int{},
 	}
 }
@@ -34,6 +38,32 @@ func (f *Redis) HSet(key, field, value string) {
 	}
 
 	f.hashes[key][field] = value
+}
+
+// Get returns a plain string value and whether it was set.
+func (f *Redis) Get(key string) (string, bool) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	value, ok := f.values[key]
+
+	return value, ok
+}
+
+// TTL returns the expiry set on a key, or zero when it has none.
+func (f *Redis) TTL(key string) int {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	return f.ttls[key]
+}
+
+// Keys returns every key the server holds, sorted.
+func (f *Redis) Keys() []string {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	return f.keys()
 }
 
 // Calls returns how many times a command was issued.
@@ -55,9 +85,13 @@ func (f *Redis) Pool() *redis.Pool {
 }
 
 func (f *Redis) keys() []string {
-	keys := make([]string, 0, len(f.hashes))
+	keys := make([]string, 0, len(f.hashes)+len(f.values))
 
 	for key := range f.hashes {
+		keys = append(keys, key)
+	}
+
+	for key := range f.values {
 		keys = append(keys, key)
 	}
 
@@ -75,15 +109,81 @@ func (f *Redis) do(command string, args []any) (any, error) {
 	switch command {
 	case "PING":
 		return "PONG", nil
+	case "MULTI":
+		return "OK", nil
 	case "HGETALL":
 		return f.hgetall(args)
 	case "HMGET":
 		return f.hmget(args)
 	case "SCAN":
 		return f.scan(args)
+	case "EXISTS":
+		return f.exists(args)
+	case "SET":
+		return f.set(args)
+	case "EXPIRE":
+		return f.expire(args)
+	case "DEL":
+		return f.del(args)
 	}
 
 	return nil, ErrUnknownCommand
+}
+
+func (f *Redis) del(args []any) (any, error) {
+	key := arg(args, 0)
+
+	_, hash := f.hashes[key]
+	_, value := f.values[key]
+
+	delete(f.hashes, key)
+	delete(f.values, key)
+	delete(f.ttls, key)
+
+	if hash || value {
+		return int64(1), nil
+	}
+
+	return int64(0), nil
+}
+
+func (f *Redis) exists(args []any) (any, error) {
+	key := arg(args, 0)
+
+	if _, ok := f.hashes[key]; ok {
+		return int64(1), nil
+	}
+
+	if _, ok := f.values[key]; ok {
+		return int64(1), nil
+	}
+
+	return int64(0), nil
+}
+
+func (f *Redis) expire(args []any) (any, error) {
+	key := arg(args, 0)
+
+	if _, ok := f.values[key]; !ok {
+		if _, ok := f.hashes[key]; !ok {
+			return int64(0), nil
+		}
+	}
+
+	seconds, err := strconv.Atoi(arg(args, 1))
+	if err != nil {
+		return nil, err
+	}
+
+	f.ttls[key] = seconds
+
+	return int64(1), nil
+}
+
+func (f *Redis) set(args []any) (any, error) {
+	f.values[arg(args, 0)] = arg(args, 1)
+
+	return "OK", nil
 }
 
 func (f *Redis) hgetall(args []any) (any, error) {
@@ -161,8 +261,14 @@ func (f *Redis) scan(args []any) (any, error) {
 	return []any{[]byte(strconv.Itoa(next)), page}, nil
 }
 
+type queued struct {
+	command string
+	args    []any
+}
+
 type redisConn struct {
-	redis *Redis
+	redis   *Redis
+	pending []queued
 }
 
 func (c *redisConn) Close() error { return nil }
@@ -170,11 +276,56 @@ func (c *redisConn) Close() error { return nil }
 func (c *redisConn) Err() error { return nil }
 
 func (c *redisConn) Do(command string, args ...any) (any, error) {
+	if strings.ToUpper(command) == "EXEC" {
+		return c.exec()
+	}
+
 	return c.redis.do(strings.ToUpper(command), args)
 }
 
-func (c *redisConn) Send(string, ...any) error {
-	return ErrUnknownCommand
+// Send queues a command, as redigo does inside a MULTI. An unsupported command
+// fails here rather than silently doing nothing at EXEC time.
+func (c *redisConn) Send(command string, args ...any) error {
+	command = strings.ToUpper(command)
+
+	if !supported(command) {
+		return ErrUnknownCommand
+	}
+
+	c.pending = append(c.pending, queued{command: command, args: args})
+
+	return nil
+}
+
+func (c *redisConn) exec() (any, error) {
+	replies := make([]any, 0, len(c.pending))
+
+	for _, p := range c.pending {
+		reply, err := c.redis.do(p.command, p.args)
+		if err != nil {
+			c.pending = nil
+
+			return nil, err
+		}
+
+		replies = append(replies, reply)
+	}
+
+	c.pending = nil
+	c.redis.mu.Lock()
+	c.redis.calls["EXEC"]++
+	c.redis.mu.Unlock()
+
+	return replies, nil
+}
+
+func supported(command string) bool {
+	switch command {
+	case "PING", "MULTI", "EXEC", "HGETALL", "HMGET", "SCAN", "EXISTS", "SET", "EXPIRE", "DEL":
+		return true
+	}
+
+	return false
 }
 
 func (c *redisConn) Flush() error { return nil }
