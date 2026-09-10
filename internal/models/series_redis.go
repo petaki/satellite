@@ -60,57 +60,11 @@ func (rsr *RedisSeriesRepository) FindDiskPaths(probe Probe) ([]string, error) {
 	conn := rsr.RedisPool.Get()
 	defer conn.Close()
 
-	var paths []string
-	timestamps := rsr.timestamps(Last30Days)
+	days := rsr.timestamps(Last30Days)
 
-	for _, timestamp := range slices.Backward(timestamps) {
-		cursor := 0
-		prefix := string(probe) + ":" + seriesDiskKeyPrefix + strconv.FormatInt(timestamp, 10) + ":"
+	slices.Reverse(days)
 
-		for {
-			values, err := redis.Values(
-				conn.Do("SCAN", cursor, "MATCH", prefix+"*", "COUNT", seriesScanCount),
-			)
-			if err != nil {
-				return nil, err
-			}
-
-			cursor, err = redis.Int(values[0], nil)
-			if err != nil {
-				return nil, err
-			}
-
-			current, err := redis.Strings(values[1], nil)
-			if err != nil {
-				return nil, err
-			}
-
-			paths = append(paths, current...)
-
-			if cursor == 0 {
-				break
-			}
-		}
-
-		if len(paths) == 0 {
-			continue
-		}
-
-		for key, value := range paths {
-			path, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(value, prefix))
-			if err != nil {
-				return nil, err
-			}
-
-			paths[key] = string(path)
-		}
-
-		sort.Strings(paths)
-
-		break
-	}
-
-	return paths, nil
+	return findPaths(conn, probe, seriesDiskKeyPrefix, days, seriesScanCount)
 }
 
 // ChunkSize function.
@@ -257,7 +211,7 @@ func (rsr *RedisSeriesRepository) findLoadSeries(probe Probe, seriesType SeriesT
 	}
 
 	if len(samples) == 0 {
-		return nil, nil, nil, nil
+		return Series{}, Series{}, Series{}, nil
 	}
 
 	sort.SliceStable(samples, func(i, j int) bool {
@@ -266,7 +220,7 @@ func (rsr *RedisSeriesRepository) findLoadSeries(probe Probe, seriesType SeriesT
 
 	var series [seriesLoadSegmentCount]Series
 
-	for _, chunk := range chunkSlice(chunkSize, samples) {
+	for _, chunk := range chunks(start, chunkSize, samples, func(s loadSample) int64 { return s.x }) {
 		var sums [seriesLoadSegmentCount]float64
 		var x int64
 
@@ -332,14 +286,14 @@ func (rsr *RedisSeriesRepository) findThresholdSeries(probe Probe, seriesType Se
 	}
 
 	if len(rawSeries) == 0 {
-		return nil, nil, nil, nil
+		return Series{}, Series{}, Series{}, nil
 	}
 
 	sort.SliceStable(rawSeries, func(i, j int) bool {
 		return rawSeries[i].X > rawSeries[j].X
 	})
 
-	for _, chunk := range chunkSlice(chunkSize, rawSeries) {
+	for _, chunk := range chunks(start, chunkSize, rawSeries, func(v Value) int64 { return v.X }) {
 		minValue := Value{
 			X: 0,
 			Y: 0,
@@ -446,15 +400,13 @@ func (rsr *RedisSeriesRepository) findProcessSeries(probe Probe, seriesType Seri
 		}
 	}
 
-	placeholder := now().UnixMilli()
-
 	for k, v := range avgSeries {
 		column := make(ProcessSeries, seriesProcessCount)
 
 		for i := range column {
 			column[i] = ProcessValue{
 				Name: "Not Set",
-				X:    placeholder,
+				X:    v.X,
 				Y:    0,
 			}
 		}
@@ -521,16 +473,6 @@ func parseLoads(value string) ([seriesLoadSegmentCount]float64, bool) {
 	}
 
 	return loads, true
-}
-
-func chunkSlice[T any](chunkSize int, values []T) [][]T {
-	var chunks [][]T
-
-	for chunkSize < len(values) {
-		values, chunks = values[chunkSize:], append(chunks, values[0:chunkSize:chunkSize])
-	}
-
-	return append(chunks, values)
 }
 
 func (rsr *RedisSeriesRepository) end(start time.Time, seriesType SeriesType) time.Time {

@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"sort"
 	"strconv"
-	"strings"
 
 	"github.com/gomodule/redigo/redis"
 )
@@ -24,59 +23,12 @@ func (rlr *RedisLogRepository) FindLogPaths(probe Probe) ([]string, error) {
 	conn := rlr.RedisPool.Get()
 	defer conn.Close()
 
-	var paths []string
-
 	todayTS := today()
-	yesterdayTS := todayTS.AddDate(0, 0, -1)
 
-	for _, ts := range []int64{todayTS.Unix(), yesterdayTS.Unix()} {
-		cursor := 0
-		prefix := string(probe) + ":" + logKeyPrefix + strconv.FormatInt(ts, 10) + ":"
-
-		for {
-			values, err := redis.Values(
-				conn.Do("SCAN", cursor, "MATCH", prefix+"*", "COUNT", logScanCount),
-			)
-			if err != nil {
-				return nil, err
-			}
-
-			cursor, err = redis.Int(values[0], nil)
-			if err != nil {
-				return nil, err
-			}
-
-			current, err := redis.Strings(values[1], nil)
-			if err != nil {
-				return nil, err
-			}
-
-			paths = append(paths, current...)
-
-			if cursor == 0 {
-				break
-			}
-		}
-
-		if len(paths) == 0 {
-			continue
-		}
-
-		for key, value := range paths {
-			path, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(value, prefix))
-			if err != nil {
-				return nil, err
-			}
-
-			paths[key] = string(path)
-		}
-
-		sort.Strings(paths)
-
-		break
-	}
-
-	return paths, nil
+	return findPaths(conn, probe, logKeyPrefix, []int64{
+		todayTS.Unix(),
+		todayTS.AddDate(0, 0, -1).Unix(),
+	}, logScanCount)
 }
 
 // FindLog function.
@@ -84,7 +36,7 @@ func (rlr *RedisLogRepository) FindLog(probe Probe, path string) ([]LogEntry, er
 	conn := rlr.RedisPool.Get()
 	defer conn.Close()
 
-	var entries []LogEntry
+	entries := []LogEntry{}
 
 	todayTS := today()
 	encodedPath := base64.StdEncoding.EncodeToString([]byte(path))
