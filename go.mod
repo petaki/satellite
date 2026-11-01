@@ -8,9 +8,9 @@ require (
 	github.com/gomodule/redigo v1.9.3
 	github.com/joho/godotenv v1.5.1
 	github.com/justinas/alice v1.2.0
-	github.com/mark3labs/mcp-go v1.0.0
-	github.com/petaki/inertia-go v1.16.0
-	github.com/petaki/support-go v1.15.0
+	github.com/mark3labs/mcp-go v1.5.0
+	github.com/petaki/inertia-go v1.17.0
+	github.com/petaki/support-go v1.16.0
 )
 
 require (
@@ -19,7 +19,7 @@ require (
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.3 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
-	golang.org/x/text v0.42.0 // indirect
+	golang.org/x/text v0.43.0 // indirect
 )
 
 ignore ./node_modules

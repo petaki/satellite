@@ -17,12 +17,13 @@
                 <SeriesSelector :href="seriesHref" />
             </card-title>
             <div class="chart">
-                <apexchart v-if="load1Series"
+                <apexchart v-if="load1Series.length"
                            ref="chartEl"
                            type="line"
                            :series="series"
                            height="100%"
-                           :options="options" />
+                           :options="options"
+                           @mounted="refreshSeries" />
                 <chart-empty v-else />
             </div>
         </div>
@@ -123,32 +124,26 @@ const seriesHref = (isDefault: boolean, selectedType: string | undefined) => (is
     : loadPath(probe, selectedType));
 
 const onSetTheme = () => {
-    chartEl.value.refresh();
+    chartEl.value?.refresh();
 };
 
-const refreshSeries = () => {
-    if (!chartEl.value) {
+const refreshSeries = async () => {
+    await nextTick();
+
+    if (!chartEl.value?.chart) {
         return;
     }
 
-    if (loadAlarm) {
-        options.value.annotations = {
-            yaxis: [
-                alarm(loadAlarm, '')
-            ]
-        };
-    }
+    options.value.annotations = {
+        yaxis: loadAlarm ? [alarm(loadAlarm, '')] : []
+    };
 
-    nextTick(() => {
-        chartEl.value.refresh();
-    });
+    chartEl.value.updateOptions({ annotations: options.value.annotations });
 };
 
-watch(series, refreshSeries);
+watch(series, refreshSeries, { flush: 'post' });
 
 onMounted(() => {
-    refreshSeries();
-
     document.addEventListener('set-theme', onSetTheme);
 });
 

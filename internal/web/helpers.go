@@ -1,8 +1,10 @@
 package web
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"runtime/debug"
 	"strings"
 )
@@ -13,6 +15,7 @@ func (a *app) serverError(w http.ResponseWriter, err error) {
 
 	if a.appConfig.Debug {
 		http.Error(w, trace, http.StatusInternalServerError)
+
 		return
 	}
 
@@ -30,4 +33,12 @@ func (a *app) notFound(w http.ResponseWriter) {
 func (a *app) methodNotAllowed(w http.ResponseWriter, allow []string) {
 	w.Header().Set("Allow", strings.Join(allow, ", "))
 	a.clientError(w, http.StatusMethodNotAllowed)
+}
+
+func withoutURL(err error) error {
+	if urlErr, ok := errors.AsType[*url.Error](err); ok {
+		return urlErr.Err
+	}
+
+	return err
 }

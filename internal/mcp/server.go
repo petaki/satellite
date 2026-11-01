@@ -1,8 +1,6 @@
 package mcp
 
 import (
-	"net/http"
-
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/petaki/satellite/internal/config"
@@ -18,7 +16,7 @@ func NewHandler(
 	alarmRepository models.AlarmRepository,
 	seriesRepository models.SeriesRepository,
 	logRepository models.LogRepository,
-) http.Handler {
+) *server.StreamableHTTPServer {
 	h := &handler{
 		appConfig:        appConfig,
 		probeRepository:  probeRepository,
@@ -117,10 +115,8 @@ func NewHandler(
 		h.deleteProbe,
 	)
 
-	httpServer := server.NewStreamableHTTPServer(
+	return server.NewStreamableHTTPServer(
 		mcpServer,
 		server.WithDisableLocalhostProtection(appConfig.MCPAllowAnyHost),
 	)
-
-	return httpServer
 }

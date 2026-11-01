@@ -73,7 +73,7 @@ Download the latest release for your platform from the [GitHub Releases](https:/
 #### Prerequisites
 
 - Go: `Version >= 1.27`
-- Node.js: `Version >= 22.0`
+- Node.js: `Version >= 24.0`
 - Yarn or NPM
 
 #### Steps
@@ -114,6 +114,14 @@ All configuration is done through environment variables in the `.env` file.
 
 ```
 APP_NAME=
+```
+
+#### Application Debug Mode
+
+- Serves the assets from the `./static` directory, use it only for local development
+
+```
+APP_DEBUG=false
 ```
 
 #### Application Address

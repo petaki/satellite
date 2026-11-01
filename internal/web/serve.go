@@ -2,11 +2,10 @@ package web
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -14,16 +13,18 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/petaki/inertia-go"
 	"github.com/petaki/satellite/internal/config"
+	satellitemcp "github.com/petaki/satellite/internal/mcp"
 	"github.com/petaki/satellite/internal/models"
 	"github.com/petaki/satellite/internal/service"
 	"github.com/petaki/satellite/resources/views"
 	"github.com/petaki/satellite/static"
 	"github.com/petaki/support-go/cli"
 	"github.com/petaki/support-go/vite"
+	supportweb "github.com/petaki/support-go/web"
 )
 
 // Serve function.
-func Serve(cliApp *cli.App, appConfig *config.Config) {
+func Serve(cliApp *cli.App, appConfig *config.Config) error {
 	redisPool := service.RedisPool(appConfig)
 	defer redisPool.Close()
 
@@ -32,7 +33,7 @@ func Serve(cliApp *cli.App, appConfig *config.Config) {
 
 	viteManager, inertiaManager, err := newViteAndInertiaManager(appConfig)
 	if err != nil {
-		cli.ErrorLog.Fatal(err)
+		return err
 	}
 
 	webApp := &app{
@@ -58,67 +59,38 @@ func Serve(cliApp *cli.App, appConfig *config.Config) {
 		},
 	}
 
-	srv := &http.Server{
-		Addr:         appConfig.Addr,
-		ErrorLog:     webApp.errorLog,
-		Handler:      webApp.routes(),
-		IdleTimeout:  time.Minute,
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
+	if appConfig.MCPEnabled {
+		webApp.mcpServer = satellitemcp.NewHandler(
+			cliApp,
+			appConfig,
+			webApp.probeRepository,
+			webApp.alarmRepository,
+			webApp.seriesRepository,
+			webApp.logRepository,
+		)
 	}
 
-	var ticker *time.Ticker
-	var doneTicker chan bool
+	srv := supportweb.NewServer(appConfig.Addr, webApp.routes(), webApp.errorLog)
+
+	if webApp.mcpServer != nil {
+		srv.RegisterOnShutdown(func() {
+			webApp.mcpServer.CloseSessions(context.Background())
+		})
+	}
+
+	var heartbeat sync.WaitGroup
+	defer heartbeat.Wait()
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
 	if appConfig.HeartbeatEnabled {
-		ticker = time.NewTicker(time.Minute)
-		doneTicker = make(chan bool)
-
-		go func() {
-			for {
-				select {
-				case <-doneTicker:
-					return
-				case <-ticker.C:
-					webApp.heartbeat()
-				}
-			}
-		}()
+		heartbeat.Go(func() {
+			webApp.runHeartbeat(ctx)
+		})
 	}
 
-	done := make(chan os.Signal, 1)
-	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-
-	webApp.infoLog.Printf("Starting server on "+cli.Green("%s"), appConfig.Addr)
-
-	go func() {
-		err := srv.ListenAndServe()
-
-		if err != nil && !errors.Is(err, http.ErrServerClosed) {
-			webApp.errorLog.Fatal(err)
-		}
-	}()
-
-	<-done
-	webApp.infoLog.Print("Server stopped")
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer func() {
-		if appConfig.HeartbeatEnabled {
-			ticker.Stop()
-			doneTicker <- true
-			webApp.infoLog.Print("Ticker stopped")
-		}
-
-		cancel()
-	}()
-
-	err = srv.Shutdown(ctx)
-	if err != nil {
-		webApp.errorLog.Fatal(err)
-	}
-
-	webApp.infoLog.Print("Server exited properly")
+	return srv.RunAndShutdown(ctx, 5*time.Second)
 }
 
 func newViteAndInertiaManager(appConfig *config.Config) (*vite.Vite, *inertia.Inertia, error) {
@@ -149,9 +121,10 @@ func newViteAndInertiaManager(appConfig *config.Config) (*vite.Vite, *inertia.In
 	inertiaManager.Share("suffix", suffix)
 	inertiaManager.Share("seriesButtons", appConfig.SeriesButtons)
 	inertiaManager.Share("seriesTypes", models.SeriesTypes)
-	inertiaManager.ShareFunc("isRunningHot", viteManager.IsRunningHot)
-	inertiaManager.ShareFunc("asset", viteManager.Asset)
-	inertiaManager.ShareFunc("css", viteManager.CSS)
+
+	for name, helper := range viteManager.Helpers() {
+		inertiaManager.ShareFunc(name, helper)
+	}
 
 	return viteManager, inertiaManager, nil
 }

@@ -66,7 +66,7 @@ func (rlr *RedisLogRepository) FindLog(probe Probe, path string) ([]LogEntry, er
 		return entries[i].Timestamp > entries[j].Timestamp
 	})
 
-	if len(entries) > 0 && entries[len(entries)-1].Timestamp == todayTS.Unix() {
+	if len(entries) == 0 || entries[len(entries)-1].Timestamp == todayTS.Unix() {
 		yesterdayTS := todayTS.AddDate(0, 0, -1)
 		key = string(probe) + ":" + logKeyPrefix + strconv.FormatInt(yesterdayTS.Unix(), 10) + ":" + encodedPath
 

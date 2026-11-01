@@ -175,34 +175,27 @@ func (rpr *RedisProbeRepository) Delete(probe Probe) error {
 	conn := rpr.RedisPool.Get()
 	defer conn.Close()
 
-	cursor := 0
-	var keys []string
+	keys := []string{
+		string(probe) + ":" + alarmKeyPrefix,
+		string(probe) + heartbeatKeySuffix,
+	}
 
-	match := escape(string(probe)) + ":*"
-
-	for {
-		values, err := redis.Values(
-			conn.Do("SCAN", cursor, "MATCH", match, "COUNT", probeScanCount),
-		)
-		if err != nil {
-			return err
-		}
-
-		cursor, err = redis.Int(values[0], nil)
-		if err != nil {
-			return err
-		}
-
-		current, err := redis.Strings(values[1], nil)
+	for _, prefix := range []string{
+		seriesCPUKeyPrefix,
+		seriesMemoryKeyPrefix,
+		seriesProcessCPUKeyPrefix,
+		seriesProcessMemoryKeyPrefix,
+		seriesLoadKeyPrefix,
+		seriesDiskKeyPrefix,
+		logKeyPrefix,
+		alarmKeyPrefix + ":",
+	} {
+		current, err := scanKeys(conn, escape(string(probe)+":"+prefix)+"*", probeScanCount)
 		if err != nil {
 			return err
 		}
 
 		keys = append(keys, current...)
-
-		if cursor == 0 {
-			break
-		}
 	}
 
 	err := conn.Send("MULTI")

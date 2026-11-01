@@ -17,12 +17,13 @@
                 <SeriesSelector :href="seriesHref" />
             </card-title>
             <div class="chart">
-                <apexchart v-if="cpuMinSeries"
+                <apexchart v-if="cpuMinSeries.length"
                            ref="chartEl"
                            type="bar"
                            :series="series"
                            height="100%"
-                           :options="options" />
+                           :options="options"
+                           @mounted="refreshSeries" />
                 <chart-empty v-else />
             </div>
         </div>
@@ -122,11 +123,9 @@ const series = computed(() => [
 ]);
 
 const options = ref<ApexConfig>({
-    // apexcharts 7.1.0 sizes a bar slot from the whole x range instead of the
-    // gap between points (c3b9d985), so scale the width down by the point count
     plotOptions: {
         bar: {
-            columnWidth: `${70 / Math.max(1, (cpuMaxSeries ?? []).length - 1)}%`
+            columnWidth: '70%'
         }
     },
     chart: {
@@ -172,11 +171,13 @@ const seriesHref = (isDefault: boolean, selectedType: string | undefined) => (is
     : cpuPath(probe, selectedType));
 
 const onSetTheme = () => {
-    chartEl.value.refresh();
+    chartEl.value?.refresh();
 };
 
 const refreshSeries = async () => {
-    if (!chartEl.value) {
+    await nextTick();
+
+    if (!chartEl.value?.chart) {
         return;
     }
 
@@ -190,21 +191,14 @@ const refreshSeries = async () => {
         options.value.annotations.yaxis.push(alarm(cpuAlarm));
     }
 
-    await nextTick(() => {
-        chartEl.value.refresh();
-    });
-
-    await nextTick(() => {
-        chartEl.value.toggleSeries('CPU Max');
-        chartEl.value.toggleSeries('CPU Min');
-    });
+    chartEl.value.updateOptions({ annotations: options.value.annotations });
+    chartEl.value.hideSeries('CPU Max');
+    chartEl.value.hideSeries('CPU Min');
 };
 
-watch(series, refreshSeries);
+watch(series, refreshSeries, { flush: 'post' });
 
 onMounted(() => {
-    refreshSeries();
-
     document.addEventListener('set-theme', onSetTheme);
 });
 

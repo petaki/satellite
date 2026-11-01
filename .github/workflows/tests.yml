@@ -13,7 +13,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 24
 
       - name: Install Yarn
         run: npm install -g yarn
@@ -52,7 +52,7 @@ jobs:
 
       - name: Staticcheck
         run: |
-          go install honnef.co/go/tools/cmd/staticcheck@2026.2
+          go install honnef.co/go/tools/cmd/staticcheck@2026.2.2
           $(go env GOPATH)/bin/staticcheck ./...
 
       - name: Build

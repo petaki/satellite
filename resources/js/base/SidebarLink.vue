@@ -8,7 +8,7 @@
                   }"
                   :href="href"
                   :method="method">
-        <slot></slot>
+        <slot />
     </inertia-link>
     <!-- eslint-enable max-len -->
 </template>

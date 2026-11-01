@@ -3,8 +3,6 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"os"
-	"strconv"
 	"strings"
 
 	"github.com/petaki/satellite/internal/models"
@@ -32,51 +30,37 @@ type Config struct {
 
 // NewConfig function.
 func NewConfig(command *cli.Command, arguments []string) (*Config, error) {
-	debug := command.FlagSet().Bool("debug", false, "Application Debug Mode")
-	name := command.FlagSet().String("name", os.Getenv("APP_NAME"), "Application Name")
-	addr := command.FlagSet().String("addr", os.Getenv("APP_ADDR"), "Application Address")
-	url := command.FlagSet().String("url", os.Getenv("APP_URL"), "Application URL")
-	seriesButtons := command.FlagSet().String("series-buttons", os.Getenv("APP_SERIES_BUTTONS"), "Application Series Buttons")
-	redisURL := command.FlagSet().String("redis-url", os.Getenv("REDIS_URL"), "Redis URL")
+	debug := command.Bool("debug", "APP_DEBUG", false, "Application Debug Mode")
+	name := command.String("name", "APP_NAME", "", "Application Name")
+	addr := command.String("addr", "APP_ADDR", "", "Application Address")
+	url := command.String("url", "APP_URL", "", "Application URL")
+	seriesButtons := command.String("series-buttons", "APP_SERIES_BUTTONS", "", "Application Series Buttons")
+	redisURL := command.Secret("redis-url", "REDIS_URL", "Redis URL")
+	mcpEnabled := command.Bool("mcp-enabled", "MCP_ENABLED", false, "MCP Enabled")
+	mcpAllowAnyHost := command.Bool("mcp-allow-any-host", "MCP_ALLOW_ANY_HOST", false, "MCP Allow Any Host")
+	heartbeatEnabled := command.Bool("heartbeat-enabled", "HEARTBEAT_ENABLED", false, "Heartbeat Enabled")
+	heartbeatWait := command.Int("heartbeat-wait", "HEARTBEAT_WAIT", 5, "Heartbeat Wait")
+	heartbeatSleep := command.Int("heartbeat-sleep", "HEARTBEAT_SLEEP", 300, "Heartbeat Sleep")
+	heartbeatWebhookMethod := command.String("heartbeat-webhook-method", "HEARTBEAT_WEBHOOK_METHOD", "", "Heartbeat Webhook Method")
+	heartbeatWebhookURL := command.Secret("heartbeat-webhook-url", "HEARTBEAT_WEBHOOK_URL", "Heartbeat Webhook URL")
+	heartbeatWebhookHeader := command.Secret("heartbeat-webhook-header", "HEARTBEAT_WEBHOOK_HEADER", "Heartbeat Webhook Header")
+	heartbeatWebhookBody := command.String("heartbeat-webhook-body", "HEARTBEAT_WEBHOOK_BODY", "", "Heartbeat Webhook Body")
 
-	envMCPEnabled, err := strconv.ParseBool(os.Getenv("MCP_ENABLED"))
-	if err != nil {
-		envMCPEnabled = false
-	}
-
-	envMCPAllowAnyHost, err := strconv.ParseBool(os.Getenv("MCP_ALLOW_ANY_HOST"))
-	if err != nil {
-		envMCPAllowAnyHost = false
-	}
-
-	envHeartbeatEnabled, err := strconv.ParseBool(os.Getenv("HEARTBEAT_ENABLED"))
-	if err != nil {
-		envHeartbeatEnabled = false
-	}
-
-	envHeartbeatWait, err := strconv.Atoi(os.Getenv("HEARTBEAT_WAIT"))
-	if err != nil || envHeartbeatWait < 1 {
-		envHeartbeatWait = 5
-	}
-
-	envHeartbeatSleep, err := strconv.Atoi(os.Getenv("HEARTBEAT_SLEEP"))
-	if err != nil || envHeartbeatSleep < 0 {
-		envHeartbeatSleep = 300
-	}
-
-	mcpEnabled := command.FlagSet().Bool("mcp-enabled", envMCPEnabled, "MCP Enabled")
-	mcpAllowAnyHost := command.FlagSet().Bool("mcp-allow-any-host", envMCPAllowAnyHost, "MCP Allow Any Host")
-	heartbeatEnabled := command.FlagSet().Bool("heartbeat-enabled", envHeartbeatEnabled, "Heartbeat Enabled")
-	heartbeatWait := command.FlagSet().Int("heartbeat-wait", envHeartbeatWait, "Heartbeat Wait")
-	heartbeatSleep := command.FlagSet().Int("heartbeat-sleep", envHeartbeatSleep, "Heartbeat Sleep")
-	heartbeatWebhookMethod := command.FlagSet().String("heartbeat-webhook-method", os.Getenv("HEARTBEAT_WEBHOOK_METHOD"), "Heartbeat Webhook Method")
-	heartbeatWebhookURL := command.FlagSet().String("heartbeat-webhook-url", os.Getenv("HEARTBEAT_WEBHOOK_URL"), "Heartbeat Webhook URL")
-	heartbeatWebhookHeader := command.FlagSet().String("heartbeat-webhook-header", os.Getenv("HEARTBEAT_WEBHOOK_HEADER"), "Heartbeat Webhook Header")
-	heartbeatWebhookBody := command.FlagSet().String("heartbeat-webhook-body", os.Getenv("HEARTBEAT_WEBHOOK_BODY"), "Heartbeat Webhook Body")
-
-	_, err = command.Parse(arguments)
+	_, err := command.Parse(arguments)
 	if err != nil {
 		return nil, err
+	}
+
+	if *heartbeatWait < 1 {
+		return nil, fmt.Errorf("%w: %d", ErrInvalidHeartbeatWait, *heartbeatWait)
+	}
+
+	if *heartbeatSleep < 0 {
+		return nil, fmt.Errorf("%w: %d", ErrInvalidHeartbeatSleep, *heartbeatSleep)
+	}
+
+	if *heartbeatEnabled && *heartbeatWebhookURL == "" {
+		return nil, ErrMissingHeartbeatWebhookURL
 	}
 
 	var webhookHeader map[string]string
@@ -84,7 +68,7 @@ func NewConfig(command *cli.Command, arguments []string) (*Config, error) {
 	if *heartbeatWebhookHeader != "" {
 		err = json.Unmarshal([]byte(*heartbeatWebhookHeader), &webhookHeader)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: %w", ErrInvalidHeartbeatWebhookHeader, err)
 		}
 	}
 
