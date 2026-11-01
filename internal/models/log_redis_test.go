@@ -140,3 +140,21 @@ func TestFindLogWithoutDataReturnsEmptyNotNil(t *testing.T) {
 		t.Errorf("FindLog() = %v, want no entries", entries)
 	}
 }
+
+func TestFindLogFallsBackToYesterdayWhenTodayIsEmpty(t *testing.T) {
+	server := fake.NewRedis()
+
+	yesterdayTS := today().AddDate(0, 0, -1).Unix()
+	server.HSet(logKey("web-01", yesterdayTS, "/var/log/syslog"), strconv.FormatInt(yesterdayTS+10, 10), "late yesterday")
+
+	rlr := &RedisLogRepository{RedisPool: server.Pool()}
+
+	entries, err := rlr.FindLog("web-01", "/var/log/syslog")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(entries) != 1 || entries[0].Content != "late yesterday" {
+		t.Errorf("FindLog() = %v, want yesterday's entry", entries)
+	}
+}

@@ -69,33 +69,9 @@ func findPaths(conn redis.Conn, probe Probe, prefix string, days []int64, scanCo
 	for _, day := range days {
 		keyPrefix := string(probe) + ":" + prefix + strconv.FormatInt(day, 10) + ":"
 
-		var paths []string
-
-		cursor := 0
-
-		for {
-			values, err := redis.Values(
-				conn.Do("SCAN", cursor, "MATCH", keyPrefix+"*", "COUNT", scanCount),
-			)
-			if err != nil {
-				return nil, err
-			}
-
-			cursor, err = redis.Int(values[0], nil)
-			if err != nil {
-				return nil, err
-			}
-
-			current, err := redis.Strings(values[1], nil)
-			if err != nil {
-				return nil, err
-			}
-
-			paths = append(paths, current...)
-
-			if cursor == 0 {
-				break
-			}
+		paths, err := scanKeys(conn, escape(keyPrefix)+"*", scanCount)
+		if err != nil {
+			return nil, err
 		}
 
 		if len(paths) == 0 {
@@ -154,4 +130,35 @@ func today() time.Time {
 	return time.Date(
 		now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location(),
 	)
+}
+
+func scanKeys(conn redis.Conn, match string, count int) ([]string, error) {
+	var keys []string
+
+	cursor := 0
+
+	for {
+		values, err := redis.Values(
+			conn.Do("SCAN", cursor, "MATCH", match, "COUNT", count),
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		cursor, err = redis.Int(values[0], nil)
+		if err != nil {
+			return nil, err
+		}
+
+		current, err := redis.Strings(values[1], nil)
+		if err != nil {
+			return nil, err
+		}
+
+		keys = append(keys, current...)
+
+		if cursor == 0 {
+			return keys, nil
+		}
+	}
 }

@@ -5,12 +5,14 @@ import (
 	"time"
 
 	"github.com/justinas/alice"
-	satellitemcp "github.com/petaki/satellite/internal/mcp"
 	"github.com/petaki/satellite/static"
+	supportweb "github.com/petaki/support-go/web"
 )
 
 func (a *app) routes() http.Handler {
-	baseMiddleware := alice.New(a.recoverPanic)
+	baseMiddleware := alice.New(supportweb.RecoverPanic(func(w http.ResponseWriter, r *http.Request, err error) {
+		a.serverError(w, err)
+	}))
 	webMiddleware := alice.New(
 		a.sessionManager.LoadAndSave,
 		a.probes,
@@ -27,34 +29,19 @@ func (a *app) routes() http.Handler {
 	mux.Handle("/probe/delete", webMiddleware.Append(a.probe).ThenFunc(a.probeDelete))
 	mux.Handle("/probe/delete-all", webMiddleware.ThenFunc(a.probeDeleteAll))
 
-	var fileServer http.Handler
-
-	if a.appConfig.Debug {
-		fileServer = http.FileServer(http.Dir("./static/"))
-	} else {
-		staticFS := http.FS(static.Files)
-		fileServer = http.FileServer(staticFS)
-	}
+	fileServer := supportweb.Static(a.appConfig.Debug, "./static/", static.Files)
 
 	mux.Handle("/build/", fileServer)
 	mux.Handle("/favicon.ico", fileServer)
 
-	if a.appConfig.MCPEnabled {
-		mcpHandler := satellitemcp.NewHandler(
-			a.cliApp,
-			a.appConfig,
-			a.probeRepository,
-			a.alarmRepository,
-			a.seriesRepository,
-			a.logRepository,
-		)
+	if a.mcpServer != nil {
 		mux.Handle("/mcp", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.Method == http.MethodGet {
 				rc := http.NewResponseController(w)
 				_ = rc.SetWriteDeadline(time.Time{})
 			}
 
-			mcpHandler.ServeHTTP(w, r)
+			a.mcpServer.ServeHTTP(w, r)
 		}))
 	}
 

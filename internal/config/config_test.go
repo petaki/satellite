@@ -145,3 +145,26 @@ func TestParseSeriesButtonsAcceptsEverySeriesType(t *testing.T) {
 		}
 	}
 }
+
+func TestConfigRejectsInvalidHeartbeat(t *testing.T) {
+	cases := map[string]struct {
+		key   string
+		value string
+		want  error
+	}{
+		"zero wait":      {"HEARTBEAT_WAIT", "0", ErrInvalidHeartbeatWait},
+		"negative sleep": {"HEARTBEAT_SLEEP", "-1", ErrInvalidHeartbeatSleep},
+		"malformed wait": {"HEARTBEAT_WAIT", "five", cli.ErrInvalidEnvValue},
+	}
+
+	for name, c := range cases {
+		t.Run(name, func(t *testing.T) {
+			t.Setenv(c.key, c.value)
+
+			_, err := newTestConfig(t, "")
+			if !errors.Is(err, c.want) {
+				t.Errorf("error = %v, want %v", err, c.want)
+			}
+		})
+	}
+}

@@ -25,12 +25,13 @@
                 <SeriesSelector v-if="diskPath" :href="seriesHref" />
             </card-title>
             <div v-if="diskPath" class="chart">
-                <apexchart v-if="diskMinSeries"
+                <apexchart v-if="diskMinSeries.length"
                            ref="chartEl"
                            type="line"
                            :series="series"
                            height="100%"
-                           :options="options" />
+                           :options="options"
+                           @mounted="refreshSeries" />
                 <chart-empty v-else />
             </div>
         </div>
@@ -141,11 +142,13 @@ const seriesHref = (isDefault: boolean, selectedType: string | undefined) => (is
     : diskPathFn(probe, diskPath, selectedType));
 
 const onSetTheme = () => {
-    chartEl.value.refresh();
+    chartEl.value?.refresh();
 };
 
 const refreshSeries = async () => {
-    if (!chartEl.value) {
+    await nextTick();
+
+    if (!chartEl.value?.chart) {
         return;
     }
 
@@ -159,21 +162,14 @@ const refreshSeries = async () => {
         options.value.annotations.yaxis.push(alarm(diskAlarm));
     }
 
-    await nextTick(() => {
-        chartEl.value.refresh();
-    });
-
-    await nextTick(() => {
-        chartEl.value.toggleSeries(`Disk Max - ${diskPath}`);
-        chartEl.value.toggleSeries(`Disk Min - ${diskPath}`);
-    });
+    chartEl.value.updateOptions({ annotations: options.value.annotations });
+    chartEl.value.hideSeries(`Disk Max - ${diskPath}`);
+    chartEl.value.hideSeries(`Disk Min - ${diskPath}`);
 };
 
-watch(series, refreshSeries);
+watch(series, refreshSeries, { flush: 'post' });
 
 onMounted(() => {
-    refreshSeries();
-
     document.addEventListener('set-theme', onSetTheme);
 });
 

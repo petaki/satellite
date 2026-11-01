@@ -2,25 +2,11 @@ package web
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"slices"
 
 	"github.com/petaki/satellite/internal/models"
 )
-
-func (a *app) recoverPanic(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		defer func() {
-			if err := recover(); err != nil {
-				w.Header().Set("Connection", "close")
-				a.serverError(w, fmt.Errorf("%s", err))
-			}
-		}()
-
-		next.ServeHTTP(w, r)
-	})
-}
 
 func (a *app) probes(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

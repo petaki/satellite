@@ -153,7 +153,7 @@ func TestDeleteRemovesOnlyTheNamedProbe(t *testing.T) {
 
 	dayKey := strconv.FormatInt(today().Unix(), 10)
 
-	for _, probe := range []string{"web-01", "web-011", "web*01", "db-01"} {
+	for _, probe := range []string{"web-01", "web-01:eu", "web-011", "web*01", "db-01"} {
 		server.HSet(probe+":"+seriesCPUKeyPrefix+dayKey, "1", "10")
 	}
 
@@ -164,6 +164,8 @@ func TestDeleteRemovesOnlyTheNamedProbe(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	server.HSet("web-01:"+alarmKeyPrefix+":cpu", "1", "1")
+
 	err = rpr.Delete("web-01")
 	if err != nil {
 		t.Fatal(err)
@@ -173,6 +175,7 @@ func TestDeleteRemovesOnlyTheNamedProbe(t *testing.T) {
 		"db-01:" + seriesCPUKeyPrefix + dayKey,
 		"web*01:" + seriesCPUKeyPrefix + dayKey,
 		"web-011:" + seriesCPUKeyPrefix + dayKey,
+		"web-01:eu:" + seriesCPUKeyPrefix + dayKey,
 	}
 
 	if got := server.Keys(); !slices.Equal(got, want) {

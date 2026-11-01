@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/alexedwards/scs/v2"
+	"github.com/mark3labs/mcp-go/server"
 	"github.com/petaki/inertia-go"
 	"github.com/petaki/satellite/internal/config"
 	"github.com/petaki/satellite/internal/models"
@@ -29,4 +30,5 @@ type app struct {
 	alarmRepository  models.AlarmRepository
 	seriesRepository models.SeriesRepository
 	logRepository    models.LogRepository
+	mcpServer        *server.StreamableHTTPServer
 }

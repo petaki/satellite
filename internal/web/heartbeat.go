@@ -2,8 +2,10 @@ package web
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"sync"
@@ -11,6 +13,20 @@ import (
 
 	"github.com/petaki/satellite/internal/models"
 )
+
+func (a *app) runHeartbeat(ctx context.Context) {
+	ticker := time.NewTicker(time.Minute)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			a.heartbeat()
+		}
+	}
+}
 
 func (a *app) heartbeat() {
 	err := a.handleProbes()
@@ -80,11 +96,11 @@ func (a *app) handleProbe(probe models.Probe, wg *sync.WaitGroup) {
 	body := strings.ReplaceAll(a.appConfig.HeartbeatWebhookBody, "%p", string(probe))
 	body = strings.ReplaceAll(body, "%t", start.Format(time.RFC3339))
 	body = strings.ReplaceAll(body, "%x", strconv.FormatInt(start.Unix(), 10))
-	body = strings.ReplaceAll(body, "%l", fmt.Sprintf("/cpu?probe=%s", probe))
+	body = strings.ReplaceAll(body, "%l", "/cpu?probe="+url.QueryEscape(string(probe)))
 
 	req, err := http.NewRequest(a.appConfig.HeartbeatWebhookMethod, a.appConfig.HeartbeatWebhookURL, bytes.NewBuffer([]byte(body)))
 	if err != nil {
-		a.errorLog.Print(err)
+		a.errorLog.Print(fmt.Errorf("%w: %s, %w", ErrWebhook, probe, withoutURL(err)))
 
 		return
 	}
@@ -95,7 +111,7 @@ func (a *app) handleProbe(probe models.Probe, wg *sync.WaitGroup) {
 
 	resp, err := a.client.Do(req)
 	if err != nil {
-		a.errorLog.Print(err)
+		a.errorLog.Print(fmt.Errorf("%w: %s, %w", ErrWebhook, probe, withoutURL(err)))
 
 		return
 	}

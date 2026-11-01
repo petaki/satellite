@@ -22,7 +22,7 @@ type handler struct {
 func (h *handler) listProbes(_ context.Context, _ mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	probes, err := h.probeRepository.FindAll()
 	if err != nil {
-		return mcp.NewToolResultError(fmt.Sprintf("%v: probes: %v", ErrFind, err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: probes, %v", ErrFind, err)), nil
 	}
 
 	summaries := make([]models.ProbeSummary, 0, len(probes))
@@ -34,7 +34,7 @@ func (h *handler) listProbes(_ context.Context, _ mcp.CallToolRequest) (*mcp.Cal
 
 		cpu, cpuFound, err := h.seriesRepository.FindLatestCPU(probe)
 		if err != nil {
-			return mcp.NewToolResultError(fmt.Sprintf("%v: cpu, %s: %v", ErrFind, probe, err)), nil
+			return mcp.NewToolResultError(fmt.Sprintf("%v: cpu, %s, %v", ErrFind, probe, err)), nil
 		}
 
 		if cpuFound {
@@ -43,7 +43,7 @@ func (h *handler) listProbes(_ context.Context, _ mcp.CallToolRequest) (*mcp.Cal
 
 		mem, memFound, err := h.seriesRepository.FindLatestMemory(probe)
 		if err != nil {
-			return mcp.NewToolResultError(fmt.Sprintf("%v: memory, %s: %v", ErrFind, probe, err)), nil
+			return mcp.NewToolResultError(fmt.Sprintf("%v: memory, %s, %v", ErrFind, probe, err)), nil
 		}
 
 		if memFound {
@@ -52,7 +52,7 @@ func (h *handler) listProbes(_ context.Context, _ mcp.CallToolRequest) (*mcp.Cal
 
 		load1, load5, load15, _, err := h.seriesRepository.FindLatestLoad(probe)
 		if err != nil {
-			return mcp.NewToolResultError(fmt.Sprintf("%v: load, %s: %v", ErrFind, probe, err)), nil
+			return mcp.NewToolResultError(fmt.Sprintf("%v: load, %s, %v", ErrFind, probe, err)), nil
 		}
 
 		summary.Load1 = load1
@@ -61,7 +61,7 @@ func (h *handler) listProbes(_ context.Context, _ mcp.CallToolRequest) (*mcp.Cal
 
 		values, _, err := h.probeRepository.FindLatestValues(probe, 2)
 		if err != nil {
-			return mcp.NewToolResultError(fmt.Sprintf("%v: latest values, %s: %v", ErrFind, probe, err)), nil
+			return mcp.NewToolResultError(fmt.Sprintf("%v: latest values, %s, %v", ErrFind, probe, err)), nil
 		}
 
 		for _, value := range values {
@@ -74,7 +74,7 @@ func (h *handler) listProbes(_ context.Context, _ mcp.CallToolRequest) (*mcp.Cal
 
 		alarm, err := h.alarmRepository.Find(probe)
 		if err != nil && !errors.Is(err, models.ErrNoRecord) {
-			return mcp.NewToolResultError(fmt.Sprintf("%v: alarm, %s: %v", ErrFind, probe, err)), nil
+			return mcp.NewToolResultError(fmt.Sprintf("%v: alarm, %s, %v", ErrFind, probe, err)), nil
 		}
 
 		if alarm != nil {
@@ -102,14 +102,14 @@ func (h *handler) getCPU(_ context.Context, request mcp.CallToolRequest) (*mcp.C
 
 	cpuMin, cpuMax, cpuAvg, proc1, proc2, proc3, err := h.seriesRepository.FindCPU(probe, seriesType)
 	if err != nil {
-		return mcp.NewToolResultError(fmt.Sprintf("%v: cpu, %s, %s: %v", ErrFind, probe, seriesType, err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: cpu, %s, %s, %v", ErrFind, probe, seriesType, err)), nil
 	}
 
 	var cpuAlarm float64
 
 	alarm, err := h.alarmRepository.Find(probe)
 	if err != nil && !errors.Is(err, models.ErrNoRecord) {
-		return mcp.NewToolResultError(fmt.Sprintf("%v: alarm, %s: %v", ErrFind, probe, err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: alarm, %s, %v", ErrFind, probe, err)), nil
 	}
 
 	if alarm != nil {
@@ -144,14 +144,14 @@ func (h *handler) getMemory(_ context.Context, request mcp.CallToolRequest) (*mc
 
 	memMin, memMax, memAvg, proc1, proc2, proc3, err := h.seriesRepository.FindMemory(probe, seriesType)
 	if err != nil {
-		return mcp.NewToolResultError(fmt.Sprintf("%v: memory, %s, %s: %v", ErrFind, probe, seriesType, err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: memory, %s, %s, %v", ErrFind, probe, seriesType, err)), nil
 	}
 
 	var memoryAlarm float64
 
 	alarm, err := h.alarmRepository.Find(probe)
 	if err != nil && !errors.Is(err, models.ErrNoRecord) {
-		return mcp.NewToolResultError(fmt.Sprintf("%v: alarm, %s: %v", ErrFind, probe, err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: alarm, %s, %v", ErrFind, probe, err)), nil
 	}
 
 	if alarm != nil {
@@ -186,14 +186,14 @@ func (h *handler) getLoad(_ context.Context, request mcp.CallToolRequest) (*mcp.
 
 	load1, load5, load15, err := h.seriesRepository.FindLoad(probe, seriesType)
 	if err != nil {
-		return mcp.NewToolResultError(fmt.Sprintf("%v: load, %s, %s: %v", ErrFind, probe, seriesType, err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: load, %s, %s, %v", ErrFind, probe, seriesType, err)), nil
 	}
 
 	var loadAlarm float64
 
 	alarm, err := h.alarmRepository.Find(probe)
 	if err != nil && !errors.Is(err, models.ErrNoRecord) {
-		return mcp.NewToolResultError(fmt.Sprintf("%v: alarm, %s: %v", ErrFind, probe, err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: alarm, %s, %v", ErrFind, probe, err)), nil
 	}
 
 	if alarm != nil {
@@ -225,13 +225,13 @@ func (h *handler) getDisk(_ context.Context, request mcp.CallToolRequest) (*mcp.
 
 	diskPaths, err := h.seriesRepository.FindDiskPaths(probe)
 	if err != nil {
-		return mcp.NewToolResultError(fmt.Sprintf("%v: disk paths, %s: %v", ErrFind, probe, err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: disk paths, %s, %v", ErrFind, probe, err)), nil
 	}
 
 	diskPath := request.GetString("path", "")
 
 	if diskPath != "" && !slices.Contains(diskPaths, diskPath) {
-		return mcp.NewToolResultError(fmt.Sprintf("%v: disk path, %s, available: %v", ErrInvalid, diskPath, diskPaths)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: disk path, %s, available, %v", ErrInvalid, diskPath, diskPaths)), nil
 	}
 
 	if diskPath == "" && len(diskPaths) > 0 {
@@ -243,7 +243,7 @@ func (h *handler) getDisk(_ context.Context, request mcp.CallToolRequest) (*mcp.
 	if diskPath != "" {
 		diskMin, diskMax, diskAvg, err = h.seriesRepository.FindDisk(probe, seriesType, diskPath)
 		if err != nil {
-			return mcp.NewToolResultError(fmt.Sprintf("%v: disk, %s, %s: %v", ErrFind, probe, diskPath, err)), nil
+			return mcp.NewToolResultError(fmt.Sprintf("%v: disk, %s, %s, %v", ErrFind, probe, diskPath, err)), nil
 		}
 	}
 
@@ -251,7 +251,7 @@ func (h *handler) getDisk(_ context.Context, request mcp.CallToolRequest) (*mcp.
 
 	alarm, err := h.alarmRepository.Find(probe)
 	if err != nil && !errors.Is(err, models.ErrNoRecord) {
-		return mcp.NewToolResultError(fmt.Sprintf("%v: alarm, %s: %v", ErrFind, probe, err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: alarm, %s, %v", ErrFind, probe, err)), nil
 	}
 
 	if alarm != nil {
@@ -280,13 +280,13 @@ func (h *handler) getLogs(_ context.Context, request mcp.CallToolRequest) (*mcp.
 
 	logPaths, err := h.logRepository.FindLogPaths(probe)
 	if err != nil {
-		return mcp.NewToolResultError(fmt.Sprintf("%v: log paths, %s: %v", ErrFind, probe, err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: log paths, %s, %v", ErrFind, probe, err)), nil
 	}
 
 	logPath := request.GetString("path", "")
 
 	if logPath != "" && !slices.Contains(logPaths, logPath) {
-		return mcp.NewToolResultError(fmt.Sprintf("%v: log path, %s, available: %v", ErrInvalid, logPath, logPaths)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: log path, %s, available, %v", ErrInvalid, logPath, logPaths)), nil
 	}
 
 	if logPath == "" && len(logPaths) > 0 {
@@ -298,7 +298,7 @@ func (h *handler) getLogs(_ context.Context, request mcp.CallToolRequest) (*mcp.
 	if logPath != "" {
 		logEntries, err = h.logRepository.FindLog(probe, logPath)
 		if err != nil {
-			return mcp.NewToolResultError(fmt.Sprintf("%v: log, %s, %s: %v", ErrFind, probe, logPath, err)), nil
+			return mcp.NewToolResultError(fmt.Sprintf("%v: log, %s, %s, %v", ErrFind, probe, logPath, err)), nil
 		}
 	}
 
@@ -320,7 +320,7 @@ func (h *handler) getAlerts(_ context.Context, request mcp.CallToolRequest) (*mc
 
 	alarm, err := h.alarmRepository.Find(probe)
 	if err != nil && !errors.Is(err, models.ErrNoRecord) {
-		return mcp.NewToolResultError(fmt.Sprintf("%v: alarm, %s: %v", ErrFind, probe, err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: alarm, %s, %v", ErrFind, probe, err)), nil
 	}
 
 	alarms := map[string]float64{}
@@ -336,17 +336,17 @@ func (h *handler) getAlerts(_ context.Context, request mcp.CallToolRequest) (*mc
 
 	cpu, cpuFound, err := h.seriesRepository.FindLatestCPU(probe)
 	if err != nil {
-		return mcp.NewToolResultError(fmt.Sprintf("%v: cpu, %s: %v", ErrFind, probe, err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: cpu, %s, %v", ErrFind, probe, err)), nil
 	}
 
 	mem, memFound, err := h.seriesRepository.FindLatestMemory(probe)
 	if err != nil {
-		return mcp.NewToolResultError(fmt.Sprintf("%v: memory, %s: %v", ErrFind, probe, err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: memory, %s, %v", ErrFind, probe, err)), nil
 	}
 
 	load1, load5, load15, loadFound, err := h.seriesRepository.FindLatestLoad(probe)
 	if err != nil {
-		return mcp.NewToolResultError(fmt.Sprintf("%v: load, %s: %v", ErrFind, probe, err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: load, %s, %v", ErrFind, probe, err)), nil
 	}
 
 	latest := map[string]any{}
@@ -382,7 +382,7 @@ func (h *handler) deleteProbe(_ context.Context, request mcp.CallToolRequest) (*
 
 	err = h.probeRepository.Delete(probe)
 	if err != nil {
-		return mcp.NewToolResultError(fmt.Sprintf("%v: probe, %s: %v", ErrDelete, probe, err)), nil
+		return mcp.NewToolResultError(fmt.Sprintf("%v: probe, %s, %v", ErrDelete, probe, err)), nil
 	}
 
 	return mcp.NewToolResultText(fmt.Sprintf("probe %q deleted successfully", string(probe))), nil
@@ -396,7 +396,7 @@ func (h *handler) requireProbe(request mcp.CallToolRequest) (models.Probe, error
 
 	probes, err := h.probeRepository.FindAll()
 	if err != nil {
-		return "", fmt.Errorf("%w: probes: %v", ErrFind, err)
+		return "", fmt.Errorf("%w: probes, %w", ErrFind, err)
 	}
 
 	probe := models.Probe(probeName)
