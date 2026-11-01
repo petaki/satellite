@@ -11,6 +11,8 @@ import (
 	"github.com/petaki/satellite/internal/models"
 )
 
+const defaultLogLimit = 10
+
 type handler struct {
 	appConfig        *config.Config
 	probeRepository  models.ProbeRepository
@@ -293,6 +295,11 @@ func (h *handler) getLogs(_ context.Context, request mcp.CallToolRequest) (*mcp.
 		logPath = logPaths[0]
 	}
 
+	limit := request.GetInt("limit", defaultLogLimit)
+	if limit < 1 {
+		return mcp.NewToolResultError(fmt.Sprintf("%v: limit, %d", ErrInvalid, limit)), nil
+	}
+
 	logEntries := []models.LogEntry{}
 
 	if logPath != "" {
@@ -300,6 +307,8 @@ func (h *handler) getLogs(_ context.Context, request mcp.CallToolRequest) (*mcp.
 		if err != nil {
 			return mcp.NewToolResultError(fmt.Sprintf("%v: log, %s, %s, %v", ErrFind, probe, logPath, err)), nil
 		}
+
+		logEntries = logEntries[:min(limit, len(logEntries))]
 	}
 
 	result := map[string]any{

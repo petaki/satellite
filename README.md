@@ -24,7 +24,7 @@ codex mcp add satellite --url http://127.0.0.1:4000/mcp
 | `get_memory` | Memory usage time series with top 3 processes |
 | `get_load` | Load average time series (1m, 5m, 15m) |
 | `get_disk` | Disk usage time series with path selector |
-| `get_logs` | Log entries with log file path selector |
+| `get_logs` | Newest log entries with log file path selector and limit |
 | `get_alerts` | Alarm thresholds and current metric values |
 | `delete_probe` | Delete a probe and all its data |
 
