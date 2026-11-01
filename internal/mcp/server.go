@@ -91,6 +91,7 @@ func NewHandler(
 			mcp.WithDestructiveHintAnnotation(false),
 			mcp.WithString("probe", mcp.Required(), mcp.Description("Probe name")),
 			mcp.WithString("path", mcp.Description("Log file path (defaults to first available path)")),
+			mcp.WithInteger("limit", mcp.Min(1), mcp.Description("Maximum number of log entries, newest first (defaults to 10)")),
 		),
 		h.getLogs,
 	)
