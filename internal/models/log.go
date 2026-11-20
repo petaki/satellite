@@ -6,6 +6,12 @@ type LogEntry struct {
 	Content   string `json:"content"`
 }
 
+func (e LogEntry) Plain() LogEntry {
+	e.Content = stripANSI(e.Content)
+
+	return e
+}
+
 // LogRepository type.
 type LogRepository interface {
 	FindLogPaths(Probe) ([]string, error)

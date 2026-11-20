@@ -14,16 +14,16 @@
     </button>
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts" generic="T extends string">
 defineProps<{
-    options: { value: string, label: string }[]
-    modelValue: string
+    options: { value: T, label: string }[]
+    modelValue: T
     buttonClass?: string
     firstButtonClass?: string
     lastButtonClass?: string
 }>();
 
 defineEmits<{
-    'update:modelValue': [value: string]
+    'update:modelValue': [value: T]
 }>();
 </script>

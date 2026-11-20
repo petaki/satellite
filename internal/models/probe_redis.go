@@ -4,7 +4,6 @@ import (
 	"slices"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gomodule/redigo/redis"
@@ -12,6 +11,7 @@ import (
 
 const (
 	heartbeatKeySuffix = ":heartbeat"
+	probeRecentDays    = 31
 	probeScanCount     = 1000
 )
 
@@ -46,15 +46,11 @@ func (rpr *RedisProbeRepository) FindAll() ([]Probe, error) {
 			return nil, err
 		}
 
-		for _, name := range current {
-			if strings.Contains(name, seriesProcessCPUKeyPrefix) {
-				continue
-			}
+		for _, key := range current {
+			name, ok := probeName(key)
 
-			segments := strings.SplitN(name, ":"+seriesCPUKeyPrefix, 2)
-
-			if !slices.Contains(names, segments[0]) {
-				names = append(names, segments[0])
+			if ok && !slices.Contains(names, name) {
+				names = append(names, name)
 			}
 		}
 
@@ -74,6 +70,44 @@ func (rpr *RedisProbeRepository) FindAll() ([]Probe, error) {
 	return probes, nil
 }
 
+// Exists function.
+func (rpr *RedisProbeRepository) Exists(probe Probe) (bool, error) {
+	conn := rpr.RedisPool.Get()
+	defer conn.Close()
+
+	keyPrefix := string(probe) + ":" + seriesCPUKeyPrefix
+	midnight := today()
+	args := redis.Args{}
+
+	for i := range probeRecentDays {
+		args = args.Add(keyPrefix + strconv.FormatInt(midnight.AddDate(0, 0, -i).Unix(), 10))
+	}
+
+	count, err := redis.Int(conn.Do("EXISTS", args...))
+	if err != nil {
+		return false, err
+	}
+
+	if count > 0 {
+		return true, nil
+	}
+
+	keys, err := scanKeys(conn, escape(keyPrefix)+"*", probeScanCount)
+	if err != nil {
+		return false, err
+	}
+
+	for _, key := range keys {
+		name, ok := probeName(key)
+
+		if ok && name == string(probe) {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
 // FindLatestValues function.
 func (rpr *RedisProbeRepository) FindLatestValues(probe Probe, limit int) ([]any, *time.Time, error) {
 	if limit < 1 {
@@ -85,33 +119,13 @@ func (rpr *RedisProbeRepository) FindLatestValues(probe Probe, limit int) ([]any
 
 	days := map[string][]string{}
 
-	now := time.Now()
-	end := time.Date(
-		now.Year(),
-		now.Month(),
-		now.Day(),
-		now.Hour(),
-		now.Minute(),
-		0,
-		0,
-		now.Location(),
-	)
-
+	end := now()
 	start := end.Add(-time.Duration(limit-1) * time.Minute)
 
 	for current := start; !current.After(end); current = current.Add(time.Minute) {
-		day := strconv.FormatInt(time.Date(
-			current.Year(),
-			current.Month(),
-			current.Day(),
-			0,
-			0,
-			0,
-			0,
-			now.Location(),
-		).Unix(), 10)
+		dayKey := strconv.FormatInt(day(current.Unix()).Unix(), 10)
 
-		days[day] = append(days[day], strconv.FormatInt(current.Unix(), 10))
+		days[dayKey] = append(days[dayKey], strconv.FormatInt(current.Unix(), 10))
 	}
 
 	var values []any

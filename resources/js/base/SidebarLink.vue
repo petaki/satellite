@@ -7,21 +7,29 @@
                       'text-red-400 hover:text-red-500': isHighlight,
                   }"
                   :href="href"
-                  :method="method">
+                  :method="method"
+                  :as="as"
+                  :on-before="onBefore">
         <slot />
     </inertia-link>
     <!-- eslint-enable max-len -->
 </template>
 
 <script setup lang="ts">
+import type { InertiaLinkProps } from '@inertiajs/vue3';
+
 withDefaults(defineProps<{
     isActive?: boolean
     isHighlight?: boolean
     href: string
-    method?: string
+    method?: InertiaLinkProps['method']
+    as?: InertiaLinkProps['as']
+    onBefore?: InertiaLinkProps['onBefore']
 }>(), {
     isActive: false,
     isHighlight: false,
-    method: 'get'
+    method: 'get',
+    as: 'a',
+    onBefore: () => {}
 });
 </script>

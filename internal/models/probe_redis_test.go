@@ -5,12 +5,10 @@ import (
 	"strconv"
 	"testing"
 	"time"
-
-	"github.com/petaki/satellite/internal/service/fake"
 )
 
 func TestFindAllIgnoresProcessKeysAndDeduplicatesDays(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	todayKey := strconv.FormatInt(today().Unix(), 10)
 	yesterdayKey := strconv.FormatInt(today().AddDate(0, 0, -1).Unix(), 10)
@@ -35,8 +33,36 @@ func TestFindAllIgnoresProcessKeysAndDeduplicatesDays(t *testing.T) {
 	}
 }
 
+func TestFindAllReturnsOnlyRealProbeNames(t *testing.T) {
+	server := newTestRedis(t)
+
+	todayKey := strconv.FormatInt(today().Unix(), 10)
+
+	server.HSet("webcpu:"+seriesCPUKeyPrefix+todayKey, "1", "10")
+	server.HSet("webcpu:"+seriesMemoryKeyPrefix+todayKey, "1", "10")
+	server.HSet("webcpu:"+seriesProcessCPUKeyPrefix+todayKey, "1", "firefox:1.0")
+	server.HSet("webcpu:"+alarmKeyPrefix, "cpu", "1")
+	server.HSet("webcpu"+heartbeatKeySuffix, "1", "1")
+	server.HSet("dataprocess:"+seriesCPUKeyPrefix+todayKey, "1", "10")
+	server.HSet("web-01:"+seriesCPUKeyPrefix+todayKey, "1", "10")
+	server.HSet("web-01:"+seriesProcessCPUKeyPrefix+todayKey, "1", "firefox:1.0")
+
+	rpr := &RedisProbeRepository{RedisPool: server.Pool()}
+
+	probes, err := rpr.FindAll()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := []Probe{"dataprocess", "web-01", "webcpu"}
+
+	if !slices.Equal(probes, want) {
+		t.Errorf("FindAll() = %v, want %v", probes, want)
+	}
+}
+
 func TestFindAllWithoutProbesReturnsEmptyNotNil(t *testing.T) {
-	rpr := &RedisProbeRepository{RedisPool: fake.NewRedis().Pool()}
+	rpr := &RedisProbeRepository{RedisPool: newTestRedis(t).Pool()}
 
 	probes, err := rpr.FindAll()
 	if err != nil {
@@ -53,7 +79,7 @@ func TestFindAllWithoutProbesReturnsEmptyNotNil(t *testing.T) {
 }
 
 func TestFindLatestValuesRejectsNonPositiveLimit(t *testing.T) {
-	rpr := &RedisProbeRepository{RedisPool: fake.NewRedis().Pool()}
+	rpr := &RedisProbeRepository{RedisPool: newTestRedis(t).Pool()}
 
 	for _, limit := range []int{0, -1} {
 		_, _, err := rpr.FindLatestValues("web-01", limit)
@@ -65,7 +91,7 @@ func TestFindLatestValuesRejectsNonPositiveLimit(t *testing.T) {
 }
 
 func TestFindLatestValuesReturnsOneSlotPerMinute(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	for i := 1; i <= 2; i++ {
 		at := now().Add(time.Duration(-i) * time.Minute)
@@ -103,7 +129,7 @@ func TestFindLatestValuesReturnsOneSlotPerMinute(t *testing.T) {
 }
 
 func TestHasHeartbeatReflectsSetHeartbeat(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 	rpr := &RedisProbeRepository{RedisPool: server.Pool()}
 
 	has, err := rpr.HasHeartbeat("web-01")
@@ -131,7 +157,7 @@ func TestHasHeartbeatReflectsSetHeartbeat(t *testing.T) {
 }
 
 func TestSetHeartbeatExpiresWithTheConfiguredSleep(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 	rpr := &RedisProbeRepository{RedisPool: server.Pool()}
 
 	err := rpr.SetHeartbeat("web-01", 300)
@@ -149,7 +175,7 @@ func TestSetHeartbeatExpiresWithTheConfiguredSleep(t *testing.T) {
 }
 
 func TestDeleteRemovesOnlyTheNamedProbe(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	dayKey := strconv.FormatInt(today().Unix(), 10)
 
@@ -184,7 +210,7 @@ func TestDeleteRemovesOnlyTheNamedProbe(t *testing.T) {
 }
 
 func TestDeleteTreatsGlobCharactersLiterally(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	dayKey := strconv.FormatInt(today().Unix(), 10)
 
@@ -206,5 +232,67 @@ func TestDeleteTreatsGlobCharactersLiterally(t *testing.T) {
 
 	if got := server.Keys(); !slices.Equal(got, want) {
 		t.Errorf("keys after Delete(web*01) = %v, want %v — the glob was not escaped", got, want)
+	}
+}
+
+func TestExistsFindsARecentProbeWithoutScanning(t *testing.T) {
+	server := newTestRedis(t)
+
+	server.HSet("web-01:"+seriesCPUKeyPrefix+strconv.FormatInt(today().AddDate(0, 0, -30).Unix(), 10), "1", "10")
+
+	rpr := &RedisProbeRepository{RedisPool: server.Pool()}
+
+	exists, err := rpr.Exists("web-01")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !exists {
+		t.Error("Exists(web-01) = false, want true")
+	}
+
+	if calls := server.Calls("SCAN"); calls != 0 {
+		t.Errorf("SCAN was called %d times, want 0", calls)
+	}
+}
+
+func TestExistsFindsAProbeWithOnlyOldData(t *testing.T) {
+	server := newTestRedis(t)
+
+	server.HSet("web-01:"+seriesCPUKeyPrefix+strconv.FormatInt(today().AddDate(0, 0, -60).Unix(), 10), "1", "10")
+
+	rpr := &RedisProbeRepository{RedisPool: server.Pool()}
+
+	exists, err := rpr.Exists("web-01")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !exists {
+		t.Error("Exists(web-01) = false, want true")
+	}
+}
+
+func TestExistsRejectsUnknownAndLookalikeProbes(t *testing.T) {
+	server := newTestRedis(t)
+
+	todayKey := strconv.FormatInt(today().Unix(), 10)
+
+	server.HSet("web-01:"+seriesProcessCPUKeyPrefix+todayKey, "1", "firefox:1.0")
+	server.HSet("web-01:"+seriesMemoryKeyPrefix+todayKey, "1", "10")
+	server.HSet("web-01:"+seriesCPUKeyPrefix+"old", "1", "10")
+	server.HSet("web-01:"+seriesCPUKeyPrefix+todayKey+":x", "1", "10")
+
+	rpr := &RedisProbeRepository{RedisPool: server.Pool()}
+
+	for _, probe := range []Probe{"web-01", "web-0*", "db-01"} {
+		exists, err := rpr.Exists(probe)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if exists {
+			t.Errorf("Exists(%s) = true, want false", probe)
+		}
 	}
 }

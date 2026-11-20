@@ -6,6 +6,9 @@ var (
 	// ErrInvalid error.
 	ErrInvalid = errors.New("config: invalid value")
 
+	// ErrInvalidURL error.
+	ErrInvalidURL = errors.New("config: invalid application url")
+
 	// ErrInvalidHeartbeatWait error.
 	ErrInvalidHeartbeatWait = errors.New("config: invalid heartbeat wait")
 

@@ -16,25 +16,23 @@
 <script setup lang="ts">
 import {
     computed,
+    ref,
     watch
 } from 'vue';
 
 import { router, usePage } from '@inertiajs/vue3';
-import type { SeriesType } from '../types';
 import ToggleButtonGroup from './ToggleButtonGroup.vue';
 
-const model = defineModel<string>();
-
 const { href } = defineProps<{
-    href:(isDefault: boolean, selectedType: string | undefined) => string
+    href:(selectedType: string) => string
 }>();
 
 const page = usePage();
 
-model.value = page.props.seriesType as string;
+const model = ref(page.props.seriesType ?? '');
 
-const seriesButtons = computed(() => (page.props.seriesTypes as SeriesType[])
-    .filter(type => (page.props.seriesButtons as string[]).indexOf(type.value) !== -1)
+const seriesButtons = computed(() => page.props.seriesTypes
+    .filter(type => page.props.seriesButtons.indexOf(type.value) !== -1)
     .map(type => ({
         label: type.name.split(' ').map(segment => (!Number.isNaN(Number(segment))
             ? segment
@@ -42,14 +40,7 @@ const seriesButtons = computed(() => (page.props.seriesTypes as SeriesType[])
         value: type.value
     })));
 
-const loadSeries = () => {
-    router.visit(href(
-        model.value === page.props.seriesType,
-        model.value
-    ));
-};
-
 watch(model, () => {
-    loadSeries();
+    router.visit(href(model.value));
 });
 </script>

@@ -10,12 +10,14 @@ import (
 )
 
 func (a *app) routes() http.Handler {
-	baseMiddleware := alice.New(supportweb.RecoverPanic(func(w http.ResponseWriter, r *http.Request, err error) {
-		a.serverError(w, err)
-	}))
+	baseMiddleware := alice.New(
+		supportweb.RecoverPanic(func(w http.ResponseWriter, r *http.Request, err error) {
+			a.serverError(w, err)
+		}),
+		a.allowedHosts,
+	)
 	webMiddleware := alice.New(
 		a.sessionManager.LoadAndSave,
-		a.probes,
 		a.inertiaManager.Middleware,
 	)
 

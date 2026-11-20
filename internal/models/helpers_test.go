@@ -2,11 +2,12 @@ package models
 
 import (
 	"encoding/base64"
+	"slices"
 	"strconv"
 	"testing"
 	"time"
 
-	"github.com/petaki/satellite/internal/service/fake"
+	"github.com/gomodule/redigo/redis"
 )
 
 func TestBetween(t *testing.T) {
@@ -18,7 +19,7 @@ func TestBetween(t *testing.T) {
 		want bool
 	}{
 		"at the newer bound": {start, true},
-		"at the older bound": {end, true},
+		"at the older bound": {end, false},
 		"inside the window":  {start.Add(-1 * time.Minute), true},
 		"newer than start":   {start.Add(time.Second), false},
 		"older than end":     {end.Add(-time.Second), false},
@@ -175,7 +176,7 @@ func TestEscape(t *testing.T) {
 }
 
 func TestFindPaths(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 	server.HSet("web-01:disk:200:"+encodePath("/data"), "1", "1")
 	server.HSet("web-01:disk:200:"+encodePath("/"), "1", "1")
 	server.HSet("web-01:disk:100:"+encodePath("/old"), "1", "1")
@@ -191,7 +192,7 @@ func TestFindPaths(t *testing.T) {
 }
 
 func TestFindPathsFallsBackToTheNextDay(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 	server.HSet("web-01:disk:100:"+encodePath("/old"), "1", "1")
 
 	paths, err := findPathsWith(server, "web-01", "disk:", []int64{200, 100}, 10)
@@ -205,7 +206,7 @@ func TestFindPathsFallsBackToTheNextDay(t *testing.T) {
 }
 
 func TestFindPathsPagesThroughTheCursor(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	for i := range 25 {
 		server.HSet("web-01:log:200:"+encodePath("/var/log/"+strconv.Itoa(i)+".log"), "1", "1")
@@ -226,7 +227,7 @@ func TestFindPathsPagesThroughTheCursor(t *testing.T) {
 }
 
 func TestFindPathsRejectsUndecodableKeys(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 	server.HSet("web-01:disk:200:not!base64", "1", "1")
 
 	if _, err := findPathsWith(server, "web-01", "disk:", []int64{200}, 10); err == nil {
@@ -235,7 +236,7 @@ func TestFindPathsRejectsUndecodableKeys(t *testing.T) {
 }
 
 func TestFindPathsWithoutKeysIsEmptyNotNil(t *testing.T) {
-	paths, err := findPathsWith(fake.NewRedis(), "web-01", "disk:", []int64{200, 100}, 10)
+	paths, err := findPathsWith(newTestRedis(t), "web-01", "disk:", []int64{200, 100}, 10)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -311,27 +312,22 @@ func TestParseLoadsKeepsSegmentOrder(t *testing.T) {
 	}
 }
 
-func TestTimestampsCoverTheWholeWindow(t *testing.T) {
-	rsr := &RedisSeriesRepository{}
-	start := now()
+func TestStripANSI(t *testing.T) {
+	cases := map[string]struct {
+		in   string
+		want string
+	}{
+		"plain text":         {"ready", "ready"},
+		"raw escape":         {"\x1b[32mINF\x1b[0m started", "INF started"},
+		"rsyslog escape":     {"#033[90m12:00#033[0m #033[1;31mERR#033[0m", "12:00 ERR"},
+		"256 and true color": {"\x1b[38;5;208mwarn\x1b[38;2;1;2;3m!", "warn!"},
+		"cursor sequence":    {"\x1b[2Kline", "line"},
+		"rsyslog tab":        {"a#011b", "a\tb"},
+	}
 
-	for _, st := range []SeriesType{
-		Last5Minutes, Last15Minutes, Last30Minutes, Last1Hour, Last3Hours,
-		Last6Hours, Last12Hours, Last24Hours, Last2Days, Last7Days, Last30Days,
-	} {
-		oldest := rsr.end(start, st)
-		needed := day(oldest.Unix()).Unix()
-
-		covered := false
-
-		for _, ts := range rsr.timestamps(st) {
-			if ts == needed {
-				covered = true
-			}
-		}
-
-		if !covered {
-			t.Errorf("%s: day bucket %d holds the oldest sample in the window but is never queried", st, needed)
+	for name, c := range cases {
+		if got := stripANSI(c.in); got != c.want {
+			t.Errorf("%s: stripANSI(%q) = %q, want %q", name, c.in, got, c.want)
 		}
 	}
 }
@@ -354,9 +350,77 @@ func encodePath(path string) string {
 	return base64.StdEncoding.EncodeToString([]byte(path))
 }
 
-func findPathsWith(server *fake.Redis, probe Probe, prefix string, days []int64, scanCount int) ([]string, error) {
+func findPathsWith(server *testRedis, probe Probe, prefix string, days []int64, scanCount int) ([]string, error) {
 	conn := server.Pool().Get()
 	defer conn.Close()
 
 	return findPaths(conn, probe, prefix, days, scanCount)
+}
+
+func freezeClock(t *testing.T, at time.Time) time.Time {
+	t.Helper()
+
+	location, err := time.LoadLocation("Europe/Budapest")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	savedLocal, savedClock := time.Local, clock
+
+	t.Cleanup(func() {
+		time.Local, clock = savedLocal, savedClock
+	})
+
+	wall := at.In(location)
+	time.Local = location
+	clock = func() time.Time { return wall }
+
+	return wall
+}
+
+type scriptedConn struct {
+	redis.Conn
+	replies []any
+}
+
+func (c *scriptedConn) Do(string, ...any) (any, error) {
+	reply := c.replies[0]
+	c.replies = c.replies[1:]
+
+	return reply, nil
+}
+
+func TestScanKeysDropsKeysTheServerReturnsTwice(t *testing.T) {
+	conn := &scriptedConn{replies: []any{
+		[]any{[]byte("7"), []any{[]byte("b"), []byte("a")}},
+		[]any{[]byte("0"), []any{[]byte("b"), []byte("c")}},
+	}}
+
+	keys, err := scanKeys(conn, "*", 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if want := []string{"a", "b", "c"}; !slices.Equal(keys, want) {
+		t.Errorf("scanKeys() = %v, want %v", keys, want)
+	}
+}
+
+func TestFindPathsScansTheKeyspaceOnce(t *testing.T) {
+	server := newTestRedis(t)
+	server.HSet("web-01:disk:100:"+encodePath("/old"), "1", "1")
+
+	days := make([]int64, 31)
+
+	for i := range days {
+		days[i] = int64(200 - i)
+	}
+
+	if _, err := findPathsWith(server, "web-01", "disk:", days, 1000); err != nil {
+		t.Fatal(err)
+	}
+
+	if calls := server.Calls("SCAN"); calls != 1 {
+		t.Errorf("SCAN was called %d times for 31 days, want 1", calls)
+	}
 }

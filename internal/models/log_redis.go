@@ -53,7 +53,7 @@ func (rlr *RedisLogRepository) FindLog(probe Probe, path string) ([]LogEntry, er
 	for i := 0; i < len(values); i += 2 {
 		timestamp, err := strconv.ParseInt(values[i], 10, 64)
 		if err != nil {
-			return nil, err
+			continue
 		}
 
 		entries = append(entries, LogEntry{
@@ -80,7 +80,7 @@ func (rlr *RedisLogRepository) FindLog(probe Probe, path string) ([]LogEntry, er
 		for i := 0; i < len(values); i += 2 {
 			timestamp, err := strconv.ParseInt(values[i], 10, 64)
 			if err != nil {
-				return nil, err
+				continue
 			}
 
 			entries = append(entries, LogEntry{

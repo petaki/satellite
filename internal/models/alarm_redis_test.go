@@ -3,12 +3,10 @@ package models
 import (
 	"errors"
 	"testing"
-
-	"github.com/petaki/satellite/internal/service/fake"
 )
 
 func TestAlarmFindWithoutRecord(t *testing.T) {
-	rar := &RedisAlarmRepository{RedisPool: fake.NewRedis().Pool()}
+	rar := &RedisAlarmRepository{RedisPool: newTestRedis(t).Pool()}
 
 	alarm, err := rar.Find("web-01")
 
@@ -22,7 +20,7 @@ func TestAlarmFindWithoutRecord(t *testing.T) {
 }
 
 func TestAlarmFindReadsEveryThreshold(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	key := "web-01:" + alarmKeyPrefix
 	server.HSet(key, "cpu", "80.5")

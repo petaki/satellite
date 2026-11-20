@@ -86,7 +86,7 @@ jobs:
         with:
           context: .
           platforms: linux/amd64,linux/arm64
-          push: true
+          push: ${{ startsWith(github.ref, 'refs/tags/v') }}
           builder: ${{ steps.buildx.outputs.name }}
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest${{ (startsWith(steps.vars.outputs.tag, 'v') && format(',{0}/{1}:{2}', env.REGISTRY, env.IMAGE_NAME, steps.dockerVars.outputs.tag)) || '' }}
           cache-from: type=local,src=/tmp/.buildx-cache

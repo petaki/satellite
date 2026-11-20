@@ -6,14 +6,12 @@ import (
 	"strconv"
 	"testing"
 	"time"
-
-	"github.com/petaki/satellite/internal/service/fake"
 )
 
-func seed(t *testing.T, minutes int, withProcesses bool) *fake.Redis {
+func seed(t *testing.T, minutes int, withProcesses bool) *testRedis {
 	t.Helper()
 
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	for i := 1; i <= minutes; i++ {
 		at := now().Add(time.Duration(-i) * time.Minute)
@@ -119,7 +117,8 @@ func TestFindLoadReadsTheKeyOncePerDay(t *testing.T) {
 		t.Errorf("newest load = %v/%v/%v, want 1/2/3 (components swapped?)", load1[0].Y, load5[0].Y, load15[0].Y)
 	}
 
-	days := len(rsr.timestamps(Last5Minutes))
+	start := now()
+	days := len(rsr.timestamps(start, rsr.end(start, Last5Minutes)))
 
 	if got := server.Calls("HGETALL"); got > days {
 		t.Errorf("HGETALL called %d times for %d day buckets; the three components are not sharing a fetch", got, days)
@@ -127,7 +126,7 @@ func TestFindLoadReadsTheKeyOncePerDay(t *testing.T) {
 }
 
 func TestFindCPUWithoutDataReturnsEmptyNotNil(t *testing.T) {
-	rsr := &RedisSeriesRepository{RedisPool: fake.NewRedis().Pool()}
+	rsr := &RedisSeriesRepository{RedisPool: newTestRedis(t).Pool()}
 
 	mn, mx, avg, p1, p2, p3, err := rsr.FindCPU("web-01", Last5Minutes)
 	if err != nil {
@@ -140,7 +139,7 @@ func TestFindCPUWithoutDataReturnsEmptyNotNil(t *testing.T) {
 }
 
 func TestFindLoadWithoutDataReturnsEmptyNotNil(t *testing.T) {
-	rsr := &RedisSeriesRepository{RedisPool: fake.NewRedis().Pool()}
+	rsr := &RedisSeriesRepository{RedisPool: newTestRedis(t).Pool()}
 
 	load1, load5, load15, err := rsr.FindLoad("web-01", Last5Minutes)
 	if err != nil {
@@ -153,7 +152,7 @@ func TestFindLoadWithoutDataReturnsEmptyNotNil(t *testing.T) {
 }
 
 func TestFindCPUKeepsOnlyTheTopProcesses(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	at := now().Add(-time.Minute)
 	dayKey := strconv.FormatInt(day(at.Unix()).Unix(), 10)
@@ -175,7 +174,7 @@ func TestFindCPUKeepsOnlyTheTopProcesses(t *testing.T) {
 }
 
 func TestFindDiskPathsDecodesAndSortsPaths(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	dayKey := strconv.FormatInt(today().Unix(), 10)
 
@@ -201,7 +200,7 @@ func TestFindDiskPathsDecodesAndSortsPaths(t *testing.T) {
 }
 
 func TestFindDiskPathsWithoutDataReturnsEmptyNotNil(t *testing.T) {
-	rsr := &RedisSeriesRepository{RedisPool: fake.NewRedis().Pool()}
+	rsr := &RedisSeriesRepository{RedisPool: newTestRedis(t).Pool()}
 
 	paths, err := rsr.FindDiskPaths("web-01")
 	if err != nil {
@@ -218,7 +217,7 @@ func TestFindDiskPathsWithoutDataReturnsEmptyNotNil(t *testing.T) {
 }
 
 func TestFindLatestCPUTakesTheNewestField(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	key := "web-01:" + seriesCPUKeyPrefix + strconv.FormatInt(today().Unix(), 10)
 	server.HSet(key, strconv.FormatInt(today().Unix()+60, 10), "11")
@@ -242,7 +241,7 @@ func TestFindLatestCPUTakesTheNewestField(t *testing.T) {
 }
 
 func TestFindLatestMemoryFallsBackToYesterday(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	yesterday := today().AddDate(0, 0, -1)
 	key := "web-01:" + seriesMemoryKeyPrefix + strconv.FormatInt(yesterday.Unix(), 10)
@@ -261,7 +260,7 @@ func TestFindLatestMemoryFallsBackToYesterday(t *testing.T) {
 }
 
 func TestFindLatestMetricWithoutDataIsNotFound(t *testing.T) {
-	rsr := &RedisSeriesRepository{RedisPool: fake.NewRedis().Pool()}
+	rsr := &RedisSeriesRepository{RedisPool: newTestRedis(t).Pool()}
 
 	_, found, err := rsr.FindLatestCPU("web-01")
 	if err != nil {
@@ -274,7 +273,7 @@ func TestFindLatestMetricWithoutDataIsNotFound(t *testing.T) {
 }
 
 func TestFindLatestMetricWithMalformedValueIsNotFound(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	key := "web-01:" + seriesCPUKeyPrefix + strconv.FormatInt(today().Unix(), 10)
 	server.HSet(key, strconv.FormatInt(today().Unix()+60, 10), "not a number")
@@ -292,7 +291,7 @@ func TestFindLatestMetricWithMalformedValueIsNotFound(t *testing.T) {
 }
 
 func TestFindLatestLoadSplitsTheSegments(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	key := "web-01:" + seriesLoadKeyPrefix + strconv.FormatInt(today().Unix(), 10)
 	server.HSet(key, strconv.FormatInt(today().Unix()+60, 10), "1.5:2.5:3.5")
@@ -310,7 +309,7 @@ func TestFindLatestLoadSplitsTheSegments(t *testing.T) {
 }
 
 func TestFindLatestLoadWithMalformedValueIsNotFound(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	key := "web-01:" + seriesLoadKeyPrefix + strconv.FormatInt(today().Unix(), 10)
 	server.HSet(key, strconv.FormatInt(today().Unix()+60, 10), "1.5:nope:3.5")
@@ -349,7 +348,7 @@ func TestChunkSizeGrowsWithTheWindow(t *testing.T) {
 }
 
 func TestFindMemoryWithoutDataReturnsEmptyNotNil(t *testing.T) {
-	rsr := &RedisSeriesRepository{RedisPool: fake.NewRedis().Pool()}
+	rsr := &RedisSeriesRepository{RedisPool: newTestRedis(t).Pool()}
 
 	minSeries, maxSeries, avg, p1, p2, p3, err := rsr.FindMemory("web-01", Last5Minutes)
 	if err != nil {
@@ -366,7 +365,7 @@ func TestFindMemoryWithoutDataReturnsEmptyNotNil(t *testing.T) {
 }
 
 func TestFindDiskWithoutDataReturnsEmptyNotNil(t *testing.T) {
-	rsr := &RedisSeriesRepository{RedisPool: fake.NewRedis().Pool()}
+	rsr := &RedisSeriesRepository{RedisPool: newTestRedis(t).Pool()}
 
 	minSeries, maxSeries, avg, err := rsr.FindDisk("web-01", Last5Minutes, "/")
 	if err != nil {
@@ -375,5 +374,112 @@ func TestFindDiskWithoutDataReturnsEmptyNotNil(t *testing.T) {
 
 	if minSeries == nil || maxSeries == nil || avg == nil {
 		t.Error("a nil series renders as null, want empty")
+	}
+}
+
+func TestFindCPUAfterSpringForwardKeepsTheOldestSamples(t *testing.T) {
+	cases := map[SeriesType]time.Duration{
+		Last24Hours: 24 * time.Hour,
+		Last2Days:   2 * 24 * time.Hour,
+		Last7Days:   7 * 24 * time.Hour,
+		Last30Days:  30 * 24 * time.Hour,
+	}
+
+	for seriesType, window := range cases {
+		server := newTestRedis(t)
+		start := freezeClock(t, time.Date(2026, 3, 29, 22, 30, 0, 0, time.UTC))
+		at := start.Add(-window + 15*time.Minute)
+
+		server.HSet("web-01:"+seriesCPUKeyPrefix+strconv.FormatInt(day(at.Unix()).Unix(), 10), strconv.FormatInt(at.Unix(), 10), "99")
+
+		rsr := &RedisSeriesRepository{RedisPool: server.Pool()}
+
+		_, maxSeries, _, _, _, _, err := rsr.FindCPU("web-01", seriesType)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if !slices.Contains(maxSeries, Value{X: at.Unix() * timestampMultiplier, Y: 99}) {
+			t.Errorf("%s at %s: the sample at %s is inside the window but missing", seriesType, start.Format(time.DateTime), at.Format(time.DateTime))
+		}
+	}
+}
+
+func TestFindCPUReturnsOneBucketPerChunkOfTheWindow(t *testing.T) {
+	cases := []struct {
+		seriesType SeriesType
+		window     time.Duration
+		step       time.Duration
+		want       int
+	}{
+		{Last5Minutes, 5 * time.Minute, time.Minute, 5},
+		{Last15Minutes, 15 * time.Minute, time.Minute, 15},
+		{Last30Minutes, 30 * time.Minute, time.Minute, 30},
+		{Last1Hour, time.Hour, time.Minute, 60},
+		{Last3Hours, 3 * time.Hour, time.Minute, 180},
+		{Last6Hours, 6 * time.Hour, time.Hour, 6},
+		{Last12Hours, 12 * time.Hour, time.Hour, 12},
+		{Last24Hours, 24 * time.Hour, time.Hour, 24},
+		{Last2Days, 2 * 24 * time.Hour, time.Hour, 48},
+		{Last7Days, 7 * 24 * time.Hour, 24 * time.Hour, 7},
+		{Last30Days, 30 * 24 * time.Hour, 4 * 24 * time.Hour, 8},
+	}
+
+	for _, c := range cases {
+		server := newTestRedis(t)
+		start := freezeClock(t, time.Date(2026, 9, 10, 10, 0, 0, 0, time.UTC))
+
+		offsets := []time.Duration{c.window}
+
+		for offset := time.Duration(0); offset < c.window; offset += c.step {
+			offsets = append(offsets, offset)
+		}
+
+		for _, offset := range offsets {
+			at := start.Add(-offset)
+
+			server.HSet("web-01:"+seriesCPUKeyPrefix+strconv.FormatInt(day(at.Unix()).Unix(), 10), strconv.FormatInt(at.Unix(), 10), "10")
+		}
+
+		rsr := &RedisSeriesRepository{RedisPool: server.Pool()}
+
+		_, _, avg, _, _, _, err := rsr.FindCPU("web-01", c.seriesType)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if len(avg) != c.want {
+			t.Errorf("%s: %d buckets, want %d", c.seriesType, len(avg), c.want)
+		}
+	}
+}
+
+func TestSeriesTypeValid(t *testing.T) {
+	for _, current := range SeriesTypes {
+		if st := current["value"].(SeriesType); !st.Valid() {
+			t.Errorf("%s.Valid() = false, want true", st)
+		}
+	}
+
+	for _, st := range []SeriesType{"", "last_1_year", "LAST_5_MINUTES"} {
+		if st.Valid() {
+			t.Errorf("%q.Valid() = true, want false", st)
+		}
+	}
+}
+
+func TestFindCPUSkipsAMalformedField(t *testing.T) {
+	server := seed(t, 5, false)
+	server.HSet("web-01:cpu:"+strconv.FormatInt(today().Unix(), 10), "not-a-timestamp", "50")
+
+	rsr := &RedisSeriesRepository{RedisPool: server.Pool()}
+
+	_, _, avg, _, _, _, err := rsr.FindCPU("web-01", Last5Minutes)
+	if err != nil {
+		t.Fatalf("one malformed field must not fail the page: %v", err)
+	}
+
+	if len(avg) == 0 {
+		t.Error("the valid samples are missing")
 	}
 }

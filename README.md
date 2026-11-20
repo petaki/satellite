@@ -57,10 +57,16 @@ Image can be found at the package page on [GitHub](https://github.com/petaki/sat
 ```bash
 docker run --rm \
 -e APP_URL=http://127.0.0.1:4000 \
+-e APP_ALLOWED_HOSTS=192.168.0.100 \
 -e REDIS_URL=redis://192.168.0.200:6379/0 \
+-e TZ=Europe/Budapest \
 -p 4000:4000 \
 ghcr.io/petaki/satellite
 ```
+
+`APP_ALLOWED_HOSTS` lists the hostnames and IPs you open Satellite on. Here `192.168.0.100` is the Docker host's LAN address. See [Application Allowed Hosts](#application-allowed-hosts).
+
+Set `TZ` to the timezone Probe runs in. See [Timezone](#timezone).
 
 ### Install from Binary
 
@@ -132,9 +138,21 @@ APP_ADDR=:4000
 
 #### Application URL
 
+The URL you open Satellite at. Its hostname is the default for `APP_ALLOWED_HOSTS`.
+
 ```
 APP_URL=http://127.0.0.1:4000
 ```
+
+#### Application Allowed Hosts
+
+```
+APP_ALLOWED_HOSTS=
+```
+
+Comma-separated hostnames or IPs that Satellite answers on, for the web UI and `/mcp`. Requests with any other `Host` header get `403`, which blocks DNS rebinding attacks. Loopback (`localhost`, `127.0.0.1`, `::1`) is always allowed. When empty, it defaults to the hostname of `APP_URL`, so `APP_URL` must then be a valid URL. Setting it replaces that default, so list the `APP_URL` hostname too.
+
+If you reach Satellite through another hostname or IP, such as a LAN address, a Docker host or a reverse proxy domain, list it here. Ports are ignored. Use `*` to allow any host.
 
 #### Application Series Buttons
 
@@ -164,6 +182,18 @@ Available options:
 
 ---
 
+### Timezone
+
+Satellite and [Probe](https://github.com/petaki/probe) must run in the same timezone. Probe files each day's samples under a key named after local midnight, and Satellite looks keys up by its own local midnight. When the timezones differ, no key matches, the charts stay empty and every probe looks offline.
+
+Both use the `TZ` environment variable when it is set, otherwise the host's timezone. Containers default to UTC, so set `TZ` explicitly when either one runs in Docker, for example `-e TZ=Europe/Budapest`.
+
+```
+TZ=Europe/Budapest
+```
+
+---
+
 ### Redis
 
 #### Redis URL
@@ -183,14 +213,6 @@ Exposes monitoring data to AI agents. No authentication is included — control 
 ```
 MCP_ENABLED=false
 ```
-
-#### MCP Allow Any Host
-
-```
-MCP_ALLOW_ANY_HOST=false
-```
-
-Disables the DNS rebinding guard on `/mcp`, which rejects requests that reach Satellite over loopback with a non-loopback `Host` header. Set it to `true` when a same-host reverse proxy forwards to `127.0.0.1` and preserves the original `Host`; having the proxy rewrite `Host` to `localhost` is the safer alternative.
 
 ---
 
@@ -212,7 +234,7 @@ HEARTBEAT_WAIT=5
 
 #### Heartbeat Sleep (in seconds between notifications)
 
-Set to `0` to disable.
+Set to `0` to notify every minute while the probe stays offline.
 
 ```
 HEARTBEAT_SLEEP=300
@@ -230,8 +252,10 @@ HEARTBEAT_WEBHOOK_METHOD=POST
 
 #### Heartbeat Webhook URL
 
+Required when `HEARTBEAT_ENABLED=true`.
+
 ```
-HEARTBEAT_WEBHOOK_URL=http://127.0.0.1:4000/heartbeat
+HEARTBEAT_WEBHOOK_URL=https://example.com/heartbeat
 ```
 
 #### Heartbeat Webhook Header
@@ -250,6 +274,8 @@ The body supports the following placeholders:
 | `%t` | Timestamp (`RFC3339`) |
 | `%x` | Timestamp (`Unix`) |
 | `%l` | Satellite link (relative) |
+
+When the body is JSON, the probe name is JSON-escaped, so names with quotes or backslashes keep it valid.
 
 ```
 HEARTBEAT_WEBHOOK_BODY='{"probe": "%p", "timestamp_rfc3339": "%t", "timestamp_unix": %x, "link": "%l"}'

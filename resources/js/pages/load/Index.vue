@@ -43,6 +43,8 @@ import {
     watch, nextTick
 } from 'vue';
 
+import type { ApexOptions } from 'apexcharts';
+
 import Breadcrumb from '../../base/Breadcrumb.vue';
 import ChartEmpty from '../../base/ChartEmpty.vue';
 import CardTitle from '../../base/CardTitle.vue';
@@ -54,7 +56,7 @@ import useLiveReload from '../../use/useLiveReload';
 import usePaths from '../../use/usePaths';
 import PointInterval from '../../base/PointInterval.vue';
 import SeriesSelector from '../../base/SeriesSelector.vue';
-import type { SeriesDataPoint, ApexConfig } from '../../types';
+import type { SeriesDataPoint } from '../../types';
 
 const {
     probe,
@@ -97,7 +99,7 @@ const series = computed(() => [
     }
 ]);
 
-const options = ref<ApexConfig>({
+const options = ref<ApexOptions>({
     dataLabels: {
         enabled: false
     },
@@ -119,12 +121,10 @@ const links = ref([
     { name: subtitle }
 ]);
 
-const seriesHref = (isDefault: boolean, selectedType: string | undefined) => (isDefault
-    ? loadPath(probe)
-    : loadPath(probe, selectedType));
+const seriesHref = (selectedType: string) => loadPath(probe, selectedType);
 
 const onSetTheme = () => {
-    chartEl.value?.refresh();
+    chartEl.value?.updateOptions(window.apexTheme());
 };
 
 const refreshSeries = async () => {

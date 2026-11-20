@@ -1,7 +1,5 @@
-import type { Ref } from 'vue';
-
 export interface BreadcrumbLink {
-    name: string | Ref<string>
+    name: string
     href?: string
 }
 
@@ -45,68 +43,14 @@ export interface ProbeSummary {
     loadAlarm: number
 }
 
-export interface ApexConfig {
-    plotOptions?: {
-        bar: {
-            columnWidth: string
-        }
-    }
-    chart?: {
-        animations?: {
-            enabled: boolean
-        }
-        foreColor?: string
-        stacked?: boolean
-    }
-    markers?: {
-        size: number
-    }
-    stroke?: {
-        width: number
-    }
-    colors?: string[]
-    tooltip?: {
-        x?: {
-            format: string
-        }
-        y?: {
-            formatter: (
-                value: number,
-                opts: { seriesIndex: number, dataPointIndex: number }
-            ) => string
-        }
-        marker?: {
-            show: boolean
-        }
-    }
-    xaxis?: {
-        type: string
-        labels?: {
-            datetimeUTC: boolean
-        }
-    }
-    yaxis?: {
-        min?: number
-        max?: number
-        forceNiceScale?: boolean
-        labels?: {
-            formatter: (val: number) => string
-        }
-    }
-    grid?: {
-        borderColor: string
-    }
-    dataLabels?: {
-        enabled: boolean
-    }
-    annotations?: {
-        yaxis: YAxisAnnotation[]
-    }
-}
-
 export interface LogEntry {
     timestamp: number
     content: string
+}
+
+export interface AnsiSegment {
+    text: string
+    style: Record<string, string>
 }
 
 export type LogStatus = 'unchanged' | 'changed' | 'minor' | 'warning' | 'error'

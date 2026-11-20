@@ -8,20 +8,6 @@ import (
 	"github.com/petaki/satellite/internal/models"
 )
 
-func (a *app) probes(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		probes, err := a.probeRepository.FindAll()
-		if err != nil {
-			a.serverError(w, err)
-
-			return
-		}
-
-		ctx := context.WithValue(r.Context(), contextKeyProbes, probes)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-
 func (a *app) probe(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Query().Get("probe") == "" {
@@ -32,7 +18,14 @@ func (a *app) probe(next http.Handler) http.Handler {
 
 		probe := models.Probe(r.URL.Query().Get("probe"))
 
-		if !slices.Contains(r.Context().Value(contextKeyProbes).([]models.Probe), probe) {
+		exists, err := a.probeRepository.Exists(probe)
+		if err != nil {
+			a.serverError(w, err)
+
+			return
+		}
+
+		if !exists {
 			a.notFound(w)
 
 			return
@@ -42,5 +35,21 @@ func (a *app) probe(next http.Handler) http.Handler {
 		ctx = a.inertiaManager.WithProp(ctx, "probe", probe)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (a *app) allowedHosts(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hostname := requestHostname(r.Host)
+
+		if !slices.Contains(a.appConfig.AllowedHosts, "*") &&
+			!slices.Contains(a.appConfig.AllowedHosts, hostname) &&
+			!isLoopback(hostname) {
+			a.forbidden(w)
+
+			return
+		}
+
+		next.ServeHTTP(w, r)
 	})
 }

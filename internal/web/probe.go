@@ -20,7 +20,12 @@ func (a *app) probeIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	probes := r.Context().Value(contextKeyProbes).([]models.Probe)
+	probes, err := a.probeRepository.FindAll()
+	if err != nil {
+		a.serverError(w, err)
+
+		return
+	}
 
 	summaries := make([]models.ProbeSummary, 0, len(probes))
 
@@ -93,7 +98,7 @@ func (a *app) probeIndex(w http.ResponseWriter, r *http.Request) {
 		summaries = append(summaries, summary)
 	}
 
-	err := a.inertiaManager.Render(w, r, "probe/Index", map[string]any{
+	err = a.inertiaManager.Render(w, r, "probe/Index", map[string]any{
 		"isProbeActive": true,
 		"probes":        summaries,
 	})

@@ -93,20 +93,28 @@
                             </div>
                             <div ref="contentEl"
                                  class="flex-1 overflow-y-auto p-4">
-                                <pre v-if="viewMode === 'raw'"
-                                     class="text-xs whitespace-pre-wrap text-slate-300">{{ selectedGroup.lines.join('\n') }}</pre>
+                                <div v-if="viewMode === 'raw'"
+                                     class="text-xs font-mono text-slate-300">
+                                    <div v-for="(line, i) in selectedGroup.lines"
+                                         :key="i"
+                                         class="min-h-4 whitespace-pre-wrap">
+                                        <ansi-line :line="line" />
+                                    </div>
+                                </div>
                                 <div v-else-if="viewMode === 'changes'"
                                      class="text-xs font-mono">
                                     <template v-if="selectedGroup.diff">
                                         <div v-for="(line, i) in selectedGroup.diff.added"
                                              :key="'a' + i"
-                                             class="text-green-400">
-                                            + {{ line }}
+                                             class="whitespace-pre-wrap text-green-400">
+                                            <span>+ </span>
+                                            <ansi-line :line="line" />
                                         </div>
                                         <div v-for="(line, i) in selectedGroup.diff.removed"
                                              :key="'r' + i"
-                                             class="text-red-400">
-                                            - {{ line }}
+                                             class="whitespace-pre-wrap text-red-400">
+                                            <span>- </span>
+                                            <ansi-line :line="line" />
                                         </div>
                                         <div v-if="selectedGroup.diff.unchangedCount > 0"
                                              class="text-slate-500 mt-2 py-1 px-2
@@ -155,6 +163,7 @@ import {
 } from 'vue';
 
 import { router } from '@inertiajs/vue3';
+import AnsiLine from '../../base/AnsiLine.vue';
 import Breadcrumb from '../../base/Breadcrumb.vue';
 import CardTitle from '../../base/CardTitle.vue';
 import Layout from '../../base/Layout.vue';
@@ -163,6 +172,7 @@ import RefreshButton from '../../base/RefreshButton.vue';
 import LogStatusBadge from '../../base/LogStatusBadge.vue';
 import ToggleButtonGroup from '../../base/ToggleButtonGroup.vue';
 import type { LogEntry, LogViewMode } from '../../types';
+import { stripAnsi } from '../../use/useAnsi';
 import useCopy from '../../use/useCopy';
 import useDate from '../../use/useDate';
 import useLiveReload from '../../use/useLiveReload';
@@ -249,13 +259,6 @@ const summary = computed(() => {
     return generateSummary(selectedGroup.value);
 });
 
-// Auto-select newest when live
-watch([groups, isLive], () => {
-    if (isLive.value && groups.value.length) {
-        selectedId.value = groups.value[0].id;
-    }
-}, { immediate: true });
-
 const onSelect = (id: string) => {
     selectedId.value = id;
 };
@@ -266,6 +269,18 @@ const jumpToLatest = () => {
     }
 };
 
+watch(isLive, live => {
+    if (live) {
+        jumpToLatest();
+    }
+}, { immediate: true });
+
+watch(groups, (current, previous) => {
+    if (isLive.value && (selectedId.value === null || selectedId.value === previous[0]?.id)) {
+        jumpToLatest();
+    }
+});
+
 const onPathChange = (event: Event) => {
     const target = event.target as HTMLSelectElement;
 
@@ -274,41 +289,17 @@ const onPathChange = (event: Event) => {
 
 const copyContent = () => {
     if (selectedGroup.value) {
-        copy(selectedGroup.value.lines.join('\n'));
+        copy(selectedGroup.value.lines.map(stripAnsi).join('\n'));
     }
 };
 
-// Scroll preservation for detail pane
-let savedScrollTop = 0;
-let userHasScrolled = false;
-
-watch(() => selectedGroup.value?.id, async () => {
-    userHasScrolled = false;
+watch(() => [selectedGroup.value?.id, selectedGroup.value?.lines], async ([id], [previousId]) => {
+    const scrollTop = id === previousId ? contentEl.value?.scrollTop ?? 0 : 0;
 
     await nextTick();
 
     if (contentEl.value) {
-        contentEl.value.scrollTop = 0;
-    }
-});
-
-watch(() => selectedGroup.value?.lines, async () => {
-    if (!contentEl.value || !userHasScrolled) {
-        return;
-    }
-
-    savedScrollTop = contentEl.value.scrollTop;
-
-    await nextTick();
-
-    contentEl.value.scrollTop = savedScrollTop;
-});
-
-watch(contentEl, el => {
-    if (el) {
-        el.addEventListener('scroll', () => {
-            userHasScrolled = true;
-        }, { passive: true });
+        contentEl.value.scrollTop = scrollTop;
     }
 });
 </script>

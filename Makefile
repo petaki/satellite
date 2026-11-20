@@ -6,7 +6,8 @@ docker: pre_clean ui docker_linux docker_linux_arm64
 pre_clean:
 	rm -rf dist
 	mkdir dist
-	sed -i 's/Version:\s*"master"/Version: "$(subst ",,$(VERSION))"/g' main.go
+	sed -i.bak -E 's/Version:[[:space:]]*"master"/Version: "$(subst ",,$(VERSION))"/g' main.go
+	rm -f main.go.bak
 	cp .env.example dist/.env
 
 ui:

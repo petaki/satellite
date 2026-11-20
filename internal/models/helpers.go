@@ -2,7 +2,8 @@ package models
 
 import (
 	"encoding/base64"
-	"sort"
+	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -10,10 +11,14 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
+var ansiSequence = regexp.MustCompile(`(?:\x1b|#033)\[[0-9;?]*[A-Za-z]`)
+
+var clock = time.Now
+
 func between(start, end time.Time, timestamp int64) bool {
 	t := time.Unix(timestamp, 0)
 
-	return (t.Equal(end) || t.After(end)) && (t.Equal(start) || t.Before(start))
+	return t.After(end) && !t.After(start)
 }
 
 func chunks[T any](start time.Time, chunkSize int, values []T, at func(T) int64) [][]T {
@@ -66,28 +71,48 @@ func escape(value string) string {
 }
 
 func findPaths(conn redis.Conn, probe Probe, prefix string, days []int64, scanCount int) ([]string, error) {
-	for _, day := range days {
-		keyPrefix := string(probe) + ":" + prefix + strconv.FormatInt(day, 10) + ":"
+	keyPrefix := string(probe) + ":" + prefix
 
-		paths, err := scanKeys(conn, escape(keyPrefix)+"*", scanCount)
-		if err != nil {
-			return nil, err
-		}
+	keys, err := scanKeys(conn, escape(keyPrefix)+"*", scanCount)
+	if err != nil {
+		return nil, err
+	}
 
-		if len(paths) == 0 {
+	byDay := map[int64][]string{}
+
+	for _, key := range keys {
+		day, encoded, ok := strings.Cut(strings.TrimPrefix(key, keyPrefix), ":")
+		if !ok {
 			continue
 		}
 
-		for key, value := range paths {
-			path, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(value, keyPrefix))
+		timestamp, err := strconv.ParseInt(day, 10, 64)
+		if err != nil {
+			continue
+		}
+
+		byDay[timestamp] = append(byDay[timestamp], encoded)
+	}
+
+	for _, day := range days {
+		encoded := byDay[day]
+
+		if len(encoded) == 0 {
+			continue
+		}
+
+		paths := make([]string, len(encoded))
+
+		for i, value := range encoded {
+			path, err := base64.StdEncoding.DecodeString(value)
 			if err != nil {
 				return nil, err
 			}
 
-			paths[key] = string(path)
+			paths[i] = string(path)
 		}
 
-		sort.Strings(paths)
+		slices.Sort(paths)
 
 		return paths, nil
 	}
@@ -96,7 +121,7 @@ func findPaths(conn redis.Conn, probe Probe, prefix string, days []int64, scanCo
 }
 
 func now() time.Time {
-	now := time.Now()
+	now := clock()
 
 	return time.Date(
 		now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), 0, 0, now.Location(),
@@ -124,8 +149,27 @@ func parseLoads(value string) ([seriesLoadSegmentCount]float64, bool) {
 	return loads, true
 }
 
+func probeName(key string) (string, bool) {
+	separator := ":" + seriesCPUKeyPrefix
+	index := strings.LastIndex(key, separator)
+
+	if index < 1 || strings.HasSuffix(key[:index+len(separator)], ":"+seriesProcessCPUKeyPrefix) {
+		return "", false
+	}
+
+	if _, err := strconv.ParseUint(key[index+len(separator):], 10, 64); err != nil {
+		return "", false
+	}
+
+	return key[:index], true
+}
+
+func stripANSI(s string) string {
+	return ansiSequence.ReplaceAllString(strings.ReplaceAll(s, "#011", "\t"), "")
+}
+
 func today() time.Time {
-	now := time.Now()
+	now := clock()
 
 	return time.Date(
 		now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location(),
@@ -158,7 +202,9 @@ func scanKeys(conn redis.Conn, match string, count int) ([]string, error) {
 		keys = append(keys, current...)
 
 		if cursor == 0 {
-			return keys, nil
+			slices.Sort(keys)
+
+			return slices.Compact(keys), nil
 		}
 	}
 }
