@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/base64"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -9,6 +10,8 @@ import (
 
 	"github.com/gomodule/redigo/redis"
 )
+
+var ansiSequence = regexp.MustCompile(`(?:\x1b|#033)\[[0-9;?]*[A-Za-z]`)
 
 func between(start, end time.Time, timestamp int64) bool {
 	t := time.Unix(timestamp, 0)
@@ -122,6 +125,10 @@ func parseLoads(value string) ([seriesLoadSegmentCount]float64, bool) {
 	}
 
 	return loads, true
+}
+
+func stripANSI(s string) string {
+	return ansiSequence.ReplaceAllString(strings.ReplaceAll(s, "#011", "\t"), "")
 }
 
 func today() time.Time {

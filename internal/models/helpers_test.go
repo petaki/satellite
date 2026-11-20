@@ -311,6 +311,26 @@ func TestParseLoadsKeepsSegmentOrder(t *testing.T) {
 	}
 }
 
+func TestStripANSI(t *testing.T) {
+	cases := map[string]struct {
+		in   string
+		want string
+	}{
+		"plain text":         {"ready", "ready"},
+		"raw escape":         {"\x1b[32mINF\x1b[0m started", "INF started"},
+		"rsyslog escape":     {"#033[90m12:00#033[0m #033[1;31mERR#033[0m", "12:00 ERR"},
+		"256 and true color": {"\x1b[38;5;208mwarn\x1b[38;2;1;2;3m!", "warn!"},
+		"cursor sequence":    {"\x1b[2Kline", "line"},
+		"rsyslog tab":        {"a#011b", "a\tb"},
+	}
+
+	for name, c := range cases {
+		if got := stripANSI(c.in); got != c.want {
+			t.Errorf("%s: stripANSI(%q) = %q, want %q", name, c.in, got, c.want)
+		}
+	}
+}
+
 func TestTimestampsCoverTheWholeWindow(t *testing.T) {
 	rsr := &RedisSeriesRepository{}
 	start := now()

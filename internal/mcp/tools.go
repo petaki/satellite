@@ -309,6 +309,10 @@ func (h *handler) getLogs(_ context.Context, request mcp.CallToolRequest) (*mcp.
 		}
 
 		logEntries = logEntries[:min(limit, len(logEntries))]
+
+		for i := range logEntries {
+			logEntries[i] = logEntries[i].Plain()
+		}
 	}
 
 	result := map[string]any{

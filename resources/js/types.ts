@@ -109,6 +109,11 @@ export interface LogEntry {
     content: string
 }
 
+export interface AnsiSegment {
+    text: string
+    style: Record<string, string>
+}
+
 export type LogStatus = 'unchanged' | 'changed' | 'minor' | 'warning' | 'error'
 export type LogViewMode = 'raw' | 'changes' | 'summary'
 

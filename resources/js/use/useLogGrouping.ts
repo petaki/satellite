@@ -1,17 +1,18 @@
 import type {
     LogEntry, GroupedSnapshot, LineDiff, LogStatus
 } from '../types';
+import { stripAnsi } from './useAnsi';
 
 export function computeDiff(prevLines: string[], currentLines: string[]): LineDiff {
-    const prevSet = new Set(prevLines);
-    const currentSet = new Set(currentLines);
+    const prevSet = new Set(prevLines.map(stripAnsi));
+    const currentSet = new Set(currentLines.map(stripAnsi));
 
     const added: string[] = [];
     const removed: string[] = [];
     let unchangedCount = 0;
 
     currentLines.forEach(line => {
-        if (!prevSet.has(line)) {
+        if (!prevSet.has(stripAnsi(line))) {
             added.push(line);
         } else {
             unchangedCount += 1;
@@ -19,7 +20,7 @@ export function computeDiff(prevLines: string[], currentLines: string[]): LineDi
     });
 
     prevLines.forEach(line => {
-        if (!currentSet.has(line)) {
+        if (!currentSet.has(stripAnsi(line))) {
             removed.push(line);
         }
     });
@@ -36,7 +37,7 @@ export function detectStatus(
     content: string,
     prevContent: string | null
 ): LogStatus {
-    const joined = lines.join('\n').toLowerCase();
+    const joined = stripAnsi(lines.join('\n')).toLowerCase();
 
     if (errorPattern.test(joined)) {
         return 'error';
@@ -64,7 +65,7 @@ export function groupSnapshots(entries: LogEntry[]): GroupedSnapshot[] {
 
     const snapshots = entries.map(entry => ({
         entry,
-        content: (entry.content || '').trim(),
+        content: stripAnsi(entry.content || '').trim(),
         lines: (entry.content || '').split('\n')
     }));
 
@@ -99,7 +100,7 @@ export function groupSnapshots(entries: LogEntry[]): GroupedSnapshot[] {
 
         const status = detectStatus(current.lines, diff, current.content, prevContent);
 
-        const preview = current.lines.find(l => l.trim().length > 0) || '';
+        const preview = current.lines.map(stripAnsi).find(l => l.trim().length > 0) || '';
 
         groups.push({
             id: String(current.entry.timestamp),
@@ -129,7 +130,7 @@ export function filterSnapshots(
         const lower = query.toLowerCase();
 
         result = result.filter(
-            g => g.lines.some(line => line.toLowerCase().includes(lower))
+            g => g.lines.some(line => stripAnsi(line).toLowerCase().includes(lower))
         );
     }
 
