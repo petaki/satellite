@@ -19,8 +19,8 @@ type loadProbeRepository struct {
 	models.ProbeRepository
 }
 
-func (r *loadProbeRepository) FindAll() ([]models.Probe, error) {
-	return []models.Probe{"p1"}, nil
+func (r *loadProbeRepository) Exists(probe models.Probe) (bool, error) {
+	return probe == "p1", nil
 }
 
 type loadSeriesRepository struct {

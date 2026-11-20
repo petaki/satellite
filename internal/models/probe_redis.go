@@ -11,6 +11,7 @@ import (
 
 const (
 	heartbeatKeySuffix = ":heartbeat"
+	probeRecentDays    = 31
 	probeScanCount     = 1000
 )
 
@@ -67,6 +68,44 @@ func (rpr *RedisProbeRepository) FindAll() ([]Probe, error) {
 	}
 
 	return probes, nil
+}
+
+// Exists function.
+func (rpr *RedisProbeRepository) Exists(probe Probe) (bool, error) {
+	conn := rpr.RedisPool.Get()
+	defer conn.Close()
+
+	keyPrefix := string(probe) + ":" + seriesCPUKeyPrefix
+	midnight := today()
+	args := redis.Args{}
+
+	for i := range probeRecentDays {
+		args = args.Add(keyPrefix + strconv.FormatInt(midnight.AddDate(0, 0, -i).Unix(), 10))
+	}
+
+	count, err := redis.Int(conn.Do("EXISTS", args...))
+	if err != nil {
+		return false, err
+	}
+
+	if count > 0 {
+		return true, nil
+	}
+
+	keys, err := scanKeys(conn, escape(keyPrefix)+"*", probeScanCount)
+	if err != nil {
+		return false, err
+	}
+
+	for _, key := range keys {
+		name, ok := probeName(key)
+
+		if ok && name == string(probe) {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 // FindLatestValues function.

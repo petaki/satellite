@@ -234,3 +234,65 @@ func TestDeleteTreatsGlobCharactersLiterally(t *testing.T) {
 		t.Errorf("keys after Delete(web*01) = %v, want %v — the glob was not escaped", got, want)
 	}
 }
+
+func TestExistsFindsARecentProbeWithoutScanning(t *testing.T) {
+	server := newTestRedis(t)
+
+	server.HSet("web-01:"+seriesCPUKeyPrefix+strconv.FormatInt(today().AddDate(0, 0, -30).Unix(), 10), "1", "10")
+
+	rpr := &RedisProbeRepository{RedisPool: server.Pool()}
+
+	exists, err := rpr.Exists("web-01")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !exists {
+		t.Error("Exists(web-01) = false, want true")
+	}
+
+	if calls := server.Calls("SCAN"); calls != 0 {
+		t.Errorf("SCAN was called %d times, want 0", calls)
+	}
+}
+
+func TestExistsFindsAProbeWithOnlyOldData(t *testing.T) {
+	server := newTestRedis(t)
+
+	server.HSet("web-01:"+seriesCPUKeyPrefix+strconv.FormatInt(today().AddDate(0, 0, -60).Unix(), 10), "1", "10")
+
+	rpr := &RedisProbeRepository{RedisPool: server.Pool()}
+
+	exists, err := rpr.Exists("web-01")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !exists {
+		t.Error("Exists(web-01) = false, want true")
+	}
+}
+
+func TestExistsRejectsUnknownAndLookalikeProbes(t *testing.T) {
+	server := newTestRedis(t)
+
+	todayKey := strconv.FormatInt(today().Unix(), 10)
+
+	server.HSet("web-01:"+seriesProcessCPUKeyPrefix+todayKey, "1", "firefox:1.0")
+	server.HSet("web-01:"+seriesMemoryKeyPrefix+todayKey, "1", "10")
+	server.HSet("web-01:"+seriesCPUKeyPrefix+"old", "1", "10")
+	server.HSet("web-01:"+seriesCPUKeyPrefix+todayKey+":x", "1", "10")
+
+	rpr := &RedisProbeRepository{RedisPool: server.Pool()}
+
+	for _, probe := range []Probe{"web-01", "web-0*", "db-01"} {
+		exists, err := rpr.Exists(probe)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if exists {
+			t.Errorf("Exists(%s) = true, want false", probe)
+		}
+	}
+}

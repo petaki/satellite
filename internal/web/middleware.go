@@ -18,14 +18,14 @@ func (a *app) probe(next http.Handler) http.Handler {
 
 		probe := models.Probe(r.URL.Query().Get("probe"))
 
-		probes, err := a.probeRepository.FindAll()
+		exists, err := a.probeRepository.Exists(probe)
 		if err != nil {
 			a.serverError(w, err)
 
 			return
 		}
 
-		if !slices.Contains(probes, probe) {
+		if !exists {
 			a.notFound(w)
 
 			return
