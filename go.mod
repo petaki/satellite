@@ -3,13 +3,13 @@ module github.com/petaki/satellite
 go 1.27
 
 require (
-	github.com/alexedwards/scs/redisstore v0.0.0-20251002162104-209de6e426de
+	github.com/alexedwards/scs/redisstore v0.0.0-20261119174900-ed2e92329119
 	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/gomodule/redigo v1.9.3
 	github.com/joho/godotenv v1.5.1
 	github.com/justinas/alice v1.2.0
-	github.com/mark3labs/mcp-go v1.5.0
-	github.com/petaki/inertia-go v1.17.0
+	github.com/mark3labs/mcp-go v1.6.0
+	github.com/petaki/inertia-go v1.18.0
 	github.com/petaki/support-go v1.16.0
 )
 
@@ -19,7 +19,7 @@ require (
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.3 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
-	golang.org/x/text v0.43.0 // indirect
+	golang.org/x/text v0.44.0 // indirect
 )
 
 ignore ./node_modules
