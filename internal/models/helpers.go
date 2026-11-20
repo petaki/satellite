@@ -3,7 +3,7 @@ package models
 import (
 	"encoding/base64"
 	"regexp"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -71,28 +71,48 @@ func escape(value string) string {
 }
 
 func findPaths(conn redis.Conn, probe Probe, prefix string, days []int64, scanCount int) ([]string, error) {
-	for _, day := range days {
-		keyPrefix := string(probe) + ":" + prefix + strconv.FormatInt(day, 10) + ":"
+	keyPrefix := string(probe) + ":" + prefix
 
-		paths, err := scanKeys(conn, escape(keyPrefix)+"*", scanCount)
-		if err != nil {
-			return nil, err
-		}
+	keys, err := scanKeys(conn, escape(keyPrefix)+"*", scanCount)
+	if err != nil {
+		return nil, err
+	}
 
-		if len(paths) == 0 {
+	byDay := map[int64][]string{}
+
+	for _, key := range keys {
+		day, encoded, ok := strings.Cut(strings.TrimPrefix(key, keyPrefix), ":")
+		if !ok {
 			continue
 		}
 
-		for key, value := range paths {
-			path, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(value, keyPrefix))
+		timestamp, err := strconv.ParseInt(day, 10, 64)
+		if err != nil {
+			continue
+		}
+
+		byDay[timestamp] = append(byDay[timestamp], encoded)
+	}
+
+	for _, day := range days {
+		encoded := byDay[day]
+
+		if len(encoded) == 0 {
+			continue
+		}
+
+		paths := make([]string, len(encoded))
+
+		for i, value := range encoded {
+			path, err := base64.StdEncoding.DecodeString(value)
 			if err != nil {
 				return nil, err
 			}
 
-			paths[key] = string(path)
+			paths[i] = string(path)
 		}
 
-		sort.Strings(paths)
+		slices.Sort(paths)
 
 		return paths, nil
 	}
@@ -182,7 +202,9 @@ func scanKeys(conn redis.Conn, match string, count int) ([]string, error) {
 		keys = append(keys, current...)
 
 		if cursor == 0 {
-			return keys, nil
+			slices.Sort(keys)
+
+			return slices.Compact(keys), nil
 		}
 	}
 }

@@ -18,7 +18,6 @@ func (a *app) routes() http.Handler {
 	)
 	webMiddleware := alice.New(
 		a.sessionManager.LoadAndSave,
-		a.probes,
 		a.inertiaManager.Middleware,
 	)
 

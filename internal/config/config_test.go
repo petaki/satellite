@@ -231,3 +231,14 @@ func TestConfigRejectsInvalidURLForAllowedHosts(t *testing.T) {
 		})
 	}
 }
+
+func TestConfigDefaultsWebhookMethodToPost(t *testing.T) {
+	appConfig, err := newTestConfig(t, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if appConfig.HeartbeatWebhookMethod != "POST" {
+		t.Errorf("method = %q, want POST", appConfig.HeartbeatWebhookMethod)
+	}
+}

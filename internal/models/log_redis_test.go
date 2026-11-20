@@ -156,3 +156,22 @@ func TestFindLogFallsBackToYesterdayWhenTodayIsEmpty(t *testing.T) {
 		t.Errorf("FindLog() = %v, want yesterday's entry", entries)
 	}
 }
+
+func TestFindLogSkipsAMalformedField(t *testing.T) {
+	server := newTestRedis(t)
+
+	key := logKey("web-01", today().Unix(), "/var/log/syslog")
+	server.HSet(key, "100", "valid")
+	server.HSet(key, "not-a-timestamp", "broken")
+
+	rlr := &RedisLogRepository{RedisPool: server.Pool()}
+
+	entries, err := rlr.FindLog("web-01", "/var/log/syslog")
+	if err != nil {
+		t.Fatalf("one malformed field must not fail the page: %v", err)
+	}
+
+	if len(entries) != 1 || entries[0].Content != "valid" {
+		t.Errorf("FindLog() = %+v, want only the valid entry", entries)
+	}
+}

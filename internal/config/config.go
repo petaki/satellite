@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -42,7 +43,7 @@ func NewConfig(command *cli.Command, arguments []string) (*Config, error) {
 	heartbeatEnabled := command.Bool("heartbeat-enabled", "HEARTBEAT_ENABLED", false, "Heartbeat Enabled")
 	heartbeatWait := command.Int("heartbeat-wait", "HEARTBEAT_WAIT", 5, "Heartbeat Wait")
 	heartbeatSleep := command.Int("heartbeat-sleep", "HEARTBEAT_SLEEP", 300, "Heartbeat Sleep")
-	heartbeatWebhookMethod := command.String("heartbeat-webhook-method", "HEARTBEAT_WEBHOOK_METHOD", "", "Heartbeat Webhook Method")
+	heartbeatWebhookMethod := command.String("heartbeat-webhook-method", "HEARTBEAT_WEBHOOK_METHOD", http.MethodPost, "Heartbeat Webhook Method")
 	heartbeatWebhookURL := command.Secret("heartbeat-webhook-url", "HEARTBEAT_WEBHOOK_URL", "Heartbeat Webhook URL")
 	heartbeatWebhookHeader := command.Secret("heartbeat-webhook-header", "HEARTBEAT_WEBHOOK_HEADER", "Heartbeat Webhook Header")
 	heartbeatWebhookBody := command.String("heartbeat-webhook-body", "HEARTBEAT_WEBHOOK_BODY", "", "Heartbeat Webhook Body")

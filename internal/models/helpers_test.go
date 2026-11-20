@@ -2,9 +2,12 @@ package models
 
 import (
 	"encoding/base64"
+	"slices"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/gomodule/redigo/redis"
 )
 
 func TestBetween(t *testing.T) {
@@ -373,4 +376,51 @@ func freezeClock(t *testing.T, at time.Time) time.Time {
 	clock = func() time.Time { return wall }
 
 	return wall
+}
+
+type scriptedConn struct {
+	redis.Conn
+	replies []any
+}
+
+func (c *scriptedConn) Do(string, ...any) (any, error) {
+	reply := c.replies[0]
+	c.replies = c.replies[1:]
+
+	return reply, nil
+}
+
+func TestScanKeysDropsKeysTheServerReturnsTwice(t *testing.T) {
+	conn := &scriptedConn{replies: []any{
+		[]any{[]byte("7"), []any{[]byte("b"), []byte("a")}},
+		[]any{[]byte("0"), []any{[]byte("b"), []byte("c")}},
+	}}
+
+	keys, err := scanKeys(conn, "*", 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if want := []string{"a", "b", "c"}; !slices.Equal(keys, want) {
+		t.Errorf("scanKeys() = %v, want %v", keys, want)
+	}
+}
+
+func TestFindPathsScansTheKeyspaceOnce(t *testing.T) {
+	server := newTestRedis(t)
+	server.HSet("web-01:disk:100:"+encodePath("/old"), "1", "1")
+
+	days := make([]int64, 31)
+
+	for i := range days {
+		days[i] = int64(200 - i)
+	}
+
+	if _, err := findPathsWith(server, "web-01", "disk:", days, 1000); err != nil {
+		t.Fatal(err)
+	}
+
+	if calls := server.Calls("SCAN"); calls != 1 {
+		t.Errorf("SCAN was called %d times for 31 days, want 1", calls)
+	}
 }

@@ -8,20 +8,6 @@ import (
 	"github.com/petaki/satellite/internal/models"
 )
 
-func (a *app) probes(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		probes, err := a.probeRepository.FindAll()
-		if err != nil {
-			a.serverError(w, err)
-
-			return
-		}
-
-		ctx := context.WithValue(r.Context(), contextKeyProbes, probes)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-
 func (a *app) probe(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Query().Get("probe") == "" {
@@ -32,7 +18,14 @@ func (a *app) probe(next http.Handler) http.Handler {
 
 		probe := models.Probe(r.URL.Query().Get("probe"))
 
-		if !slices.Contains(r.Context().Value(contextKeyProbes).([]models.Probe), probe) {
+		probes, err := a.probeRepository.FindAll()
+		if err != nil {
+			a.serverError(w, err)
+
+			return
+		}
+
+		if !slices.Contains(probes, probe) {
 			a.notFound(w)
 
 			return

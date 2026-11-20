@@ -467,3 +467,19 @@ func TestSeriesTypeValid(t *testing.T) {
 		}
 	}
 }
+
+func TestFindCPUSkipsAMalformedField(t *testing.T) {
+	server := seed(t, 5, false)
+	server.HSet("web-01:cpu:"+strconv.FormatInt(today().Unix(), 10), "not-a-timestamp", "50")
+
+	rsr := &RedisSeriesRepository{RedisPool: server.Pool()}
+
+	_, _, avg, _, _, _, err := rsr.FindCPU("web-01", Last5Minutes)
+	if err != nil {
+		t.Fatalf("one malformed field must not fail the page: %v", err)
+	}
+
+	if len(avg) == 0 {
+		t.Error("the valid samples are missing")
+	}
+}

@@ -152,7 +152,7 @@ func (rsr *RedisSeriesRepository) findLatestValue(probe Probe, prefix string) (s
 		for i := 0; i < len(values); i += 2 {
 			x, err := strconv.ParseInt(values[i], 10, 64)
 			if err != nil {
-				return "", false, err
+				continue
 			}
 
 			if x > maxTS {
@@ -192,7 +192,7 @@ func (rsr *RedisSeriesRepository) findLoadSeries(probe Probe, seriesType SeriesT
 		for i := 0; i < len(values); i += 2 {
 			x, err := strconv.ParseInt(values[i], 10, 64)
 			if err != nil {
-				return nil, nil, nil, err
+				continue
 			}
 
 			if !between(start, end, x) {
@@ -267,7 +267,7 @@ func (rsr *RedisSeriesRepository) findThresholdSeries(probe Probe, seriesType Se
 		for i := 0; i < len(values); i += 2 {
 			x, err := strconv.ParseInt(values[i], 10, 64)
 			if err != nil {
-				return nil, nil, nil, err
+				continue
 			}
 
 			if !between(start, end, x) {
