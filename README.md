@@ -59,11 +59,14 @@ docker run --rm \
 -e APP_URL=http://127.0.0.1:4000 \
 -e APP_ALLOWED_HOSTS=192.168.0.100 \
 -e REDIS_URL=redis://192.168.0.200:6379/0 \
+-e TZ=Europe/Budapest \
 -p 4000:4000 \
 ghcr.io/petaki/satellite
 ```
 
 `APP_ALLOWED_HOSTS` lists the hostnames and IPs you open Satellite on. Here `192.168.0.100` is the Docker host's LAN address. See [Application Allowed Hosts](#application-allowed-hosts).
+
+Set `TZ` to the timezone Probe runs in. See [Timezone](#timezone).
 
 ### Install from Binary
 
@@ -134,6 +137,8 @@ APP_ADDR=:4000
 ```
 
 #### Application URL
+
+The URL you open Satellite at. Its hostname is the default for `APP_ALLOWED_HOSTS`.
 
 ```
 APP_URL=http://127.0.0.1:4000
@@ -229,7 +234,7 @@ HEARTBEAT_WAIT=5
 
 #### Heartbeat Sleep (in seconds between notifications)
 
-Set to `0` to disable.
+Set to `0` to notify every minute while the probe stays offline.
 
 ```
 HEARTBEAT_SLEEP=300
@@ -247,8 +252,10 @@ HEARTBEAT_WEBHOOK_METHOD=POST
 
 #### Heartbeat Webhook URL
 
+Required when `HEARTBEAT_ENABLED=true`.
+
 ```
-HEARTBEAT_WEBHOOK_URL=http://127.0.0.1:4000/heartbeat
+HEARTBEAT_WEBHOOK_URL=https://example.com/heartbeat
 ```
 
 #### Heartbeat Webhook Header
