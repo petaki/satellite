@@ -6,14 +6,12 @@ import (
 	"strconv"
 	"testing"
 	"time"
-
-	"github.com/petaki/satellite/internal/service/fake"
 )
 
-func seed(t *testing.T, minutes int, withProcesses bool) *fake.Redis {
+func seed(t *testing.T, minutes int, withProcesses bool) *testRedis {
 	t.Helper()
 
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	for i := 1; i <= minutes; i++ {
 		at := now().Add(time.Duration(-i) * time.Minute)
@@ -127,7 +125,7 @@ func TestFindLoadReadsTheKeyOncePerDay(t *testing.T) {
 }
 
 func TestFindCPUWithoutDataReturnsEmptyNotNil(t *testing.T) {
-	rsr := &RedisSeriesRepository{RedisPool: fake.NewRedis().Pool()}
+	rsr := &RedisSeriesRepository{RedisPool: newTestRedis(t).Pool()}
 
 	mn, mx, avg, p1, p2, p3, err := rsr.FindCPU("web-01", Last5Minutes)
 	if err != nil {
@@ -140,7 +138,7 @@ func TestFindCPUWithoutDataReturnsEmptyNotNil(t *testing.T) {
 }
 
 func TestFindLoadWithoutDataReturnsEmptyNotNil(t *testing.T) {
-	rsr := &RedisSeriesRepository{RedisPool: fake.NewRedis().Pool()}
+	rsr := &RedisSeriesRepository{RedisPool: newTestRedis(t).Pool()}
 
 	load1, load5, load15, err := rsr.FindLoad("web-01", Last5Minutes)
 	if err != nil {
@@ -153,7 +151,7 @@ func TestFindLoadWithoutDataReturnsEmptyNotNil(t *testing.T) {
 }
 
 func TestFindCPUKeepsOnlyTheTopProcesses(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	at := now().Add(-time.Minute)
 	dayKey := strconv.FormatInt(day(at.Unix()).Unix(), 10)
@@ -175,7 +173,7 @@ func TestFindCPUKeepsOnlyTheTopProcesses(t *testing.T) {
 }
 
 func TestFindDiskPathsDecodesAndSortsPaths(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	dayKey := strconv.FormatInt(today().Unix(), 10)
 
@@ -201,7 +199,7 @@ func TestFindDiskPathsDecodesAndSortsPaths(t *testing.T) {
 }
 
 func TestFindDiskPathsWithoutDataReturnsEmptyNotNil(t *testing.T) {
-	rsr := &RedisSeriesRepository{RedisPool: fake.NewRedis().Pool()}
+	rsr := &RedisSeriesRepository{RedisPool: newTestRedis(t).Pool()}
 
 	paths, err := rsr.FindDiskPaths("web-01")
 	if err != nil {
@@ -218,7 +216,7 @@ func TestFindDiskPathsWithoutDataReturnsEmptyNotNil(t *testing.T) {
 }
 
 func TestFindLatestCPUTakesTheNewestField(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	key := "web-01:" + seriesCPUKeyPrefix + strconv.FormatInt(today().Unix(), 10)
 	server.HSet(key, strconv.FormatInt(today().Unix()+60, 10), "11")
@@ -242,7 +240,7 @@ func TestFindLatestCPUTakesTheNewestField(t *testing.T) {
 }
 
 func TestFindLatestMemoryFallsBackToYesterday(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	yesterday := today().AddDate(0, 0, -1)
 	key := "web-01:" + seriesMemoryKeyPrefix + strconv.FormatInt(yesterday.Unix(), 10)
@@ -261,7 +259,7 @@ func TestFindLatestMemoryFallsBackToYesterday(t *testing.T) {
 }
 
 func TestFindLatestMetricWithoutDataIsNotFound(t *testing.T) {
-	rsr := &RedisSeriesRepository{RedisPool: fake.NewRedis().Pool()}
+	rsr := &RedisSeriesRepository{RedisPool: newTestRedis(t).Pool()}
 
 	_, found, err := rsr.FindLatestCPU("web-01")
 	if err != nil {
@@ -274,7 +272,7 @@ func TestFindLatestMetricWithoutDataIsNotFound(t *testing.T) {
 }
 
 func TestFindLatestMetricWithMalformedValueIsNotFound(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	key := "web-01:" + seriesCPUKeyPrefix + strconv.FormatInt(today().Unix(), 10)
 	server.HSet(key, strconv.FormatInt(today().Unix()+60, 10), "not a number")
@@ -292,7 +290,7 @@ func TestFindLatestMetricWithMalformedValueIsNotFound(t *testing.T) {
 }
 
 func TestFindLatestLoadSplitsTheSegments(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	key := "web-01:" + seriesLoadKeyPrefix + strconv.FormatInt(today().Unix(), 10)
 	server.HSet(key, strconv.FormatInt(today().Unix()+60, 10), "1.5:2.5:3.5")
@@ -310,7 +308,7 @@ func TestFindLatestLoadSplitsTheSegments(t *testing.T) {
 }
 
 func TestFindLatestLoadWithMalformedValueIsNotFound(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	key := "web-01:" + seriesLoadKeyPrefix + strconv.FormatInt(today().Unix(), 10)
 	server.HSet(key, strconv.FormatInt(today().Unix()+60, 10), "1.5:nope:3.5")
@@ -349,7 +347,7 @@ func TestChunkSizeGrowsWithTheWindow(t *testing.T) {
 }
 
 func TestFindMemoryWithoutDataReturnsEmptyNotNil(t *testing.T) {
-	rsr := &RedisSeriesRepository{RedisPool: fake.NewRedis().Pool()}
+	rsr := &RedisSeriesRepository{RedisPool: newTestRedis(t).Pool()}
 
 	minSeries, maxSeries, avg, p1, p2, p3, err := rsr.FindMemory("web-01", Last5Minutes)
 	if err != nil {
@@ -366,7 +364,7 @@ func TestFindMemoryWithoutDataReturnsEmptyNotNil(t *testing.T) {
 }
 
 func TestFindDiskWithoutDataReturnsEmptyNotNil(t *testing.T) {
-	rsr := &RedisSeriesRepository{RedisPool: fake.NewRedis().Pool()}
+	rsr := &RedisSeriesRepository{RedisPool: newTestRedis(t).Pool()}
 
 	minSeries, maxSeries, avg, err := rsr.FindDisk("web-01", Last5Minutes, "/")
 	if err != nil {

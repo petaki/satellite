@@ -5,8 +5,6 @@ import (
 	"slices"
 	"strconv"
 	"testing"
-
-	"github.com/petaki/satellite/internal/service/fake"
 )
 
 func logKey(probe string, at int64, path string) string {
@@ -15,7 +13,7 @@ func logKey(probe string, at int64, path string) string {
 }
 
 func TestFindLogPathsDecodesAndSortsPaths(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	server.HSet(logKey("web-01", today().Unix(), "/var/log/syslog"), "1", "a")
 	server.HSet(logKey("web-01", today().Unix(), "/var/log/auth.log"), "1", "b")
@@ -35,7 +33,7 @@ func TestFindLogPathsDecodesAndSortsPaths(t *testing.T) {
 }
 
 func TestFindLogPathsFallsBackToYesterday(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	yesterday := today().AddDate(0, 0, -1).Unix()
 	server.HSet(logKey("web-01", yesterday, "/var/log/syslog"), "1", "a")
@@ -55,7 +53,7 @@ func TestFindLogPathsFallsBackToYesterday(t *testing.T) {
 }
 
 func TestFindLogPathsWithoutDataReturnsEmptyNotNil(t *testing.T) {
-	rlr := &RedisLogRepository{RedisPool: fake.NewRedis().Pool()}
+	rlr := &RedisLogRepository{RedisPool: newTestRedis(t).Pool()}
 
 	paths, err := rlr.FindLogPaths("web-01")
 	if err != nil {
@@ -72,7 +70,7 @@ func TestFindLogPathsWithoutDataReturnsEmptyNotNil(t *testing.T) {
 }
 
 func TestFindLogReturnsNewestFirst(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	key := logKey("web-01", today().Unix(), "/var/log/syslog")
 	server.HSet(key, "100", "oldest")
@@ -100,7 +98,7 @@ func TestFindLogReturnsNewestFirst(t *testing.T) {
 }
 
 func TestFindLogReachesBackWhenTodayStartsAtMidnight(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	todayTS := today().Unix()
 	yesterdayTS := today().AddDate(0, 0, -1).Unix()
@@ -125,7 +123,7 @@ func TestFindLogReachesBackWhenTodayStartsAtMidnight(t *testing.T) {
 }
 
 func TestFindLogWithoutDataReturnsEmptyNotNil(t *testing.T) {
-	rlr := &RedisLogRepository{RedisPool: fake.NewRedis().Pool()}
+	rlr := &RedisLogRepository{RedisPool: newTestRedis(t).Pool()}
 
 	entries, err := rlr.FindLog("web-01", "/var/log/syslog")
 	if err != nil {
@@ -142,7 +140,7 @@ func TestFindLogWithoutDataReturnsEmptyNotNil(t *testing.T) {
 }
 
 func TestFindLogFallsBackToYesterdayWhenTodayIsEmpty(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	yesterdayTS := today().AddDate(0, 0, -1).Unix()
 	server.HSet(logKey("web-01", yesterdayTS, "/var/log/syslog"), strconv.FormatInt(yesterdayTS+10, 10), "late yesterday")

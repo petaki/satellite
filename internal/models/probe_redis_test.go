@@ -5,12 +5,10 @@ import (
 	"strconv"
 	"testing"
 	"time"
-
-	"github.com/petaki/satellite/internal/service/fake"
 )
 
 func TestFindAllIgnoresProcessKeysAndDeduplicatesDays(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	todayKey := strconv.FormatInt(today().Unix(), 10)
 	yesterdayKey := strconv.FormatInt(today().AddDate(0, 0, -1).Unix(), 10)
@@ -36,7 +34,7 @@ func TestFindAllIgnoresProcessKeysAndDeduplicatesDays(t *testing.T) {
 }
 
 func TestFindAllReturnsOnlyRealProbeNames(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	todayKey := strconv.FormatInt(today().Unix(), 10)
 
@@ -64,7 +62,7 @@ func TestFindAllReturnsOnlyRealProbeNames(t *testing.T) {
 }
 
 func TestFindAllWithoutProbesReturnsEmptyNotNil(t *testing.T) {
-	rpr := &RedisProbeRepository{RedisPool: fake.NewRedis().Pool()}
+	rpr := &RedisProbeRepository{RedisPool: newTestRedis(t).Pool()}
 
 	probes, err := rpr.FindAll()
 	if err != nil {
@@ -81,7 +79,7 @@ func TestFindAllWithoutProbesReturnsEmptyNotNil(t *testing.T) {
 }
 
 func TestFindLatestValuesRejectsNonPositiveLimit(t *testing.T) {
-	rpr := &RedisProbeRepository{RedisPool: fake.NewRedis().Pool()}
+	rpr := &RedisProbeRepository{RedisPool: newTestRedis(t).Pool()}
 
 	for _, limit := range []int{0, -1} {
 		_, _, err := rpr.FindLatestValues("web-01", limit)
@@ -93,7 +91,7 @@ func TestFindLatestValuesRejectsNonPositiveLimit(t *testing.T) {
 }
 
 func TestFindLatestValuesReturnsOneSlotPerMinute(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	for i := 1; i <= 2; i++ {
 		at := now().Add(time.Duration(-i) * time.Minute)
@@ -131,7 +129,7 @@ func TestFindLatestValuesReturnsOneSlotPerMinute(t *testing.T) {
 }
 
 func TestHasHeartbeatReflectsSetHeartbeat(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 	rpr := &RedisProbeRepository{RedisPool: server.Pool()}
 
 	has, err := rpr.HasHeartbeat("web-01")
@@ -159,7 +157,7 @@ func TestHasHeartbeatReflectsSetHeartbeat(t *testing.T) {
 }
 
 func TestSetHeartbeatExpiresWithTheConfiguredSleep(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 	rpr := &RedisProbeRepository{RedisPool: server.Pool()}
 
 	err := rpr.SetHeartbeat("web-01", 300)
@@ -177,7 +175,7 @@ func TestSetHeartbeatExpiresWithTheConfiguredSleep(t *testing.T) {
 }
 
 func TestDeleteRemovesOnlyTheNamedProbe(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	dayKey := strconv.FormatInt(today().Unix(), 10)
 
@@ -212,7 +210,7 @@ func TestDeleteRemovesOnlyTheNamedProbe(t *testing.T) {
 }
 
 func TestDeleteTreatsGlobCharactersLiterally(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	dayKey := strconv.FormatInt(today().Unix(), 10)
 

@@ -5,8 +5,6 @@ import (
 	"strconv"
 	"testing"
 	"time"
-
-	"github.com/petaki/satellite/internal/service/fake"
 )
 
 func TestBetween(t *testing.T) {
@@ -175,7 +173,7 @@ func TestEscape(t *testing.T) {
 }
 
 func TestFindPaths(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 	server.HSet("web-01:disk:200:"+encodePath("/data"), "1", "1")
 	server.HSet("web-01:disk:200:"+encodePath("/"), "1", "1")
 	server.HSet("web-01:disk:100:"+encodePath("/old"), "1", "1")
@@ -191,7 +189,7 @@ func TestFindPaths(t *testing.T) {
 }
 
 func TestFindPathsFallsBackToTheNextDay(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 	server.HSet("web-01:disk:100:"+encodePath("/old"), "1", "1")
 
 	paths, err := findPathsWith(server, "web-01", "disk:", []int64{200, 100}, 10)
@@ -205,7 +203,7 @@ func TestFindPathsFallsBackToTheNextDay(t *testing.T) {
 }
 
 func TestFindPathsPagesThroughTheCursor(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 
 	for i := range 25 {
 		server.HSet("web-01:log:200:"+encodePath("/var/log/"+strconv.Itoa(i)+".log"), "1", "1")
@@ -226,7 +224,7 @@ func TestFindPathsPagesThroughTheCursor(t *testing.T) {
 }
 
 func TestFindPathsRejectsUndecodableKeys(t *testing.T) {
-	server := fake.NewRedis()
+	server := newTestRedis(t)
 	server.HSet("web-01:disk:200:not!base64", "1", "1")
 
 	if _, err := findPathsWith(server, "web-01", "disk:", []int64{200}, 10); err == nil {
@@ -235,7 +233,7 @@ func TestFindPathsRejectsUndecodableKeys(t *testing.T) {
 }
 
 func TestFindPathsWithoutKeysIsEmptyNotNil(t *testing.T) {
-	paths, err := findPathsWith(fake.NewRedis(), "web-01", "disk:", []int64{200, 100}, 10)
+	paths, err := findPathsWith(newTestRedis(t), "web-01", "disk:", []int64{200, 100}, 10)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -374,7 +372,7 @@ func encodePath(path string) string {
 	return base64.StdEncoding.EncodeToString([]byte(path))
 }
 
-func findPathsWith(server *fake.Redis, probe Probe, prefix string, days []int64, scanCount int) ([]string, error) {
+func findPathsWith(server *testRedis, probe Probe, prefix string, days []int64, scanCount int) ([]string, error) {
 	conn := server.Pool().Get()
 	defer conn.Close()
 
