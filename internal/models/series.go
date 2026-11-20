@@ -38,6 +38,17 @@ const (
 	Last30Days SeriesType = "last_30_days"
 )
 
+// Valid reports whether the series type is one of the known types.
+func (st SeriesType) Valid() bool {
+	for _, current := range SeriesTypes {
+		if current["value"] == st {
+			return true
+		}
+	}
+
+	return false
+}
+
 var SeriesTypes = []map[string]any{
 	{
 		"name":  "Last 5 minutes",

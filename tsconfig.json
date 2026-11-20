@@ -8,11 +8,10 @@
         "module": "ESNext",
         "moduleResolution": "Bundler",
         "noEmit": true,
-        "noImplicitAny": false,
         "paths": { "@/*": ["./resources/js/*"] },
         "resolveJsonModule": true,
         "skipLibCheck": true,
-        "strict": false,
+        "strict": true,
         "target": "ES2022",
         "types": ["vite/client"],
         "useDefineForClassFields": true
@@ -24,6 +23,6 @@
         "vite.config.ts"
     ],
     "vueCompilerOptions": {
-        "skipTemplateCodegen": true
+        "strictTemplates": true
     }
 }

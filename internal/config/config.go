@@ -110,12 +110,8 @@ func (c *Config) parseSeriesButtons(value string) error {
 	for segment := range segments {
 		st := models.SeriesType(strings.TrimSpace(segment))
 
-		for _, current := range models.SeriesTypes {
-			if st == current["value"].(models.SeriesType) {
-				sb = append(sb, st)
-
-				break
-			}
+		if st.Valid() {
+			sb = append(sb, st)
 		}
 	}
 

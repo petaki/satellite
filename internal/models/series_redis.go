@@ -60,7 +60,8 @@ func (rsr *RedisSeriesRepository) FindDiskPaths(probe Probe) ([]string, error) {
 	conn := rsr.RedisPool.Get()
 	defer conn.Close()
 
-	days := rsr.timestamps(Last30Days)
+	start := now()
+	days := rsr.timestamps(start, rsr.end(start, Last30Days))
 
 	slices.Reverse(days)
 
@@ -180,7 +181,7 @@ func (rsr *RedisSeriesRepository) findLoadSeries(probe Probe, seriesType SeriesT
 	start := now()
 	end := rsr.end(start, seriesType)
 
-	for _, timestamp := range rsr.timestamps(seriesType) {
+	for _, timestamp := range rsr.timestamps(start, end) {
 		values, err := redis.Strings(
 			conn.Do("HGETALL", string(probe)+":"+seriesLoadKeyPrefix+strconv.FormatInt(timestamp, 10)),
 		)
@@ -255,7 +256,7 @@ func (rsr *RedisSeriesRepository) findThresholdSeries(probe Probe, seriesType Se
 	start := now()
 	end := rsr.end(start, seriesType)
 
-	for _, timestamp := range rsr.timestamps(seriesType) {
+	for _, timestamp := range rsr.timestamps(start, end) {
 		values, err := redis.Strings(
 			conn.Do("HGETALL", string(probe)+":"+prefix+strconv.FormatInt(timestamp, 10)+suffix),
 		)
@@ -481,24 +482,12 @@ func (rsr *RedisSeriesRepository) end(start time.Time, seriesType SeriesType) ti
 	return start.Add(-5 * time.Minute)
 }
 
-func (rsr *RedisSeriesRepository) timestamps(seriesType SeriesType) []int64 {
+func (rsr *RedisSeriesRepository) timestamps(start, end time.Time) []int64 {
 	var timestamps []int64
 
-	end := today()
-	var start time.Time
+	last := day(start.Unix())
 
-	switch seriesType {
-	case Last2Days:
-		start = end.AddDate(0, 0, -2)
-	case Last7Days:
-		start = end.AddDate(0, 0, -7)
-	case Last30Days:
-		start = end.AddDate(0, 0, -30)
-	default:
-		start = end.AddDate(0, 0, -1)
-	}
-
-	for current := start; !current.After(end); current = current.AddDate(0, 0, 1) {
+	for current := day(end.Unix()); !current.After(last); current = current.AddDate(0, 0, 1) {
 		timestamps = append(timestamps, current.Unix())
 	}
 

@@ -98,7 +98,7 @@ func (h *handler) getCPU(_ context.Context, request mcp.CallToolRequest) (*mcp.C
 	}
 
 	seriesType := h.resolveSeriesType(request)
-	if !h.seriesTypeExists(seriesType) {
+	if !seriesType.Valid() {
 		return mcp.NewToolResultError(fmt.Sprintf("%v: series type, %s", ErrInvalid, seriesType)), nil
 	}
 
@@ -140,7 +140,7 @@ func (h *handler) getMemory(_ context.Context, request mcp.CallToolRequest) (*mc
 	}
 
 	seriesType := h.resolveSeriesType(request)
-	if !h.seriesTypeExists(seriesType) {
+	if !seriesType.Valid() {
 		return mcp.NewToolResultError(fmt.Sprintf("%v: series type, %s", ErrInvalid, seriesType)), nil
 	}
 
@@ -182,7 +182,7 @@ func (h *handler) getLoad(_ context.Context, request mcp.CallToolRequest) (*mcp.
 	}
 
 	seriesType := h.resolveSeriesType(request)
-	if !h.seriesTypeExists(seriesType) {
+	if !seriesType.Valid() {
 		return mcp.NewToolResultError(fmt.Sprintf("%v: series type, %s", ErrInvalid, seriesType)), nil
 	}
 
@@ -221,7 +221,7 @@ func (h *handler) getDisk(_ context.Context, request mcp.CallToolRequest) (*mcp.
 	}
 
 	seriesType := h.resolveSeriesType(request)
-	if !h.seriesTypeExists(seriesType) {
+	if !seriesType.Valid() {
 		return mcp.NewToolResultError(fmt.Sprintf("%v: series type, %s", ErrInvalid, seriesType)), nil
 	}
 
@@ -428,14 +428,4 @@ func (h *handler) resolveSeriesType(request mcp.CallToolRequest) models.SeriesTy
 	}
 
 	return models.SeriesType(series)
-}
-
-func (h *handler) seriesTypeExists(seriesType models.SeriesType) bool {
-	for _, current := range models.SeriesTypes {
-		if current["value"] == seriesType {
-			return true
-		}
-	}
-
-	return false
 }

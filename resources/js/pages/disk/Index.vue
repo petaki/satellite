@@ -31,7 +31,7 @@
                            :series="series"
                            height="100%"
                            :options="options"
-                           @mounted="refreshSeries" />
+                           @mounted="onChartMounted" />
                 <chart-empty v-else />
             </div>
         </div>
@@ -52,6 +52,8 @@ import {
     watch
 } from 'vue';
 
+import type { ApexOptions } from 'apexcharts';
+
 import { router } from '@inertiajs/vue3';
 import Breadcrumb from '../../base/Breadcrumb.vue';
 import ChartEmpty from '../../base/ChartEmpty.vue';
@@ -64,7 +66,7 @@ import useLiveReload from '../../use/useLiveReload';
 import usePaths from '../../use/usePaths';
 import PointInterval from '../../base/PointInterval.vue';
 import SeriesSelector from '../../base/SeriesSelector.vue';
-import type { SeriesDataPoint, ApexConfig } from '../../types';
+import type { SeriesDataPoint } from '../../types';
 
 const {
     probe,
@@ -102,7 +104,7 @@ const onPathChange = (event: Event) => {
 };
 const chartEl = ref();
 
-const options = ref<ApexConfig>({
+const options = ref<ApexOptions>({
     yaxis: {
         min: 0,
         max: 100,
@@ -137,12 +139,10 @@ const series = computed(() => [
     }
 ]);
 
-const seriesHref = (isDefault: boolean, selectedType: string | undefined) => (isDefault
-    ? diskPathFn(probe, diskPath)
-    : diskPathFn(probe, diskPath, selectedType));
+const seriesHref = (selectedType: string) => diskPathFn(probe, diskPath, selectedType);
 
 const onSetTheme = () => {
-    chartEl.value?.refresh();
+    chartEl.value?.updateOptions(window.apexTheme());
 };
 
 const refreshSeries = async () => {
@@ -152,19 +152,24 @@ const refreshSeries = async () => {
         return;
     }
 
-    options.value.annotations = {
-        yaxis: [
-            max(Math.max(...(diskMaxSeries ?? []).map(value => value.y)))
-        ]
-    };
+    const yaxis = [
+        max(Math.max(...(diskMaxSeries ?? []).map(value => value.y)))
+    ];
 
     if (diskAlarm) {
-        options.value.annotations.yaxis.push(alarm(diskAlarm));
+        yaxis.push(alarm(diskAlarm));
     }
 
+    options.value.annotations = { yaxis };
+
     chartEl.value.updateOptions({ annotations: options.value.annotations });
-    chartEl.value.hideSeries(`Disk Max - ${diskPath}`);
-    chartEl.value.hideSeries(`Disk Min - ${diskPath}`);
+};
+
+const onChartMounted = async () => {
+    await refreshSeries();
+
+    chartEl.value?.hideSeries(`Disk Max - ${diskPath}`);
+    chartEl.value?.hideSeries(`Disk Min - ${diskPath}`);
 };
 
 watch(series, refreshSeries, { flush: 'post' });

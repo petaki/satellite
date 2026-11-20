@@ -23,7 +23,7 @@
                            :series="series"
                            height="100%"
                            :options="options"
-                           @mounted="refreshSeries" />
+                           @mounted="onChartMounted" />
                 <chart-empty v-else />
             </div>
         </div>
@@ -44,6 +44,8 @@ import {
     watch
 } from 'vue';
 
+import type { ApexOptions } from 'apexcharts';
+
 import Breadcrumb from '../../base/Breadcrumb.vue';
 import ChartEmpty from '../../base/ChartEmpty.vue';
 import CardTitle from '../../base/CardTitle.vue';
@@ -56,7 +58,7 @@ import useLiveReload from '../../use/useLiveReload';
 import usePaths from '../../use/usePaths';
 import PointInterval from '../../base/PointInterval.vue';
 import SeriesSelector from '../../base/SeriesSelector.vue';
-import type { SeriesDataPoint, ApexConfig } from '../../types';
+import type { SeriesDataPoint } from '../../types';
 
 const {
     probe,
@@ -123,7 +125,7 @@ const series = computed(() => [
     }
 ]);
 
-const options = ref<ApexConfig>({
+const options = ref<ApexOptions>({
     plotOptions: {
         bar: {
             columnWidth: '70%'
@@ -137,12 +139,17 @@ const options = ref<ApexConfig>({
     },
     tooltip: {
         y: {
-            formatter(value: number, { seriesIndex, dataPointIndex }) {
-                if (seriesIndex > 2) {
-                    return `${escapeHtml(series.value[seriesIndex].data[dataPointIndex].name)}: ${value.toFixed(2)}%`;
+            formatter(value, opts) {
+                const percent = value === null ? '' : `${value.toFixed(2)}%`;
+                const name = opts && opts.seriesIndex > 2
+                    ? series.value[opts.seriesIndex].data[opts.dataPointIndex].name
+                    : undefined;
+
+                if (name !== undefined) {
+                    return `${escapeHtml(name)}: ${percent}`;
                 }
 
-                return `${value.toFixed(2)}%`;
+                return percent;
             }
         },
         marker: {
@@ -168,12 +175,10 @@ const links = ref([
     { name: subtitle }
 ]);
 
-const seriesHref = (isDefault: boolean, selectedType: string | undefined) => (isDefault
-    ? memoryPath(probe)
-    : memoryPath(probe, selectedType));
+const seriesHref = (selectedType: string) => memoryPath(probe, selectedType);
 
 const onSetTheme = () => {
-    chartEl.value?.refresh();
+    chartEl.value?.updateOptions(window.apexTheme());
 };
 
 const refreshSeries = async () => {
@@ -183,19 +188,24 @@ const refreshSeries = async () => {
         return;
     }
 
-    options.value.annotations = {
-        yaxis: [
-            max(Math.max(...(memoryMaxSeries ?? []).map(value => value.y)))
-        ]
-    };
+    const yaxis = [
+        max(Math.max(...(memoryMaxSeries ?? []).map(value => value.y)))
+    ];
 
     if (memoryAlarm) {
-        options.value.annotations.yaxis.push(alarm(memoryAlarm));
+        yaxis.push(alarm(memoryAlarm));
     }
 
+    options.value.annotations = { yaxis };
+
     chartEl.value.updateOptions({ annotations: options.value.annotations });
-    chartEl.value.hideSeries('Memory Max');
-    chartEl.value.hideSeries('Memory Min');
+};
+
+const onChartMounted = async () => {
+    await refreshSeries();
+
+    chartEl.value?.hideSeries('Memory Max');
+    chartEl.value?.hideSeries('Memory Min');
 };
 
 watch(series, refreshSeries, { flush: 'post' });

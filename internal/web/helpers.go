@@ -1,6 +1,7 @@
 package web
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -65,4 +66,10 @@ func isLoopback(hostname string) bool {
 	addr, err := netip.ParseAddr(hostname)
 
 	return err == nil && addr.IsLoopback()
+}
+
+func jsonEscape(value string) string {
+	encoded, _ := json.Marshal(value)
+
+	return string(encoded[1 : len(encoded)-1])
 }

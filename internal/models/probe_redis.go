@@ -80,33 +80,13 @@ func (rpr *RedisProbeRepository) FindLatestValues(probe Probe, limit int) ([]any
 
 	days := map[string][]string{}
 
-	now := time.Now()
-	end := time.Date(
-		now.Year(),
-		now.Month(),
-		now.Day(),
-		now.Hour(),
-		now.Minute(),
-		0,
-		0,
-		now.Location(),
-	)
-
+	end := now()
 	start := end.Add(-time.Duration(limit-1) * time.Minute)
 
 	for current := start; !current.After(end); current = current.Add(time.Minute) {
-		day := strconv.FormatInt(time.Date(
-			current.Year(),
-			current.Month(),
-			current.Day(),
-			0,
-			0,
-			0,
-			0,
-			now.Location(),
-		).Unix(), 10)
+		dayKey := strconv.FormatInt(day(current.Unix()).Unix(), 10)
 
-		days[day] = append(days[day], strconv.FormatInt(current.Unix(), 10))
+		days[dayKey] = append(days[dayKey], strconv.FormatInt(current.Unix(), 10))
 	}
 
 	var values []any

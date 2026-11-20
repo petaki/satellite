@@ -1,8 +1,8 @@
 package web
 
 import (
-	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -93,12 +93,7 @@ func (a *app) handleProbe(probe models.Probe, wg *sync.WaitGroup) {
 
 	a.infoLog.Printf("Calling the heartbeat webhook URL for %s...", probe)
 
-	body := strings.ReplaceAll(a.appConfig.HeartbeatWebhookBody, "%p", string(probe))
-	body = strings.ReplaceAll(body, "%t", start.Format(time.RFC3339))
-	body = strings.ReplaceAll(body, "%x", strconv.FormatInt(start.Unix(), 10))
-	body = strings.ReplaceAll(body, "%l", "/cpu?probe="+url.QueryEscape(string(probe)))
-
-	req, err := http.NewRequest(a.appConfig.HeartbeatWebhookMethod, a.appConfig.HeartbeatWebhookURL, bytes.NewBuffer([]byte(body)))
+	req, err := http.NewRequest(a.appConfig.HeartbeatWebhookMethod, a.appConfig.HeartbeatWebhookURL, strings.NewReader(a.heartbeatBody(probe, *start)))
 	if err != nil {
 		a.errorLog.Print(fmt.Errorf("%w: %s, %w", ErrWebhook, probe, withoutURL(err)))
 
@@ -132,4 +127,22 @@ func (a *app) handleProbe(probe models.Probe, wg *sync.WaitGroup) {
 			return
 		}
 	}
+}
+
+func (a *app) heartbeatBody(probe models.Probe, start time.Time) string {
+	replace := func(name string) string {
+		return strings.NewReplacer(
+			"%p", name,
+			"%t", start.Format(time.RFC3339),
+			"%x", strconv.FormatInt(start.Unix(), 10),
+			"%l", "/cpu?probe="+url.QueryEscape(string(probe)),
+		).Replace(a.appConfig.HeartbeatWebhookBody)
+	}
+
+	body := replace(jsonEscape(string(probe)))
+	if json.Valid([]byte(body)) {
+		return body
+	}
+
+	return replace(string(probe))
 }

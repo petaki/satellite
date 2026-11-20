@@ -103,7 +103,7 @@ export function groupSnapshots(entries: LogEntry[]): GroupedSnapshot[] {
         const preview = current.lines.map(stripAnsi).find(l => l.trim().length > 0) || '';
 
         groups.push({
-            id: String(current.entry.timestamp),
+            id: String(snapshots[endIndex].entry.timestamp),
             startMinute: snapshots[endIndex].entry.timestamp,
             endMinute: current.entry.timestamp,
             repeatCount,

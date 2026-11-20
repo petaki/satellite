@@ -17,13 +17,13 @@ func (a *app) cpuIndex(w http.ResponseWriter, r *http.Request) {
 
 	seriesType := a.seriesTypeFromRequest(r)
 
-	if !a.seriesTypeExists(seriesType) {
+	if !seriesType.Valid() {
 		a.notFound(w)
 
 		return
 	}
 
-	a.sessionManager.Put(r.Context(), sessionKeySeriesType, string(seriesType))
+	a.rememberSeriesType(r, seriesType)
 
 	probe := r.Context().Value(contextKeyProbe).(models.Probe)
 
@@ -89,13 +89,13 @@ func (a *app) memoryIndex(w http.ResponseWriter, r *http.Request) {
 
 	seriesType := a.seriesTypeFromRequest(r)
 
-	if !a.seriesTypeExists(seriesType) {
+	if !seriesType.Valid() {
 		a.notFound(w)
 
 		return
 	}
 
-	a.sessionManager.Put(r.Context(), sessionKeySeriesType, string(seriesType))
+	a.rememberSeriesType(r, seriesType)
 
 	probe := r.Context().Value(contextKeyProbe).(models.Probe)
 
@@ -161,13 +161,13 @@ func (a *app) loadIndex(w http.ResponseWriter, r *http.Request) {
 
 	seriesType := a.seriesTypeFromRequest(r)
 
-	if !a.seriesTypeExists(seriesType) {
+	if !seriesType.Valid() {
 		a.notFound(w)
 
 		return
 	}
 
-	a.sessionManager.Put(r.Context(), sessionKeySeriesType, string(seriesType))
+	a.rememberSeriesType(r, seriesType)
 
 	probe := r.Context().Value(contextKeyProbe).(models.Probe)
 
@@ -230,13 +230,13 @@ func (a *app) diskIndex(w http.ResponseWriter, r *http.Request) {
 
 	seriesType := a.seriesTypeFromRequest(r)
 
-	if !a.seriesTypeExists(seriesType) {
+	if !seriesType.Valid() {
 		a.notFound(w)
 
 		return
 	}
 
-	a.sessionManager.Put(r.Context(), sessionKeySeriesType, string(seriesType))
+	a.rememberSeriesType(r, seriesType)
 
 	probe := r.Context().Value(contextKeyProbe).(models.Probe)
 
@@ -316,27 +316,26 @@ func (a *app) seriesTypeFromRequest(r *http.Request) models.SeriesType {
 	seriesType := models.SeriesType(r.URL.Query().Get("type"))
 
 	if seriesType == "" {
-		exists := a.sessionManager.Exists(r.Context(), sessionKeySeriesType)
-		if !exists {
-			return a.appConfig.SeriesButtons[0]
-		}
-
-		return models.SeriesType(a.sessionManager.GetString(r.Context(), sessionKeySeriesType))
+		return a.sessionSeriesType(r)
 	}
 
 	return seriesType
 }
 
-func (a *app) diskPathExists(diskPaths []string, diskPath string) bool {
-	return slices.Contains(diskPaths, diskPath)
-}
-
-func (a *app) seriesTypeExists(seriesType models.SeriesType) bool {
-	for _, current := range models.SeriesTypes {
-		if current["value"] == seriesType {
-			return true
-		}
+func (a *app) sessionSeriesType(r *http.Request) models.SeriesType {
+	if !a.sessionManager.Exists(r.Context(), sessionKeySeriesType) {
+		return a.appConfig.SeriesButtons[0]
 	}
 
-	return false
+	return models.SeriesType(a.sessionManager.GetString(r.Context(), sessionKeySeriesType))
+}
+
+func (a *app) rememberSeriesType(r *http.Request, seriesType models.SeriesType) {
+	if seriesType != a.sessionSeriesType(r) {
+		a.sessionManager.Put(r.Context(), sessionKeySeriesType, string(seriesType))
+	}
+}
+
+func (a *app) diskPathExists(diskPaths []string, diskPath string) bool {
+	return slices.Contains(diskPaths, diskPath)
 }

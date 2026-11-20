@@ -259,13 +259,6 @@ const summary = computed(() => {
     return generateSummary(selectedGroup.value);
 });
 
-// Auto-select newest when live
-watch([groups, isLive], () => {
-    if (isLive.value && groups.value.length) {
-        selectedId.value = groups.value[0].id;
-    }
-}, { immediate: true });
-
 const onSelect = (id: string) => {
     selectedId.value = id;
 };
@@ -275,6 +268,18 @@ const jumpToLatest = () => {
         selectedId.value = groups.value[0].id;
     }
 };
+
+watch(isLive, live => {
+    if (live) {
+        jumpToLatest();
+    }
+}, { immediate: true });
+
+watch(groups, (current, previous) => {
+    if (isLive.value && (selectedId.value === null || selectedId.value === previous[0]?.id)) {
+        jumpToLatest();
+    }
+});
 
 const onPathChange = (event: Event) => {
     const target = event.target as HTMLSelectElement;
@@ -288,37 +293,13 @@ const copyContent = () => {
     }
 };
 
-// Scroll preservation for detail pane
-let savedScrollTop = 0;
-let userHasScrolled = false;
-
-watch(() => selectedGroup.value?.id, async () => {
-    userHasScrolled = false;
+watch(() => [selectedGroup.value?.id, selectedGroup.value?.lines], async ([id], [previousId]) => {
+    const scrollTop = id === previousId ? contentEl.value?.scrollTop ?? 0 : 0;
 
     await nextTick();
 
     if (contentEl.value) {
-        contentEl.value.scrollTop = 0;
-    }
-});
-
-watch(() => selectedGroup.value?.lines, async () => {
-    if (!contentEl.value || !userHasScrolled) {
-        return;
-    }
-
-    savedScrollTop = contentEl.value.scrollTop;
-
-    await nextTick();
-
-    contentEl.value.scrollTop = savedScrollTop;
-});
-
-watch(contentEl, el => {
-    if (el) {
-        el.addEventListener('scroll', () => {
-            userHasScrolled = true;
-        }, { passive: true });
+        contentEl.value.scrollTop = scrollTop;
     }
 });
 </script>

@@ -16,7 +16,7 @@ func TestBetween(t *testing.T) {
 		want bool
 	}{
 		"at the newer bound": {start, true},
-		"at the older bound": {end, true},
+		"at the older bound": {end, false},
 		"inside the window":  {start.Add(-1 * time.Minute), true},
 		"newer than start":   {start.Add(time.Second), false},
 		"older than end":     {end.Add(-time.Second), false},
@@ -329,31 +329,6 @@ func TestStripANSI(t *testing.T) {
 	}
 }
 
-func TestTimestampsCoverTheWholeWindow(t *testing.T) {
-	rsr := &RedisSeriesRepository{}
-	start := now()
-
-	for _, st := range []SeriesType{
-		Last5Minutes, Last15Minutes, Last30Minutes, Last1Hour, Last3Hours,
-		Last6Hours, Last12Hours, Last24Hours, Last2Days, Last7Days, Last30Days,
-	} {
-		oldest := rsr.end(start, st)
-		needed := day(oldest.Unix()).Unix()
-
-		covered := false
-
-		for _, ts := range rsr.timestamps(st) {
-			if ts == needed {
-				covered = true
-			}
-		}
-
-		if !covered {
-			t.Errorf("%s: day bucket %d holds the oldest sample in the window but is never queried", st, needed)
-		}
-	}
-}
-
 func TestToday(t *testing.T) {
 	got := today()
 
@@ -377,4 +352,25 @@ func findPathsWith(server *testRedis, probe Probe, prefix string, days []int64, 
 	defer conn.Close()
 
 	return findPaths(conn, probe, prefix, days, scanCount)
+}
+
+func freezeClock(t *testing.T, at time.Time) time.Time {
+	t.Helper()
+
+	location, err := time.LoadLocation("Europe/Budapest")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	savedLocal, savedClock := time.Local, clock
+
+	t.Cleanup(func() {
+		time.Local, clock = savedLocal, savedClock
+	})
+
+	wall := at.In(location)
+	time.Local = location
+	clock = func() time.Time { return wall }
+
+	return wall
 }

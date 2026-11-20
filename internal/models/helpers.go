@@ -13,10 +13,12 @@ import (
 
 var ansiSequence = regexp.MustCompile(`(?:\x1b|#033)\[[0-9;?]*[A-Za-z]`)
 
+var clock = time.Now
+
 func between(start, end time.Time, timestamp int64) bool {
 	t := time.Unix(timestamp, 0)
 
-	return (t.Equal(end) || t.After(end)) && (t.Equal(start) || t.Before(start))
+	return t.After(end) && !t.After(start)
 }
 
 func chunks[T any](start time.Time, chunkSize int, values []T, at func(T) int64) [][]T {
@@ -99,7 +101,7 @@ func findPaths(conn redis.Conn, probe Probe, prefix string, days []int64, scanCo
 }
 
 func now() time.Time {
-	now := time.Now()
+	now := clock()
 
 	return time.Date(
 		now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), 0, 0, now.Location(),
@@ -147,7 +149,7 @@ func stripANSI(s string) string {
 }
 
 func today() time.Time {
-	now := time.Now()
+	now := clock()
 
 	return time.Date(
 		now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location(),

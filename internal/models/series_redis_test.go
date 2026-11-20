@@ -117,7 +117,8 @@ func TestFindLoadReadsTheKeyOncePerDay(t *testing.T) {
 		t.Errorf("newest load = %v/%v/%v, want 1/2/3 (components swapped?)", load1[0].Y, load5[0].Y, load15[0].Y)
 	}
 
-	days := len(rsr.timestamps(Last5Minutes))
+	start := now()
+	days := len(rsr.timestamps(start, rsr.end(start, Last5Minutes)))
 
 	if got := server.Calls("HGETALL"); got > days {
 		t.Errorf("HGETALL called %d times for %d day buckets; the three components are not sharing a fetch", got, days)
@@ -373,5 +374,96 @@ func TestFindDiskWithoutDataReturnsEmptyNotNil(t *testing.T) {
 
 	if minSeries == nil || maxSeries == nil || avg == nil {
 		t.Error("a nil series renders as null, want empty")
+	}
+}
+
+func TestFindCPUAfterSpringForwardKeepsTheOldestSamples(t *testing.T) {
+	cases := map[SeriesType]time.Duration{
+		Last24Hours: 24 * time.Hour,
+		Last2Days:   2 * 24 * time.Hour,
+		Last7Days:   7 * 24 * time.Hour,
+		Last30Days:  30 * 24 * time.Hour,
+	}
+
+	for seriesType, window := range cases {
+		server := newTestRedis(t)
+		start := freezeClock(t, time.Date(2026, 3, 29, 22, 30, 0, 0, time.UTC))
+		at := start.Add(-window + 15*time.Minute)
+
+		server.HSet("web-01:"+seriesCPUKeyPrefix+strconv.FormatInt(day(at.Unix()).Unix(), 10), strconv.FormatInt(at.Unix(), 10), "99")
+
+		rsr := &RedisSeriesRepository{RedisPool: server.Pool()}
+
+		_, maxSeries, _, _, _, _, err := rsr.FindCPU("web-01", seriesType)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if !slices.Contains(maxSeries, Value{X: at.Unix() * timestampMultiplier, Y: 99}) {
+			t.Errorf("%s at %s: the sample at %s is inside the window but missing", seriesType, start.Format(time.DateTime), at.Format(time.DateTime))
+		}
+	}
+}
+
+func TestFindCPUReturnsOneBucketPerChunkOfTheWindow(t *testing.T) {
+	cases := []struct {
+		seriesType SeriesType
+		window     time.Duration
+		step       time.Duration
+		want       int
+	}{
+		{Last5Minutes, 5 * time.Minute, time.Minute, 5},
+		{Last15Minutes, 15 * time.Minute, time.Minute, 15},
+		{Last30Minutes, 30 * time.Minute, time.Minute, 30},
+		{Last1Hour, time.Hour, time.Minute, 60},
+		{Last3Hours, 3 * time.Hour, time.Minute, 180},
+		{Last6Hours, 6 * time.Hour, time.Hour, 6},
+		{Last12Hours, 12 * time.Hour, time.Hour, 12},
+		{Last24Hours, 24 * time.Hour, time.Hour, 24},
+		{Last2Days, 2 * 24 * time.Hour, time.Hour, 48},
+		{Last7Days, 7 * 24 * time.Hour, 24 * time.Hour, 7},
+		{Last30Days, 30 * 24 * time.Hour, 4 * 24 * time.Hour, 8},
+	}
+
+	for _, c := range cases {
+		server := newTestRedis(t)
+		start := freezeClock(t, time.Date(2026, 9, 10, 10, 0, 0, 0, time.UTC))
+
+		offsets := []time.Duration{c.window}
+
+		for offset := time.Duration(0); offset < c.window; offset += c.step {
+			offsets = append(offsets, offset)
+		}
+
+		for _, offset := range offsets {
+			at := start.Add(-offset)
+
+			server.HSet("web-01:"+seriesCPUKeyPrefix+strconv.FormatInt(day(at.Unix()).Unix(), 10), strconv.FormatInt(at.Unix(), 10), "10")
+		}
+
+		rsr := &RedisSeriesRepository{RedisPool: server.Pool()}
+
+		_, _, avg, _, _, _, err := rsr.FindCPU("web-01", c.seriesType)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if len(avg) != c.want {
+			t.Errorf("%s: %d buckets, want %d", c.seriesType, len(avg), c.want)
+		}
+	}
+}
+
+func TestSeriesTypeValid(t *testing.T) {
+	for _, current := range SeriesTypes {
+		if st := current["value"].(SeriesType); !st.Valid() {
+			t.Errorf("%s.Valid() = false, want true", st)
+		}
+	}
+
+	for _, st := range []SeriesType{"", "last_1_year", "LAST_5_MINUTES"} {
+		if st.Valid() {
+			t.Errorf("%q.Valid() = true, want false", st)
+		}
 	}
 }

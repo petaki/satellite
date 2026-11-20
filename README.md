@@ -177,6 +177,18 @@ Available options:
 
 ---
 
+### Timezone
+
+Satellite and [Probe](https://github.com/petaki/probe) must run in the same timezone. Probe files each day's samples under a key named after local midnight, and Satellite looks keys up by its own local midnight. When the timezones differ, no key matches, the charts stay empty and every probe looks offline.
+
+Both use the `TZ` environment variable when it is set, otherwise the host's timezone. Containers default to UTC, so set `TZ` explicitly when either one runs in Docker, for example `-e TZ=Europe/Budapest`.
+
+```
+TZ=Europe/Budapest
+```
+
+---
+
 ### Redis
 
 #### Redis URL
@@ -255,6 +267,8 @@ The body supports the following placeholders:
 | `%t` | Timestamp (`RFC3339`) |
 | `%x` | Timestamp (`Unix`) |
 | `%l` | Satellite link (relative) |
+
+When the body is JSON, the probe name is JSON-escaped, so names with quotes or backslashes keep it valid.
 
 ```
 HEARTBEAT_WEBHOOK_BODY='{"probe": "%p", "timestamp_rfc3339": "%t", "timestamp_unix": %x, "link": "%l"}'

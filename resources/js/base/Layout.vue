@@ -184,6 +184,17 @@ watch(theme, () => {
     setTheme();
 });
 
+const colorScheme = window.matchMedia('(prefers-color-scheme: dark)');
+
+watch(theme, (value, _, onCleanup) => {
+    if (value !== 'system') {
+        return;
+    }
+
+    colorScheme.addEventListener('change', setTheme);
+    onCleanup(() => colorScheme.removeEventListener('change', setTheme));
+}, { immediate: true });
+
 const isSidebarOpen = ref(false);
 const year = ref(new Date().getFullYear());
 
