@@ -6,6 +6,7 @@ type LogEntry struct {
 	Content   string `json:"content"`
 }
 
+// Plain function.
 func (e LogEntry) Plain() LogEntry {
 	e.Content = stripANSI(e.Content)
 
