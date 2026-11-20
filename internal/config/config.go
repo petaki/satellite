@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/petaki/satellite/internal/models"
@@ -15,10 +16,10 @@ type Config struct {
 	Name                   string
 	Addr                   string
 	URL                    string
+	AllowedHosts           []string
 	SeriesButtons          []models.SeriesType
 	RedisURL               string
 	MCPEnabled             bool
-	MCPAllowAnyHost        bool
 	HeartbeatEnabled       bool
 	HeartbeatWait          int
 	HeartbeatSleep         int
@@ -33,11 +34,11 @@ func NewConfig(command *cli.Command, arguments []string) (*Config, error) {
 	debug := command.Bool("debug", "APP_DEBUG", false, "Application Debug Mode")
 	name := command.String("name", "APP_NAME", "", "Application Name")
 	addr := command.String("addr", "APP_ADDR", "", "Application Address")
-	url := command.String("url", "APP_URL", "", "Application URL")
+	appURL := command.String("url", "APP_URL", "", "Application URL")
+	allowedHosts := command.String("allowed-hosts", "APP_ALLOWED_HOSTS", "", "Application Allowed Hosts")
 	seriesButtons := command.String("series-buttons", "APP_SERIES_BUTTONS", "", "Application Series Buttons")
 	redisURL := command.Secret("redis-url", "REDIS_URL", "Redis URL")
 	mcpEnabled := command.Bool("mcp-enabled", "MCP_ENABLED", false, "MCP Enabled")
-	mcpAllowAnyHost := command.Bool("mcp-allow-any-host", "MCP_ALLOW_ANY_HOST", false, "MCP Allow Any Host")
 	heartbeatEnabled := command.Bool("heartbeat-enabled", "HEARTBEAT_ENABLED", false, "Heartbeat Enabled")
 	heartbeatWait := command.Int("heartbeat-wait", "HEARTBEAT_WAIT", 5, "Heartbeat Wait")
 	heartbeatSleep := command.Int("heartbeat-sleep", "HEARTBEAT_SLEEP", 300, "Heartbeat Sleep")
@@ -76,10 +77,9 @@ func NewConfig(command *cli.Command, arguments []string) (*Config, error) {
 		Debug:                  *debug,
 		Name:                   *name,
 		Addr:                   *addr,
-		URL:                    *url,
+		URL:                    *appURL,
 		RedisURL:               *redisURL,
 		MCPEnabled:             *mcpEnabled,
-		MCPAllowAnyHost:        *mcpAllowAnyHost,
 		HeartbeatEnabled:       *heartbeatEnabled,
 		HeartbeatWait:          *heartbeatWait,
 		HeartbeatSleep:         *heartbeatSleep,
@@ -90,6 +90,11 @@ func NewConfig(command *cli.Command, arguments []string) (*Config, error) {
 	}
 
 	err = appConfig.parseSeriesButtons(*seriesButtons)
+	if err != nil {
+		return nil, err
+	}
+
+	err = appConfig.parseAllowedHosts(*allowedHosts)
 	if err != nil {
 		return nil, err
 	}
@@ -119,6 +124,37 @@ func (c *Config) parseSeriesButtons(value string) error {
 	}
 
 	c.SeriesButtons = sb[:min(4, len(sb))]
+
+	return nil
+}
+
+func (c *Config) parseAllowedHosts(value string) error {
+	var hosts []string
+
+	for segment := range strings.SplitSeq(value, ",") {
+		host := strings.ToLower(strings.TrimSpace(segment))
+
+		if host != "" {
+			hosts = append(hosts, host)
+		}
+	}
+
+	if len(hosts) > 0 {
+		c.AllowedHosts = hosts
+
+		return nil
+	}
+
+	u, err := url.Parse(c.URL)
+	if err != nil {
+		return fmt.Errorf("%w: %q, %w", ErrInvalidURL, c.URL, err)
+	}
+
+	if u.Hostname() == "" {
+		return fmt.Errorf("%w: %q", ErrInvalidURL, c.URL)
+	}
+
+	c.AllowedHosts = []string{strings.ToLower(u.Hostname())}
 
 	return nil
 }

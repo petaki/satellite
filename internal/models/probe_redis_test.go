@@ -35,6 +35,34 @@ func TestFindAllIgnoresProcessKeysAndDeduplicatesDays(t *testing.T) {
 	}
 }
 
+func TestFindAllReturnsOnlyRealProbeNames(t *testing.T) {
+	server := fake.NewRedis()
+
+	todayKey := strconv.FormatInt(today().Unix(), 10)
+
+	server.HSet("webcpu:"+seriesCPUKeyPrefix+todayKey, "1", "10")
+	server.HSet("webcpu:"+seriesMemoryKeyPrefix+todayKey, "1", "10")
+	server.HSet("webcpu:"+seriesProcessCPUKeyPrefix+todayKey, "1", "firefox:1.0")
+	server.HSet("webcpu:"+alarmKeyPrefix, "cpu", "1")
+	server.HSet("webcpu"+heartbeatKeySuffix, "1", "1")
+	server.HSet("dataprocess:"+seriesCPUKeyPrefix+todayKey, "1", "10")
+	server.HSet("web-01:"+seriesCPUKeyPrefix+todayKey, "1", "10")
+	server.HSet("web-01:"+seriesProcessCPUKeyPrefix+todayKey, "1", "firefox:1.0")
+
+	rpr := &RedisProbeRepository{RedisPool: server.Pool()}
+
+	probes, err := rpr.FindAll()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := []Probe{"dataprocess", "web-01", "webcpu"}
+
+	if !slices.Equal(probes, want) {
+		t.Errorf("FindAll() = %v, want %v", probes, want)
+	}
+}
+
 func TestFindAllWithoutProbesReturnsEmptyNotNil(t *testing.T) {
 	rpr := &RedisProbeRepository{RedisPool: fake.NewRedis().Pool()}
 

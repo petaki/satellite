@@ -44,3 +44,19 @@ func (a *app) probe(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
+
+func (a *app) allowedHosts(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hostname := requestHostname(r.Host)
+
+		if !slices.Contains(a.appConfig.AllowedHosts, "*") &&
+			!slices.Contains(a.appConfig.AllowedHosts, hostname) &&
+			!isLoopback(hostname) {
+			a.forbidden(w)
+
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}

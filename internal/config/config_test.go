@@ -11,6 +11,7 @@ import (
 
 func newTestConfig(t *testing.T, header string) (*Config, error) {
 	t.Helper()
+	t.Setenv("APP_URL", "http://127.0.0.1:4000")
 	t.Setenv("APP_SERIES_BUTTONS", "last_5_minutes,last_1_hour")
 	t.Setenv("HEARTBEAT_WEBHOOK_HEADER", header)
 
@@ -164,6 +165,68 @@ func TestConfigRejectsInvalidHeartbeat(t *testing.T) {
 			_, err := newTestConfig(t, "")
 			if !errors.Is(err, c.want) {
 				t.Errorf("error = %v, want %v", err, c.want)
+			}
+		})
+	}
+}
+
+func TestConfigAllowedHosts(t *testing.T) {
+	cases := map[string]struct {
+		url          string
+		allowedHosts string
+		want         []string
+	}{
+		"defaults to the app url hostname": {
+			"http://Satellite.Example:4000/", "", []string{"satellite.example"},
+		},
+		"default drops ipv6 brackets": {
+			"http://[::1]:4000", "", []string{"::1"},
+		},
+		"list is trimmed and lowercased": {
+			"http://127.0.0.1:4000", " Satellite.Example ,10.0.0.5", []string{"satellite.example", "10.0.0.5"},
+		},
+		"empty entries are dropped": {
+			"http://127.0.0.1:4000", ",satellite.example,, ,", []string{"satellite.example"},
+		},
+		"wildcard is kept": {
+			"http://127.0.0.1:4000", "*", []string{"*"},
+		},
+		"blank list falls back to the app url": {
+			"http://satellite.example", " , ", []string{"satellite.example"},
+		},
+		"list does not need a valid app url": {
+			"", "satellite.example", []string{"satellite.example"},
+		},
+	}
+
+	for name, c := range cases {
+		t.Run(name, func(t *testing.T) {
+			t.Setenv("APP_URL", c.url)
+			t.Setenv("APP_SERIES_BUTTONS", "last_5_minutes")
+			t.Setenv("APP_ALLOWED_HOSTS", c.allowedHosts)
+
+			appConfig, err := NewConfig(&cli.Command{Name: "serve"}, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if !slices.Equal(appConfig.AllowedHosts, c.want) {
+				t.Errorf("allowed hosts = %v, want %v", appConfig.AllowedHosts, c.want)
+			}
+		})
+	}
+}
+
+func TestConfigRejectsInvalidURLForAllowedHosts(t *testing.T) {
+	for _, value := range []string{"", "not a url", "http://", "://satellite.example"} {
+		t.Run(value, func(t *testing.T) {
+			t.Setenv("APP_URL", value)
+			t.Setenv("APP_SERIES_BUTTONS", "last_5_minutes")
+			t.Setenv("APP_ALLOWED_HOSTS", "")
+
+			_, err := NewConfig(&cli.Command{Name: "serve"}, nil)
+			if !errors.Is(err, ErrInvalidURL) {
+				t.Errorf("APP_URL %q: error = %v, want ErrInvalidURL", value, err)
 			}
 		})
 	}

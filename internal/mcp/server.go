@@ -118,6 +118,7 @@ func NewHandler(
 
 	return server.NewStreamableHTTPServer(
 		mcpServer,
-		server.WithDisableLocalhostProtection(appConfig.MCPAllowAnyHost),
+		// The web package's allowedHosts middleware guards /mcp instead.
+		server.WithDisableLocalhostProtection(true),
 	)
 }

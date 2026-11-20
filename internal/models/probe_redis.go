@@ -4,7 +4,6 @@ import (
 	"slices"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gomodule/redigo/redis"
@@ -46,15 +45,11 @@ func (rpr *RedisProbeRepository) FindAll() ([]Probe, error) {
 			return nil, err
 		}
 
-		for _, name := range current {
-			if strings.Contains(name, seriesProcessCPUKeyPrefix) {
-				continue
-			}
+		for _, key := range current {
+			name, ok := probeName(key)
 
-			segments := strings.SplitN(name, ":"+seriesCPUKeyPrefix, 2)
-
-			if !slices.Contains(names, segments[0]) {
-				names = append(names, segments[0])
+			if ok && !slices.Contains(names, name) {
+				names = append(names, name)
 			}
 		}
 

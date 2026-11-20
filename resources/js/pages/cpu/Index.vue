@@ -51,6 +51,7 @@ import Layout from '../../base/Layout.vue';
 import LiveIndicator from '../../base/LiveIndicator.vue';
 import RefreshButton from '../../base/RefreshButton.vue';
 import useAnnotation from '../../use/useAnnotation';
+import escapeHtml from '../../use/useHtml';
 import useLiveReload from '../../use/useLiveReload';
 import usePaths from '../../use/usePaths';
 import PointInterval from '../../base/PointInterval.vue';
@@ -138,7 +139,7 @@ const options = ref<ApexConfig>({
         y: {
             formatter(value: number, { seriesIndex, dataPointIndex }) {
                 if (seriesIndex > 2) {
-                    return `${series.value[seriesIndex].data[dataPointIndex].name}: ${value.toFixed(2)}%`;
+                    return `${escapeHtml(series.value[seriesIndex].data[dataPointIndex].name)}: ${value.toFixed(2)}%`;
                 }
 
                 return `${value.toFixed(2)}%`;

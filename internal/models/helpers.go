@@ -127,6 +127,21 @@ func parseLoads(value string) ([seriesLoadSegmentCount]float64, bool) {
 	return loads, true
 }
 
+func probeName(key string) (string, bool) {
+	separator := ":" + seriesCPUKeyPrefix
+	index := strings.LastIndex(key, separator)
+
+	if index < 1 || strings.HasSuffix(key[:index+len(separator)], ":"+seriesProcessCPUKeyPrefix) {
+		return "", false
+	}
+
+	if _, err := strconv.ParseUint(key[index+len(separator):], 10, 64); err != nil {
+		return "", false
+	}
+
+	return key[:index], true
+}
+
 func stripANSI(s string) string {
 	return ansiSequence.ReplaceAllString(strings.ReplaceAll(s, "#011", "\t"), "")
 }

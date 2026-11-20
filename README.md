@@ -57,10 +57,13 @@ Image can be found at the package page on [GitHub](https://github.com/petaki/sat
 ```bash
 docker run --rm \
 -e APP_URL=http://127.0.0.1:4000 \
+-e APP_ALLOWED_HOSTS=192.168.0.100 \
 -e REDIS_URL=redis://192.168.0.200:6379/0 \
 -p 4000:4000 \
 ghcr.io/petaki/satellite
 ```
+
+`APP_ALLOWED_HOSTS` lists the hostnames and IPs you open Satellite on. Here `192.168.0.100` is the Docker host's LAN address. See [Application Allowed Hosts](#application-allowed-hosts).
 
 ### Install from Binary
 
@@ -136,6 +139,16 @@ APP_ADDR=:4000
 APP_URL=http://127.0.0.1:4000
 ```
 
+#### Application Allowed Hosts
+
+```
+APP_ALLOWED_HOSTS=
+```
+
+Comma-separated hostnames or IPs that Satellite answers on, for the web UI and `/mcp`. Requests with any other `Host` header get `403`, which blocks DNS rebinding attacks. Loopback (`localhost`, `127.0.0.1`, `::1`) is always allowed. When empty, it defaults to the hostname of `APP_URL`, so `APP_URL` must then be a valid URL. Setting it replaces that default, so list the `APP_URL` hostname too.
+
+If you reach Satellite through another hostname or IP, such as a LAN address, a Docker host or a reverse proxy domain, list it here. Ports are ignored. Use `*` to allow any host.
+
 #### Application Series Buttons
 
 - Maximum `4` items.
@@ -183,14 +196,6 @@ Exposes monitoring data to AI agents. No authentication is included — control 
 ```
 MCP_ENABLED=false
 ```
-
-#### MCP Allow Any Host
-
-```
-MCP_ALLOW_ANY_HOST=false
-```
-
-Disables the DNS rebinding guard on `/mcp`, which rejects requests that reach Satellite over loopback with a non-loopback `Host` header. Set it to `true` when a same-host reverse proxy forwards to `127.0.0.1` and preserves the original `Host`; having the proxy rewrite `Host` to `localhost` is the safer alternative.
 
 ---
 
